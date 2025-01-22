@@ -24,7 +24,10 @@ export async function GET(req: NextRequest) {
     // Get the subaccount's connected Stripe account
     const subAccount = await db.subAccount.findUnique({
       where: { id: subAccountId },
-      select: { connectAccountId: true },
+      select: {
+        connectAccountId: true,
+        agencyId: true
+      },
     });
 
     const stripeConnected = !!subAccount?.connectAccountId;
@@ -40,6 +43,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({
         products: localProducts,
         stripeConnected,
+        agencyId: subAccount?.agencyId,
       });
     }
 
@@ -80,13 +84,18 @@ export async function GET(req: NextRequest) {
         };
       });
 
-      return NextResponse.json({ products: formattedProducts, stripeConnected: true });
+      return NextResponse.json({
+        products: formattedProducts,
+        stripeConnected: true,
+        agencyId: subAccount?.agencyId,
+      });
     }
 
     // Return local products with Stripe connection status
     return NextResponse.json({
       products: localProducts,
       stripeConnected: true,
+      agencyId: subAccount?.agencyId,
     });
   } catch (error) {
     console.error("Error fetching products:", error);

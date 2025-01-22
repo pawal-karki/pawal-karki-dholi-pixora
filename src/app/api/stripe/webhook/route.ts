@@ -61,43 +61,74 @@ export async function POST(req: NextRequest) {
 }
 
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
-  if (session.mode !== "subscription") return;
+  // Handle subscription payments (agency subscriptions)
+  if (session.mode === "subscription") {
+    const { agencyId, priceId } = session.metadata ?? {};
+    const subscriptionId = session.subscription as string;
+    const customerId = session.customer as string;
 
-  const { agencyId, priceId } = session.metadata ?? {};
-  const subscriptionId = session.subscription as string;
-  const customerId = session.customer as string;
-
-  if (!agencyId || !subscriptionId) return;
+    if (!agencyId || !subscriptionId) return;
 
   const subscription = await stripe.subscriptions.retrieve(subscriptionId);
   const plan = await getPlanFromPriceId(priceId || subscription.items.data[0]?.price.id || "");
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const periodEnd = (subscription as any).current_period_end;
 
-  await db.subscription.upsert({
-    where: { agencyId },
-    create: {
-      agencyId,
-      subscritiptionId: subscriptionId,
-      customerId,
-      priceId: priceId || subscription.items.data[0]?.price.id || "",
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      plan: plan as any,
-      price: subscription.items.data[0]?.price.unit_amount?.toString() || null,
-      active: ["active", "trialing"].includes(subscription.status),
-      currentPeriodEndDate: new Date(periodEnd * 1000),
-    },
-    update: {
-      subscritiptionId: subscriptionId,
-      customerId,
-      priceId: priceId || subscription.items.data[0]?.price.id || "",
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      plan: plan as any,
-      price: subscription.items.data[0]?.price.unit_amount?.toString() || null,
-      active: ["active", "trialing"].includes(subscription.status),
-      currentPeriodEndDate: new Date(periodEnd * 1000),
-    },
-  });
+    await db.subscription.upsert({
+      where: { agencyId },
+      create: {
+        agencyId,
+        subscritiptionId: subscriptionId,
+        customerId,
+        priceId: priceId || subscription.items.data[0]?.price.id || "",
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        plan: plan as any,
+        price: subscription.items.data[0]?.price.unit_amount?.toString() || null,
+        active: ["active", "trialing"].includes(subscription.status),
+        currentPeriodEndDate: new Date(periodEnd * 1000),
+      },
+      update: {
+        subscritiptionId: subscriptionId,
+        customerId,
+        priceId: priceId || subscription.items.data[0]?.price.id || "",
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        plan: plan as any,
+        price: subscription.items.data[0]?.price.unit_amount?.toString() || null,
+        active: ["active", "trialing"].includes(subscription.status),
+        currentPeriodEndDate: new Date(periodEnd * 1000),
+      },
+    });
+    return;
+  }
+
+  // Handle product payments (one-time payments for products)
+  if (session.mode === "payment") {
+    const { subAccountId } = session.metadata ?? {};
+    const paymentIntentId = session.payment_intent as string;
+
+    if (!paymentIntentId) return;
+
+    // The payment_intent metadata (which includes subAccountId) will be attached to the charge
+    // This ensures charges have the subAccountId in their metadata
+    try {
+      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+      
+      // If payment_intent doesn't have metadata but session does, update it
+      if (subAccountId && !paymentIntent.metadata?.subAccountId) {
+        await stripe.paymentIntents.update(
+          paymentIntentId,
+          {
+            metadata: {
+              ...paymentIntent.metadata,
+              subAccountId,
+            },
+          }
+        );
+      }
+    } catch (error) {
+      console.error("[Stripe Webhook] Error updating payment intent metadata:", error);
+    }
+  }
 }
 
 async function handleSubscriptionChange(subscription: Stripe.Subscription) {

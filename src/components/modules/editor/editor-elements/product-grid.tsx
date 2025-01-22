@@ -38,6 +38,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ element }) => {
   const { editor } = editorState;
 
   const [products, setProducts] = useState<Product[]>([]);
+  const [agencyId, setAgencyId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -45,7 +46,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ element }) => {
   let cart: ReturnType<typeof useCart> | null = null;
   try {
     cart = useCart();
-  } catch {}
+  } catch { }
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -68,6 +69,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ element }) => {
 
         const data = await res.json();
         setProducts(data.products || []);
+        setAgencyId(data.agencyId);
       } catch (err: any) {
         setError(err.message || "Something went wrong");
         setProducts([]);
@@ -95,9 +97,9 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ element }) => {
   };
 
   const handleAddToCart = (product: Product) => {
-    if (!cart) {
-      toast.info("Preview mode", {
-        description: "Add to cart works in live mode only",
+    if (!cart || !agencyId) {
+      toast.error("Cannot add to cart", {
+        description: !cart ? "Preview mode" : "Missing agency information",
       });
       return;
     }
@@ -110,6 +112,8 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ element }) => {
       currency: product.currency || "NPR",
       image: product.image,
       stripePriceId: product.stripePriceId,
+      subAccountId: subAccountId!,
+      agencyId: agencyId!,
     });
 
     toast.success("Added to cart", {

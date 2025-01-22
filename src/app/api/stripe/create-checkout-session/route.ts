@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { db } from "@/lib/db";
 import { stripe } from "@/lib/stripe/server";
+import { validateCartAgency } from "@/lib/stripe/validate-cart-agency";
 
 /**
  * Checkout session creator for funnel payments.
@@ -18,6 +19,17 @@ export async function POST(req: NextRequest) {
       successUrl,
       cancelUrl,
     } = body ?? {};
+
+    // Validate all products belong to same agency
+    if (subAccountId && prices?.length > 0) {
+      const validation = await validateCartAgency(prices, subAccountId);
+      if (!validation.valid) {
+        return NextResponse.json(
+          { error: validation.error || "Products from different agencies cannot be purchased together" },
+          { status: 400 }
+        );
+      }
+    }
 
     if (!subAccountConnectedId && subAccountId) {
       // Try to get connect ID from subaccount
@@ -62,6 +74,14 @@ export async function POST(req: NextRequest) {
           billing_address_collection: "required",
           success_url: successUrl || `${normalizedBaseUrl}checkout/success?session_id={CHECKOUT_SESSION_ID}`,
           cancel_url: cancelUrl || `${normalizedBaseUrl}checkout/canceled`,
+          metadata: {
+            ...(subAccountId && { subAccountId }),
+          },
+          payment_intent_data: {
+            metadata: {
+              ...(subAccountId && { subAccountId }),
+            },
+          },
         },
         { stripeAccount: connectAccountId }
       );
@@ -83,6 +103,14 @@ export async function POST(req: NextRequest) {
         line_items,
         billing_address_collection: "required",
         return_url: returnUrl,
+        metadata: {
+          ...(subAccountId && { subAccountId }),
+        },
+        payment_intent_data: {
+          metadata: {
+            ...(subAccountId && { subAccountId }),
+          },
+        },
       },
       { stripeAccount: connectAccountId }
     );

@@ -334,26 +334,47 @@ export const verifyAndAccpetInvitations = async () => {
   console.log("LOG: Invitation found in DB:", invitationsExist);
 
   if (invitationsExist) {
-    const userDetails = await createTeamUser(invitationsExist.agencyId, {
-      email: invitationsExist.email,
-      agencyId: invitationsExist.agencyId,
-      avatarUrl: clerkUser.imageUrl,
-      id: clerkUser.id,
-      name: `${clerkUser.firstName} ${clerkUser.lastName}`,
-      role: invitationsExist.role,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      password: null,
-    });
+    // Handle AGENCY_OWNER invitations separately (they need direct user creation)
+    let userDetails;
+    if (invitationsExist.role === "AGENCY_OWNER") {
+      // For AGENCY_OWNER, create user directly (not through createTeamUser)
+      userDetails = await db.user.create({
+        data: {
+          email: invitationsExist.email,
+          agencyId: invitationsExist.agencyId,
+          avatarUrl: clerkUser.imageUrl,
+          id: clerkUser.id,
+          name: `${clerkUser.firstName} ${clerkUser.lastName}`,
+          role: invitationsExist.role,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          password: null,
+        },
+      });
+    } else {
+      // For other roles, use createTeamUser
+      userDetails = await createTeamUser(invitationsExist.agencyId, {
+        email: invitationsExist.email,
+        agencyId: invitationsExist.agencyId,
+        avatarUrl: clerkUser.imageUrl,
+        id: clerkUser.id,
+        name: `${clerkUser.firstName} ${clerkUser.lastName}`,
+        role: invitationsExist.role,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        password: null,
+      });
+    }
+    
     console.log("LOG: Created Team User:", userDetails);
 
-    await saveActivityLogsNotification({
-      agencyId: invitationsExist?.agencyId,
-      description: `${clerkUser.firstName} ${clerkUser.lastName} has joined the agency`,
-      subaccountId: undefined,
-    });
-
     if (userDetails) {
+      await saveActivityLogsNotification({
+        agencyId: invitationsExist?.agencyId,
+        description: `${clerkUser.firstName} ${clerkUser.lastName} has joined the agency`,
+        subaccountId: undefined,
+      });
+
       try {
         const client = await clerkClient();
         await client.users.updateUserMetadata(userDetails.id, {
@@ -438,6 +459,10 @@ export const initUser = async (newUser?: Partial<User>) => {
         name:
           `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim() ||
           "User",
+        // Ensure role is updated if provided
+        ...(newUser?.role && { role: newUser.role as Role }),
+        // Ensure agencyId is updated if provided
+        ...(newUser?.agencyId !== undefined && { agencyId: newUser.agencyId }),
       },
       create: {
         id: clerkUser.id,
@@ -447,6 +472,7 @@ export const initUser = async (newUser?: Partial<User>) => {
           "User",
         email: clerkUser.emailAddresses[0].emailAddress,
         role: (newUser?.role as Role) || "SUBACCOUNT_USER",
+        agencyId: newUser?.agencyId || null,
       },
     });
 
@@ -519,6 +545,13 @@ export const upsertAgency = async (agency: UpsertAgencyInput) => {
 
   const userEmail = await getCurrentUserEmail();
   if (!userEmail) return null;
+
+  // Check if this is a new agency (doesn't exist yet)
+  const existingAgency = await db.agency.findUnique({
+    where: { id: agency.id },
+    include: { users: true },
+  });
+  const isNewAgency = !existingAgency;
 
   try {
     const agencyDetails = await db.agency.upsert({
@@ -593,6 +626,32 @@ export const upsertAgency = async (agency: UpsertAgencyInput) => {
         },
       },
     });
+
+    // After creating/updating agency, ensure user is linked and has correct role
+    if (agencyDetails) {
+      const existingUser = await db.user.findUnique({
+        where: { email: userEmail },
+      });
+
+      // If this is a new agency, ensure the user who created it is AGENCY_OWNER and linked
+      if (isNewAgency) {
+        await db.user.update({
+          where: { email: userEmail },
+          data: {
+            agencyId: agencyDetails.id,
+            role: "AGENCY_OWNER",
+          },
+        });
+      } else if (existingUser && existingUser.agencyId !== agencyDetails.id) {
+        // If user exists but isn't linked to this agency, link them
+        await db.user.update({
+          where: { email: userEmail },
+          data: {
+            agencyId: agencyDetails.id,
+          },
+        });
+      }
+    }
 
     return agencyDetails;
   } catch (error) {
@@ -954,8 +1013,16 @@ export const sendInvitation = async (
  * Updates user details including permissions
  */
 export const updateUser = async (user: Partial<User>) => {
+  if (!user.email && !user.id) {
+    throw new Error("Either email or id must be provided to update user");
+  }
+
+  const whereClause = user.id 
+    ? { id: user.id }
+    : { email: user.email! };
+
   const response = await db.user.update({
-    where: { email: user.email },
+    where: whereClause,
     data: { ...user },
   });
   return response;

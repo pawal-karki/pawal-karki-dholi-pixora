@@ -29,13 +29,46 @@ export default clerkMiddleware(async (auth, req) => {
     }`;
 
   // Check for custom subdomain
-  const customSubDomain = hostname
-    .get("host")
-    ?.split(`${process.env.NEXT_PUBLIC_DOMAIN}`)
-    .filter(Boolean)[0];
+  const host = hostname.get("host") || "";
+  
+  // Handle Vercel domain format: subdomain.project.vercel.app or subdomain.custom-domain.com
+  let customSubDomain: string | null = null;
+  
+  if (process.env.NEXT_PUBLIC_DOMAIN) {
+    // If NEXT_PUBLIC_DOMAIN is set, use it to extract subdomain
+    // Example: NEXT_PUBLIC_DOMAIN = "pawal-karki-dholi-pixora.vercel.app"
+    // Host = "sohail.pawal-karki-dholi-pixora.vercel.app"
+    // Result: "sohail"
+    const baseDomain = process.env.NEXT_PUBLIC_DOMAIN;
+    
+    // Check if host ends with base domain
+    if (host.endsWith(baseDomain)) {
+      const subdomainPart = host.slice(0, host.length - baseDomain.length);
+      // Remove trailing dot if present
+      customSubDomain = subdomainPart.replace(/\.$/, "").trim();
+      
+      // If subdomain is empty or just dots, it's the main domain
+      if (!customSubDomain || customSubDomain === "") {
+        customSubDomain = null;
+      }
+    }
+  } else {
+    // Fallback: Check if host has multiple parts (subdomain exists)
+    // For Vercel: subdomain.project.vercel.app has 3+ parts
+    // For custom domain: subdomain.domain.com has 3+ parts
+    const hostParts = host.split(".");
+    if (hostParts.length >= 3) {
+      // Check if it's not a known TLD pattern (e.g., www, api, etc.)
+      const firstPart = hostParts[0];
+      const knownPrefixes = ["www", "api", "app", "admin"];
+      if (!knownPrefixes.includes(firstPart.toLowerCase())) {
+        customSubDomain = firstPart;
+      }
+    }
+  }
 
-  // If subdomain exists, rewrite to subdomain route (but NOT for API routes)
-  if (customSubDomain && !url.pathname.startsWith("/api")) {
+  // If subdomain exists and is not empty, rewrite to subdomain route (but NOT for API routes)
+  if (customSubDomain && customSubDomain.trim() !== "" && !url.pathname.startsWith("/api")) {
     return NextResponse.rewrite(
       new URL(`/${customSubDomain}${pathWithSearchParams}`, req.url)
     );
@@ -46,11 +79,11 @@ export default clerkMiddleware(async (auth, req) => {
     return NextResponse.redirect(new URL("/agency/sign-in", req.url));
   }
 
-  // Rewrite root to /site
-  if (
+  // Rewrite root to /site (only if no subdomain was detected)
+  if (!customSubDomain && (
     url.pathname === "/" ||
-    (url.pathname === "/site" && url.host === process.env.NEXT_PUBLIC_DOMAIN)
-  ) {
+    (url.pathname === "/site" && (!process.env.NEXT_PUBLIC_DOMAIN || url.host === process.env.NEXT_PUBLIC_DOMAIN))
+  )) {
     return NextResponse.rewrite(new URL("/site", req.url));
   }
 

@@ -17,8 +17,10 @@ import { getAgencyDetails, getSubAccountsByAgency } from "@/lib/queries";
 import {
   getAgencyDashboardMetrics,
   getStripeTransactions,
+  getStripeTransactionsByDateRange,
   getAgencySubscriptionHistory,
 } from "@/lib/stripe/dashboard";
+import { subMonths } from "date-fns";
 
 import {
   Card,
@@ -32,6 +34,7 @@ import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TransactionHistory } from "@/components/modules/dashboard/transaction-history";
+import { ClientTransactionGraph } from "@/components/modules/dashboard/client-transaction-graph";
 
 interface AgencyIdPageProps {
   params: Promise<{
@@ -57,11 +60,21 @@ const AgencyIdPage: React.FC<AgencyIdPageProps> = async ({ params }) => {
   );
 
   // Fetch transactions
-  const [stripeTransactions, subscriptionHistory] = await Promise.all([
+  const endDate = new Date();
+  const startDate = subMonths(endDate, 3); // Last 3 months for graph
+  
+  const [stripeTransactions, subscriptionHistory, graphTransactions] = await Promise.all([
     agencyDetails.connectAccountId
       ? getStripeTransactions(agencyDetails.connectAccountId, 10)
       : Promise.resolve([]),
     getAgencySubscriptionHistory(agencyId),
+    agencyDetails.connectAccountId
+      ? getStripeTransactionsByDateRange(
+          agencyDetails.connectAccountId,
+          startDate,
+          endDate
+        )
+      : Promise.resolve([]),
   ]);
 
   // Format currency
@@ -210,6 +223,27 @@ const AgencyIdPage: React.FC<AgencyIdPageProps> = async ({ params }) => {
             </div>
           </Card>
         </div>
+
+        {/* Revenue Overview Graph */}
+        {(agencyDetails.connectAccountId || metrics.potentialIncome > 0) && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Revenue Overview</CardTitle>
+              <CardDescription>
+                Income from client payments and potential income from pipeline opportunities
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <ClientTransactionGraph
+                  transactions={graphTransactions}
+                  potentialIncome={metrics.potentialIncome}
+                  startDate={startDate}
+                  endDate={endDate}
+                  currency={metrics.currency}
+                />
+              </CardContent>
+          </Card>
+        )}
 
         {/* Transaction History Section */}
         <div className="grid gap-4 lg:grid-cols-3">

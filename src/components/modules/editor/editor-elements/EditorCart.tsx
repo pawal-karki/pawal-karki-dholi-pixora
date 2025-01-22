@@ -5,12 +5,12 @@ import { EditorElement } from "@/lib/types/editor";
 import { useEditor } from "@/hooks/use-editor";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { 
-    Trash, 
-    ShoppingCart, 
-    Plus, 
-    Minus, 
-    X, 
+import {
+    Trash,
+    ShoppingCart,
+    Plus,
+    Minus,
+    X,
     ShoppingBag,
     ArrowRight,
     Loader2
@@ -30,7 +30,7 @@ export const EditorCart: React.FC<EditorCartProps> = ({ element }) => {
     const { dispatch, editor: editorState, subAccountId, funnelId } = useEditor();
     const { editor } = editorState;
     const [isCheckingOut, setIsCheckingOut] = useState(false);
-    
+
     // Try to use cart
     let cart: ReturnType<typeof useCart> | null = null;
     try {
@@ -84,6 +84,9 @@ export const EditorCart: React.FC<EditorCartProps> = ({ element }) => {
                 quantity: item.quantity,
             }));
 
+            // Use cart's tracked subAccountId (all items from same agency)
+            const cartSubAccountId = cart.subAccountId || cart.items[0]?.subAccountId;
+
             const currentUrl = window.location.href;
             const baseUrl = window.location.origin;
             const response = await fetch(`${baseUrl}/api/stripe/create-checkout-session`, {
@@ -91,7 +94,7 @@ export const EditorCart: React.FC<EditorCartProps> = ({ element }) => {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     prices,
-                    subAccountId,
+                    subAccountId: cartSubAccountId, // Use cart's agency context
                     mode: "redirect",
                     successUrl: `${currentUrl}?checkout=success`,
                     cancelUrl: `${currentUrl}?checkout=canceled`,
@@ -103,7 +106,6 @@ export const EditorCart: React.FC<EditorCartProps> = ({ element }) => {
             if (data.error) {
                 throw new Error(data.error);
             }
-
             // Redirect to Stripe checkout
             if (data.checkoutUrl) {
                 // Clear cart before redirect
@@ -219,7 +221,7 @@ export const EditorCart: React.FC<EditorCartProps> = ({ element }) => {
                                         <p className="text-sm text-muted-foreground mb-3">
                                             {formatPrice(item.price, item.currency)}
                                         </p>
-                                        
+
                                         {/* Quantity Controls */}
                                         <div className="flex items-center gap-2">
                                             {cart && (
@@ -276,9 +278,9 @@ export const EditorCart: React.FC<EditorCartProps> = ({ element }) => {
                                 {formatPrice(totalPrice, currency)}
                             </span>
                         </div>
-                        
+
                         {cart && (
-                            <Button 
+                            <Button
                                 className="w-full h-12 text-base font-semibold bg-black hover:bg-black/90 text-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200"
                                 onClick={(e) => {
                                     e.stopPropagation();
@@ -299,7 +301,7 @@ export const EditorCart: React.FC<EditorCartProps> = ({ element }) => {
                                 )}
                             </Button>
                         )}
-                        
+
                         {!cart && !editor.liveMode && (
                             <p className="text-sm text-muted-foreground text-center">
                                 Checkout works in preview/live mode

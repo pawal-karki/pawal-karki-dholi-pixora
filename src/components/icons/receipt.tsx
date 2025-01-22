@@ -65,7 +65,6 @@ const Receipt = ({ className = "" }: { className?: string }) => {
         strokeOpacity="0.6"
         strokeLinecap="round"
       />
-
       {/* Perforated edge */}
       <path
         d="M4 19.5L20 19.5"
@@ -84,5 +83,4 @@ const Receipt = ({ className = "" }: { className?: string }) => {
     </svg>
   );
 };
-
 export default Receipt;

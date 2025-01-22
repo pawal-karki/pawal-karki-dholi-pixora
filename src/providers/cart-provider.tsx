@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useCallback, useMemo } from "react";
+import { toast } from "sonner";
 
 export interface CartItem {
   id: string;
@@ -11,6 +12,8 @@ export interface CartItem {
   image: string | null;
   quantity: number;
   stripePriceId: string | null;
+  subAccountId: string;
+  agencyId: string;
 }
 
 interface CartContextType {
@@ -22,6 +25,8 @@ interface CartContextType {
   totalItems: number;
   totalPrice: number;
   currency: string;
+  subAccountId: string | null;
+  agencyId: string | null;
 }
 
 const CartContext = createContext<CartContextType | null>(null);
@@ -43,6 +48,21 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
   const addItem = useCallback((item: Omit<CartItem, "quantity">) => {
     setItems((prev) => {
+      // If cart is empty, accept any agency
+      if (prev.length === 0) {
+        return [{ ...item, quantity: 1 }];
+      }
+
+      // Check if different agency
+      const currentAgencyId = prev[0].agencyId;
+      if (item.agencyId !== currentAgencyId) {
+        // Clear cart and add new item
+        toast.warning("Cart cleared", {
+          description: "Products from different agencies cannot be mixed. Previous items removed.",
+        });
+        return [{ ...item, quantity: 1 }];
+      }
+
       const existingItem = prev.find((i) => i.productId === item.productId);
       if (existingItem) {
         return prev.map((i) =>
@@ -88,6 +108,9 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     [items]
   );
 
+  const subAccountId = useMemo(() => items[0]?.subAccountId || null, [items]);
+  const agencyId = useMemo(() => items[0]?.agencyId || null, [items]);
+
   const value = useMemo(
     () => ({
       items,
@@ -98,8 +121,10 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       totalItems,
       totalPrice,
       currency,
+      subAccountId,
+      agencyId,
     }),
-    [items, addItem, removeItem, updateQuantity, clearCart, totalItems, totalPrice, currency]
+    [items, addItem, removeItem, updateQuantity, clearCart, totalItems, totalPrice, currency, subAccountId, agencyId]
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

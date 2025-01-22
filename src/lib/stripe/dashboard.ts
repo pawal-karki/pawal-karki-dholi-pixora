@@ -11,6 +11,7 @@ export interface TransactionData {
   created: Date;
   type: "charge" | "refund" | "payout" | "subscription";
   customerEmail?: string;
+  subAccountId?: string;
 }
 
 export interface DashboardMetrics {
@@ -50,28 +51,104 @@ export async function getStripeTransactions(
     const charges = await stripe.charges.list(
       {
         limit,
-        expand: ["data.customer"],
+        expand: ["data.customer", "data.payment_intent"],
       },
       {
         stripeAccount: connectAccountId,
       }
     );
 
-    return charges.data.map((charge) => ({
-      id: charge.id,
-      amount: charge.amount / 100,
-      currency: charge.currency.toUpperCase(),
-      description: charge.description || charge.metadata?.description || "Payment",
-      status: charge.status,
-      created: new Date(charge.created * 1000),
-      type: "charge" as const,
-      customerEmail:
-        typeof charge.customer === "object" && charge.customer
-          ? (charge.customer as Stripe.Customer).email || undefined
-          : undefined,
-    }));
+    return charges.data.map((charge) => {
+      // Get subAccountId from charge metadata or payment_intent metadata
+      const subAccountId = charge.metadata?.subAccountId || 
+        (typeof charge.payment_intent === "object" && charge.payment_intent
+          ? (charge.payment_intent as Stripe.PaymentIntent).metadata?.subAccountId
+          : undefined);
+
+      return {
+        id: charge.id,
+        amount: charge.amount / 100,
+        currency: charge.currency.toUpperCase(),
+        description: charge.description || charge.metadata?.description || "Payment",
+        status: charge.status,
+        created: new Date(charge.created * 1000),
+        type: "charge" as const,
+        customerEmail:
+          typeof charge.customer === "object" && charge.customer
+            ? (charge.customer as Stripe.Customer).email || undefined
+            : undefined,
+        subAccountId,
+      };
+    });
   } catch (error) {
     console.error("Error fetching Stripe transactions:", error);
+    return [];
+  }
+}
+
+/**
+ * Get transactions from Stripe Connect account for a date range
+ */
+export async function getStripeTransactionsByDateRange(
+  connectAccountId: string,
+  startDate: Date,
+  endDate: Date
+): Promise<TransactionData[]> {
+  try {
+    const allCharges: TransactionData[] = [];
+    let hasMore = true;
+    let startingAfter: string | undefined = undefined;
+
+    while (hasMore) {
+      const charges = await stripe.charges.list(
+        {
+          limit: 100,
+          created: {
+            gte: Math.floor(startDate.getTime() / 1000),
+            lte: Math.floor(endDate.getTime() / 1000),
+          },
+          expand: ["data.customer", "data.payment_intent"],
+          ...(startingAfter && { starting_after: startingAfter }),
+        },
+        {
+          stripeAccount: connectAccountId,
+        }
+      );
+
+      const mappedCharges = charges.data.map((charge) => {
+        // Get subAccountId from charge metadata or payment_intent metadata
+        const subAccountId = charge.metadata?.subAccountId || 
+          (typeof charge.payment_intent === "object" && charge.payment_intent
+            ? (charge.payment_intent as Stripe.PaymentIntent).metadata?.subAccountId
+            : undefined);
+
+        return {
+          id: charge.id,
+          amount: charge.amount / 100,
+          currency: charge.currency.toUpperCase(),
+          description: charge.description || charge.metadata?.description || "Payment",
+          status: charge.status,
+          created: new Date(charge.created * 1000),
+          type: "charge" as const,
+          customerEmail:
+            typeof charge.customer === "object" && charge.customer
+              ? (charge.customer as Stripe.Customer).email || undefined
+              : undefined,
+          subAccountId,
+        };
+      });
+
+      allCharges.push(...mappedCharges);
+
+      hasMore = charges.has_more;
+      if (hasMore && charges.data.length > 0) {
+        startingAfter = charges.data[charges.data.length - 1].id;
+      }
+    }
+
+    return allCharges;
+  } catch (error) {
+    console.error("Error fetching Stripe transactions by date range:", error);
     return [];
   }
 }

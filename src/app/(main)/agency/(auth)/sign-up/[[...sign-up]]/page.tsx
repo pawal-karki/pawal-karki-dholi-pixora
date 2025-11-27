@@ -5,44 +5,63 @@ import Image from "next/image";
 import Link from "next/link";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { useSignIn } from "@clerk/nextjs";
-import { Mail, Lock, Eye, EyeOff, LogIn } from "lucide-react";
+import { useSignUp } from "@clerk/nextjs";
+import { Mail, Lock, Eye, EyeOff, User, UserPlus } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 
 const validationSchema = Yup.object({
+  name: Yup.string()
+    .min(2, "Name must be at least 2 characters")
+    .max(50, "Name must be less than 50 characters")
+    .required("Full name is required"),
   email: Yup.string()
     .email("Please enter a valid email address")
     .required("Email is required"),
   password: Yup.string()
     .min(8, "Password must be at least 8 characters")
+    .matches(/[a-z]/, "Password must contain at least one lowercase letter")
+    .matches(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .matches(/[0-9]/, "Password must contain at least one number")
     .required("Password is required"),
+  confirmPassword: Yup.string()
+    .oneOf([Yup.ref("password")], "Passwords must match")
+    .required("Please confirm your password"),
+  acceptTerms: Yup.boolean()
+    .oneOf([true], "You must accept the terms and conditions")
+    .required("You must accept the terms and conditions"),
 });
 
-const SignInPage = () => {
+const SignUpPage = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { signIn, isLoaded: clerkLoaded } = useSignIn();
+  const [success, setSuccess] = useState<string | null>(null);
+  const { signUp, isLoaded: clerkLoaded } = useSignUp();
 
   const formik = useFormik({
     initialValues: {
+      name: "",
       email: "",
       password: "",
+      confirmPassword: "",
+      acceptTerms: false,
     },
     validationSchema,
     onSubmit: async (values) => {
       setIsLoading(true);
       setError(null);
+      setSuccess(null);
 
       try {
         // JWT Authentication for API/Postman testing
-        const response = await fetch("/api/auth/signin", {
+        const response = await fetch("/api/auth/signup", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
+            name: values.name,
             email: values.email,
             password: values.password,
           }),
@@ -51,48 +70,53 @@ const SignInPage = () => {
         const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(data.error || "Sign in failed");
+          throw new Error(data.error || "Sign up failed");
         }
 
-        // Store JWT token
+        setSuccess("Account created successfully! Redirecting to sign in...");
+
+        // Store JWT token if returned
         if (data.token) {
           localStorage.setItem("auth_token", data.token);
-          // Redirect to dashboard or home
-          window.location.href = "/agency";
         }
+
+        // Redirect to sign in after success
+        setTimeout(() => {
+          window.location.href = "/agency/sign-in";
+        }, 2000);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Sign in failed");
+        setError(err instanceof Error ? err.message : "Sign up failed");
       } finally {
         setIsLoading(false);
       }
     },
   });
 
-  const handleGoogleSignIn = async () => {
-    if (!clerkLoaded || !signIn) return;
+  const handleGoogleSignUp = async () => {
+    if (!clerkLoaded || !signUp) return;
 
     try {
-      await signIn.authenticateWithRedirect({
+      await signUp.authenticateWithRedirect({
         strategy: "oauth_google",
         redirectUrl: "/sso-callback",
         redirectUrlComplete: "/agency",
       });
     } catch (err) {
-      setError("Google sign in failed");
+      setError("Google sign up failed");
     }
   };
 
-  const handleAppleSignIn = async () => {
-    if (!clerkLoaded || !signIn) return;
+  const handleAppleSignUp = async () => {
+    if (!clerkLoaded || !signUp) return;
 
     try {
-      await signIn.authenticateWithRedirect({
+      await signUp.authenticateWithRedirect({
         strategy: "oauth_apple",
         redirectUrl: "/sso-callback",
         redirectUrlComplete: "/agency",
       });
     } catch (err) {
-      setError("Apple sign in failed");
+      setError("Apple sign up failed");
     }
   };
 
@@ -100,7 +124,7 @@ const SignInPage = () => {
     <div className="w-full max-w-[400px]">
       {/* Card */}
       <div className="bg-white rounded-3xl shadow-[0_24px_80px_rgba(15,23,42,0.35)] px-8 py-8">
-        {/* Logo - left aligned with custom crop box */}
+        {/* Logo - left aligned, same as sign-in */}
         <div className="mb-6">
           <div className="relative h-16 w-48 overflow-hidden">
             <Image
@@ -116,11 +140,9 @@ const SignInPage = () => {
 
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">
-            Welcome back
-          </h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-1">SignUp</h1>
           <p className="text-gray-400 text-sm">
-            Please enter your details to sign in
+            Please enter your details to sign up
           </p>
         </div>
 
@@ -131,8 +153,49 @@ const SignInPage = () => {
           </div>
         )}
 
+        {/* Success Message */}
+        {success && (
+          <div className="bg-green-50 border border-green-200 text-green-600 px-3 py-2 rounded-lg text-xs mb-4">
+            {success}
+          </div>
+        )}
+
         {/* Form */}
         <form onSubmit={formik.handleSubmit} className="space-y-3">
+          {/* Name Field */}
+          <div>
+            <label
+              htmlFor="name"
+              className="block text-xs font-semibold text-gray-800 mb-1"
+            >
+              Full Name
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <User className="h-4 w-4 text-gray-400" />
+              </div>
+              <input
+                id="name"
+                name="name"
+                type="text"
+                placeholder="Enter your full name"
+                className={`w-full pl-9 pr-3 py-2 border rounded-lg bg-white text-gray-900 placeholder-gray-400 text-xs focus:outline-none focus:ring-0 focus:border-[#2657C1] transition-colors ${
+                  formik.touched.name && formik.errors.name
+                    ? "border-red-400"
+                    : "border-gray-200"
+                }`}
+                value={formik.values.name}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+              />
+            </div>
+            {formik.touched.name && formik.errors.name && (
+              <p className="text-red-500 text-[10px] mt-1">
+                {formik.errors.name}
+              </p>
+            )}
+          </div>
+
           {/* Email Field */}
           <div>
             <label
@@ -183,7 +246,7 @@ const SignInPage = () => {
                 id="password"
                 name="password"
                 type={showPassword ? "text" : "password"}
-                placeholder="Enter your password"
+                placeholder="Create a password"
                 className={`w-full pl-9 pr-9 py-2 border rounded-lg bg-white text-gray-900 placeholder-gray-400 text-xs focus:outline-none focus:ring-0 focus:border-[#2657C1] transition-colors ${
                   formik.touched.password && formik.errors.password
                     ? "border-red-400"
@@ -199,9 +262,9 @@ const SignInPage = () => {
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? (
-                  <EyeOff className="h-4 w-4 text-gray-400 hover:text-gray-600 transition-colors" />
+                  <EyeOff className="h-4 w-4 text-gray-400 hover:text-gray-600" />
                 ) : (
-                  <Eye className="h-4 w-4 text-gray-400 hover:text-gray-600 transition-colors" />
+                  <Eye className="h-4 w-4 text-gray-400 hover:text-gray-600" />
                 )}
               </button>
             </div>
@@ -212,29 +275,88 @@ const SignInPage = () => {
             )}
           </div>
 
-          {/* Remember Me & Forgot Password */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
-              <Checkbox
-                id="remember"
-                checked={rememberMe}
-                onCheckedChange={(checked) => setRememberMe(checked as boolean)}
-                className="h-3.5 w-3.5 rounded border border-gray-300 data-[state=checked]:bg-[#2657C1] data-[state=checked]:border-[#2657C1]"
-              />
-              <label
-                htmlFor="remember"
-                className="text-xs text-gray-600 cursor-pointer select-none"
-              >
-                Remember me
-              </label>
-            </div>
-            <Link
-              href="/agency/forgot-password"
-              className="text-xs text-[#2657C1] hover:text-[#1e4a9e] font-medium transition-colors"
+          {/* Confirm Password Field */}
+          <div>
+            <label
+              htmlFor="confirmPassword"
+              className="block text-xs font-semibold text-gray-800 mb-1"
             >
-              Forgot password?
-            </Link>
+              Confirm Password
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Lock className="h-4 w-4 text-gray-400" />
+              </div>
+              <input
+                id="confirmPassword"
+                name="confirmPassword"
+                type={showConfirmPassword ? "text" : "password"}
+                placeholder="Confirm your password"
+                className={`w-full pl-9 pr-9 py-2 border rounded-lg bg-white text-gray-900 placeholder-gray-400 text-xs focus:outline-none focus:ring-0 focus:border-[#2657C1] transition-colors ${
+                  formik.touched.confirmPassword &&
+                  formik.errors.confirmPassword
+                    ? "border-red-400"
+                    : "border-gray-200"
+                }`}
+                value={formik.values.confirmPassword}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+              />
+              <button
+                type="button"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              >
+                {showConfirmPassword ? (
+                  <EyeOff className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                ) : (
+                  <Eye className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                )}
+              </button>
+            </div>
+            {formik.touched.confirmPassword &&
+              formik.errors.confirmPassword && (
+                <p className="text-red-500 text-[10px] mt-1">
+                  {formik.errors.confirmPassword}
+                </p>
+              )}
           </div>
+
+          {/* Terms & Conditions */}
+          <div className="flex items-start gap-1.5">
+            <Checkbox
+              id="acceptTerms"
+              checked={formik.values.acceptTerms}
+              onCheckedChange={(checked) =>
+                formik.setFieldValue("acceptTerms", checked)
+              }
+              className="mt-0.5 h-3.5 w-3.5 rounded border border-gray-300 data-[state=checked]:bg-[#2657C1] data-[state=checked]:border-[#2657C1]"
+            />
+            <label
+              htmlFor="acceptTerms"
+              className="text-xs text-gray-600 cursor-pointer leading-tight"
+            >
+              I agree to the{" "}
+              <Link
+                href="/terms"
+                className="text-[#2657C1] hover:text-[#1e4a9e]"
+              >
+                Terms of Service
+              </Link>{" "}
+              and{" "}
+              <Link
+                href="/privacy"
+                className="text-[#2657C1] hover:text-[#1e4a9e]"
+              >
+                Privacy Policy
+              </Link>
+            </label>
+          </div>
+          {formik.touched.acceptTerms && formik.errors.acceptTerms && (
+            <p className="text-red-500 text-[10px] mt-1">
+              {formik.errors.acceptTerms}
+            </p>
+          )}
 
           {/* Submit Button */}
           <button
@@ -255,8 +377,8 @@ const SignInPage = () => {
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : (
               <>
-                <LogIn className="h-3.5 w-3.5" />
-                Login
+                <UserPlus className="h-3.5 w-3.5" />
+                SignUp
               </>
             )}
           </button>
@@ -269,7 +391,7 @@ const SignInPage = () => {
           </div>
           <div className="relative flex justify-center">
             <span className="px-3 bg-white text-gray-500 text-xs font-medium">
-              Login With
+              SignUp With
             </span>
           </div>
         </div>
@@ -279,7 +401,7 @@ const SignInPage = () => {
           {/* Google */}
           <button
             type="button"
-            onClick={handleGoogleSignIn}
+            onClick={handleGoogleSignUp}
             className="w-10 h-10 flex items-center justify-center border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -305,7 +427,7 @@ const SignInPage = () => {
           {/* Apple */}
           <button
             type="button"
-            onClick={handleAppleSignIn}
+            onClick={handleAppleSignUp}
             className="w-10 h-10 flex items-center justify-center bg-[#1a1a2e] rounded-lg hover:bg-[#0f0f1a] transition-all"
           >
             <svg
@@ -319,18 +441,18 @@ const SignInPage = () => {
         </div>
       </div>
 
-      {/* Register Link */}
+      {/* Login Link */}
       <p className="text-center mt-5 text-gray-400 text-xs">
-        Don&apos;t have an account?{" "}
+        Already an account?{" "}
         <Link
-          href="/agency/sign-up"
+          href="/agency/sign-in"
           className="text-[#2657C1] hover:text-[#1e4a9e] font-medium transition-colors"
         >
-          Register here
+          Login here
         </Link>
       </p>
     </div>
   );
 };
 
-export default SignInPage;
+export default SignUpPage;

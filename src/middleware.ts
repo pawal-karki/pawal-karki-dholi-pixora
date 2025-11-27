@@ -1,14 +1,36 @@
-import { clerkMiddleware } from "@clerk/nextjs/server";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-export default clerkMiddleware({
-  publicRoutes: ["/site", "/api/uploadthing"],
+// Public routes that should NOT be protected by Clerk
+const isPublicRoute = createRouteMatcher([
+  "/site",
+  // Auth APIs (custom JWT auth) must be public so they can return JSON
+  "/api/auth(.*)",
+
+  // Auth pages (route groups are not part of the URL)
+  "/agency/sign-in(.*)",
+  "/agency/sign-up(.*)",
+  "/agency/forgot-password(.*)",
+  "/agency/reset-password(.*)",
+
+  // all UploadThing routes are public
+  "/api/uploadthing(.*)",
+]);
+
+export default clerkMiddleware(async (auth, request) => {
+  if (!isPublicRoute(request)) {
+    const session = await auth();
+    if (!session.userId) {
+      return session.redirectToSignIn();
+    }
+  }
 });
 
 export const config = {
   matcher: [
-    // Skip Next.js internals and all static files, unless found in search params
-    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
-    // Always run for API routes
+    // Run middleware for all routes EXCEPT static files + _next/*
+    "/((?!_next|.*\\..*).*)",
+
+    // Always run on API & tRPC routes
     "/(api|trpc)(.*)",
   ],
 };

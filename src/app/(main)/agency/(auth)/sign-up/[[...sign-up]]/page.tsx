@@ -98,11 +98,14 @@ const SignUpPage = () => {
     try {
       await signUp.authenticateWithRedirect({
         strategy: "oauth_google",
-        redirectUrl: "/sso-callback",
+        redirectUrl: `${window.location.origin}/sso-callback`,
         redirectUrlComplete: "/agency",
       });
-    } catch (err) {
-      setError("Google sign up failed");
+    } catch (err: unknown) {
+      console.error("Google sign up error:", err);
+      const errorMessage = err instanceof Error ? err.message : 
+        (err as { errors?: { message: string }[] })?.errors?.[0]?.message || "Google sign up failed";
+      setError(errorMessage);
     }
   };
 
@@ -112,11 +115,14 @@ const SignUpPage = () => {
     try {
       await signUp.authenticateWithRedirect({
         strategy: "oauth_apple",
-        redirectUrl: "/sso-callback",
+        redirectUrl: `${window.location.origin}/sso-callback`,
         redirectUrlComplete: "/agency",
       });
-    } catch (err) {
-      setError("Apple sign up failed");
+    } catch (err: unknown) {
+      console.error("Apple sign up error:", err);
+      const errorMessage = err instanceof Error ? err.message : 
+        (err as { errors?: { message: string }[] })?.errors?.[0]?.message || "Apple sign up failed";
+      setError(errorMessage);
     }
   };
 

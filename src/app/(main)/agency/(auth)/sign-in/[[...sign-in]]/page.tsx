@@ -74,11 +74,17 @@ const SignInPage = () => {
     try {
       await signIn.authenticateWithRedirect({
         strategy: "oauth_google",
-        redirectUrl: "/sso-callback",
+        redirectUrl: `${window.location.origin}/sso-callback`,
         redirectUrlComplete: "/agency",
       });
-    } catch (err) {
-      setError("Google sign in failed");
+    } catch (err: unknown) {
+      console.error("Google sign in error:", err);
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : (err as { errors?: { message: string }[] })?.errors?.[0]?.message ||
+            "Google sign in failed";
+      setError(errorMessage);
     }
   };
 
@@ -88,11 +94,17 @@ const SignInPage = () => {
     try {
       await signIn.authenticateWithRedirect({
         strategy: "oauth_apple",
-        redirectUrl: "/sso-callback",
+        redirectUrl: `${window.location.origin}/sso-callback`,
         redirectUrlComplete: "/agency",
       });
-    } catch (err) {
-      setError("Apple sign in failed");
+    } catch (err: unknown) {
+      console.error("Apple sign in error:", err);
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : (err as { errors?: { message: string }[] })?.errors?.[0]?.message ||
+            "Apple sign in failed";
+      setError(errorMessage);
     }
   };
 

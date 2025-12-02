@@ -19,7 +19,7 @@ const Navigation = ({ user }: Props) => {
           <Link href="#">Home</Link>
           <Link href="#">About</Link>
           <Link href="#">Contact</Link>
-          <Link href="#">Contact</Link>
+          <Link href="#">Pricing</Link>
         </ul>
       </nav>
       <aside className="flex items-center gap-2">

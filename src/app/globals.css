@@ -1,7 +1,5 @@
 @tailwind base;
-
 @tailwind components;
-
 @tailwind utilities;
 
 html,
@@ -15,115 +13,77 @@ body {
   box-sizing: border-box;
 }
 
-/* 
-
-R (0)
-
-G (110)
-
-B (255) */
-
 @layer base {
   :root {
-    /* Name: custom color palette
-
-       Author: Ilias Ism
-
-       URL: https://gradient.page */
+    /* GREENISH + BLUEISH Modern SaaS Palette */
 
     /* CSS: .bg-gradient { background: var(--gradient) } */
+    --gradient: linear-gradient(to top right, #00c9a7, #1e90ff);
 
-    --gradient: #006eff;
+    --background: 165 100% 97%;
+    --foreground: 165 25% 10%;
 
-    --background: 214 100% 98.5%;
+    --muted: 168 20% 90%;
+    --muted-foreground: 168 10% 40%;
 
-    --foreground: 214 10% 3.9%;
+    --popover: 168 15% 92%;
+    --popover-foreground: 168 20% 8%;
 
-    --muted: 214 10% 91.4%;
+    --card: 168 15% 92%;
+    --card-foreground: 168 20% 8%;
 
-    --muted-foreground: 214 5% 41.4%;
+    --border: 168 18% 86%;
+    --input: 168 18% 86%;
 
-    --popover: 214 10% 91.4%;
+    --primary: 168 85% 35%; /* Teal Blue */
+    --primary-foreground: 168 20% 96%;
 
-    --popover-foreground: 214 10% 3.9%;
+    --secondary: 168 25% 94%;
+    --secondary-foreground: 168 25% 15%;
 
-    --card: 214 10% 91.4%;
-
-    --card-foreground: 214 10% 3.9%;
-
-    --border: 214 15% 89.56%;
-
-    --input: 214 15% 89.56%;
-
-    --primary: 214 100% 50%;
-
-    --primary-foreground: 214 2% 98%;
-
-    --secondary: 214 5% 95.7%;
-
-    --secondary-foreground: 214 7% 11.4%;
-
-    --accent: 214 5% 95.7%;
-
-    --accent-foreground: 214 7% 11.4%;
+    --accent: 168 25% 94%;
+    --accent-foreground: 168 25% 15%;
 
     --destructive: 0 84.2% 60.2%;
-
     --destructive-foreground: 0 0% 98%;
 
-    --ring: 214 100% 50%;
+    --ring: 168 85% 35%;
 
     --radius: 0.5rem;
   }
 
   .dark {
-    /* Name: custom color palette
+    /* Deep teal + navy blend */
+    --gradient: linear-gradient(to top left, #0f766e, #1e3a8a);
 
-         Author: Ilias Ism
+    --background: 200 25% 8%;
+    --foreground: 200 10% 96%;
 
-         URL: https://gradient.page */
+    --muted: 200 20% 20%;
+    --muted-foreground: 200 10% 65%;
 
-    /* CSS: .bg-gradient { background: var(--gradient) } */
+    --popover: 200 18% 15%;
+    --popover-foreground: 200 10% 90%;
 
-    --gradient: linear-gradient(to top left, #001a4d, #006eff);
+    --card: 200 18% 15%;
+    --card-foreground: 200 10% 90%;
 
-    --background: 214 50% 4%;
+    --border: 200 15% 25%;
+    --input: 200 15% 25%;
 
-    --foreground: 214 5% 98%;
+    --primary: 168 70% 45%; /* Brighter teal for dark mode */
+    --primary-foreground: 168 20% 96%;
 
-    --muted: 214 20% 15%;
+    --secondary: 200 15% 22%;
+    --secondary-foreground: 200 15% 85%;
 
-    --muted-foreground: 214 10% 60%;
-
-    --popover: 214 30% 10%;
-
-    --popover-foreground: 214 5% 98%;
-
-    --card: 214 30% 10%;
-
-    --card-foreground: 214 5% 98%;
-
-    --border: 214 20% 20%;
-
-    --input: 214 20% 20%;
-
-    --primary: 214 100% 50%;
-
-    --primary-foreground: 214 2% 98%;
-
-    --secondary: 214 15% 15%;
-
-    --secondary-foreground: 214 5% 90%;
-
-    --accent: 214 15% 15%;
-
-    --accent-foreground: 214 5% 90%;
+    --accent: 200 15% 22%;
+    --accent-foreground: 200 15% 85%;
 
     --destructive: 0 84.2% 60.2%;
-
     --destructive-foreground: 0 0% 98%;
 
-    --ring: 214 100% 50%;
+    --ring: 168 70% 45%;
 
     --radius: 0.5rem;
   }
@@ -133,15 +93,13 @@ B (255) */
   * {
     @apply border-border;
   }
-
   body {
     @apply bg-background text-foreground;
   }
 }
 
 .dotPattern {
-  background-image: radial-gradient(rgb(0, 70, 163) 1px, transparent 1px);
-
+  background-image: radial-gradient(rgb(17, 153, 142) 1px, transparent 1px);
   background-size: 25px 25px;
 }
 
@@ -152,13 +110,11 @@ B (255) */
 @keyframes automation-zoom-in {
   0% {
     opacity: 0;
-
     transform: scale(0.95);
   }
 
   100% {
     opacity: 1;
-
     transform: scale(1);
   }
 }

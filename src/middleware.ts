@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 // Public routes that should NOT be protected by Clerk
 const isPublicRoute = createRouteMatcher([
-  "/",
+  "/site",
   // Auth APIs (custom JWT auth) must be public so they can return JSON
   "/api/auth(.*)",
 

@@ -1,7 +1,13 @@
 import "./globals.css";
-import { ClerkProvider } from "@clerk/nextjs";
-import { dark } from "@clerk/themes";
 import { ThemeProvider } from "@/providers/theme-provider";
+import { AuthProvider } from "@/providers/auth-provider";
+import { Poppins } from "next/font/google";
+
+const poppins = Poppins({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-poppins",
+});
 
 export default function RootLayout({
   children,
@@ -9,9 +15,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body suppressHydrationWarning>
-        <ClerkProvider appearance={{ baseTheme: dark }}>
+    <html lang="en" suppressHydrationWarning className={poppins.variable}>
+      <body suppressHydrationWarning className={poppins.className}>
+        <AuthProvider>
           <ThemeProvider
             attribute="class"
             defaultTheme="system"
@@ -20,7 +26,7 @@ export default function RootLayout({
           >
             {children}
           </ThemeProvider>
-        </ClerkProvider>
+        </AuthProvider>
       </body>
     </html>
   );

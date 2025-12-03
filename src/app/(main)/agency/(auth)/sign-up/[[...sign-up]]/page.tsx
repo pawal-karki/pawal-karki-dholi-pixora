@@ -8,6 +8,7 @@ import * as Yup from "yup";
 import { useSignUp } from "@clerk/nextjs";
 import { Mail, Lock, Eye, EyeOff, User, UserPlus } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { setJwtAuth, setClerkAuth } from "@/lib/auth-utils";
 
 const validationSchema = Yup.object({
   name: Yup.string()
@@ -75,9 +76,9 @@ const SignUpPage = () => {
 
         setSuccess("Account created successfully! Redirecting to sign in...");
 
-        // Store JWT token if returned
+        // Store JWT token if returned using auth utility
         if (data.token) {
-          localStorage.setItem("auth_token", data.token);
+          setJwtAuth(data.token);
         }
 
         // Redirect to sign in after success
@@ -96,6 +97,8 @@ const SignUpPage = () => {
     if (!clerkLoaded || !signUp) return;
 
     try {
+      // Set auth method to Clerk for OAuth
+      setClerkAuth();
       await signUp.authenticateWithRedirect({
         strategy: "oauth_google",
         redirectUrl: `${window.location.origin}/sso-callback`,
@@ -103,8 +106,11 @@ const SignUpPage = () => {
       });
     } catch (err: unknown) {
       console.error("Google sign up error:", err);
-      const errorMessage = err instanceof Error ? err.message : 
-        (err as { errors?: { message: string }[] })?.errors?.[0]?.message || "Google sign up failed";
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : (err as { errors?: { message: string }[] })?.errors?.[0]?.message ||
+            "Google sign up failed";
       setError(errorMessage);
     }
   };
@@ -113,6 +119,8 @@ const SignUpPage = () => {
     if (!clerkLoaded || !signUp) return;
 
     try {
+      // Set auth method to Clerk for OAuth
+      setClerkAuth();
       await signUp.authenticateWithRedirect({
         strategy: "oauth_apple",
         redirectUrl: `${window.location.origin}/sso-callback`,
@@ -120,8 +128,11 @@ const SignUpPage = () => {
       });
     } catch (err: unknown) {
       console.error("Apple sign up error:", err);
-      const errorMessage = err instanceof Error ? err.message : 
-        (err as { errors?: { message: string }[] })?.errors?.[0]?.message || "Apple sign up failed";
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : (err as { errors?: { message: string }[] })?.errors?.[0]?.message ||
+            "Apple sign up failed";
       setError(errorMessage);
     }
   };

@@ -8,6 +8,7 @@ import * as Yup from "yup";
 import { useSignIn } from "@clerk/nextjs";
 import { Mail, Lock, Eye, EyeOff, LogIn } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { setJwtAuth, setClerkAuth } from "@/lib/auth-utils";
 
 const validationSchema = Yup.object({
   email: Yup.string()
@@ -54,9 +55,9 @@ const SignInPage = () => {
           throw new Error(data.error || "Sign in failed");
         }
 
-        // Store JWT token
+        // Store JWT token using auth utility
         if (data.token) {
-          localStorage.setItem("auth_token", data.token);
+          setJwtAuth(data.token);
           // Redirect to dashboard or home
           window.location.href = "/agency";
         }
@@ -72,6 +73,8 @@ const SignInPage = () => {
     if (!clerkLoaded || !signIn) return;
 
     try {
+      // Set auth method to Clerk for OAuth
+      setClerkAuth();
       await signIn.authenticateWithRedirect({
         strategy: "oauth_google",
         redirectUrl: `${window.location.origin}/sso-callback`,
@@ -92,6 +95,8 @@ const SignInPage = () => {
     if (!clerkLoaded || !signIn) return;
 
     try {
+      // Set auth method to Clerk for OAuth
+      setClerkAuth();
       await signIn.authenticateWithRedirect({
         strategy: "oauth_apple",
         redirectUrl: `${window.location.origin}/sso-callback`,

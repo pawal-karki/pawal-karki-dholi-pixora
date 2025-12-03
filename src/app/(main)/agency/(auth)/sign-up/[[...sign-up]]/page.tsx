@@ -134,7 +134,7 @@ const SignUpPage = () => {
         <div className="mb-6">
           <div className="relative h-16 w-48 overflow-hidden">
             <Image
-              src="/pixora.png"
+              src="/pixora_green.svg"
               alt="Pixora logo"
               fill
               sizes="120px"
@@ -185,7 +185,7 @@ const SignUpPage = () => {
                 name="name"
                 type="text"
                 placeholder="Enter your full name"
-                className={`w-full pl-9 pr-3 py-2 border rounded-lg bg-white text-gray-900 placeholder-gray-400 text-xs focus:outline-none focus:ring-0 focus:border-[#2657C1] transition-colors ${
+                className={`w-full pl-9 pr-3 py-2 border rounded-lg bg-white text-gray-900 placeholder-gray-400 text-xs focus:outline-none focus:ring-0 focus:border-emerald-600 transition-colors ${
                   formik.touched.name && formik.errors.name
                     ? "border-red-400"
                     : "border-gray-200"
@@ -219,7 +219,7 @@ const SignUpPage = () => {
                 name="email"
                 type="email"
                 placeholder="Enter your email"
-                className={`w-full pl-9 pr-3 py-2 border rounded-lg bg-white text-gray-900 placeholder-gray-400 text-xs focus:outline-none focus:ring-0 focus:border-[#2657C1] transition-colors ${
+                className={`w-full pl-9 pr-3 py-2 border rounded-lg bg-white text-gray-900 placeholder-gray-400 text-xs focus:outline-none focus:ring-0 focus:border-emerald-600 transition-colors ${
                   formik.touched.email && formik.errors.email
                     ? "border-red-400"
                     : "border-gray-200"
@@ -253,7 +253,7 @@ const SignUpPage = () => {
                 name="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="Create a password"
-                className={`w-full pl-9 pr-9 py-2 border rounded-lg bg-white text-gray-900 placeholder-gray-400 text-xs focus:outline-none focus:ring-0 focus:border-[#2657C1] transition-colors ${
+                className={`w-full pl-9 pr-9 py-2 border rounded-lg bg-white text-gray-900 placeholder-gray-400 text-xs focus:outline-none focus:ring-0 focus:border-emerald-600 transition-colors ${
                   formik.touched.password && formik.errors.password
                     ? "border-red-400"
                     : "border-gray-200"
@@ -298,7 +298,7 @@ const SignUpPage = () => {
                 name="confirmPassword"
                 type={showConfirmPassword ? "text" : "password"}
                 placeholder="Confirm your password"
-                className={`w-full pl-9 pr-9 py-2 border rounded-lg bg-white text-gray-900 placeholder-gray-400 text-xs focus:outline-none focus:ring-0 focus:border-[#2657C1] transition-colors ${
+                className={`w-full pl-9 pr-9 py-2 border rounded-lg bg-white text-gray-900 placeholder-gray-400 text-xs focus:outline-none focus:ring-0 focus:border-emerald-600 transition-colors ${
                   formik.touched.confirmPassword &&
                   formik.errors.confirmPassword
                     ? "border-red-400"
@@ -336,7 +336,7 @@ const SignUpPage = () => {
               onCheckedChange={(checked) =>
                 formik.setFieldValue("acceptTerms", checked)
               }
-              className="mt-0.5 h-3.5 w-3.5 rounded border border-gray-300 data-[state=checked]:bg-[#2657C1] data-[state=checked]:border-[#2657C1]"
+              className="mt-0.5 h-3.5 w-3.5 rounded border border-gray-300 data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600"
             />
             <label
               htmlFor="acceptTerms"
@@ -345,14 +345,14 @@ const SignUpPage = () => {
               I agree to the{" "}
               <Link
                 href="/terms"
-                className="text-[#2657C1] hover:text-[#1e4a9e]"
+                className="text-emerald-600 hover:text-emerald-700"
               >
                 Terms of Service
               </Link>{" "}
               and{" "}
               <Link
                 href="/privacy"
-                className="text-[#2657C1] hover:text-[#1e4a9e]"
+                className="text-emerald-600 hover:text-emerald-700"
               >
                 Privacy Policy
               </Link>
@@ -368,16 +368,7 @@ const SignUpPage = () => {
           <button
             type="submit"
             disabled={isLoading || !formik.isValid}
-            className="w-full py-2.5 rounded-lg font-semibold text-xs transition-all flex items-center justify-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed text-white mt-1"
-            style={{ backgroundColor: "#2657C1" }}
-            onMouseEnter={(e) => {
-              if (!isLoading && formik.isValid) {
-                e.currentTarget.style.backgroundColor = "#1e4a9e";
-              }
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "#2657C1";
-            }}
+            className="w-full py-2.5 rounded-lg font-semibold text-xs transition-all flex items-center justify-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed text-white mt-1 bg-emerald-600 hover:bg-emerald-700"
           >
             {isLoading ? (
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -452,7 +443,7 @@ const SignUpPage = () => {
         Already an account?{" "}
         <Link
           href="/agency/sign-in"
-          className="text-[#2657C1] hover:text-[#1e4a9e] font-medium transition-colors"
+          className="text-emerald-600 hover:text-emerald-700 font-medium transition-colors"
         >
           Login here
         </Link>

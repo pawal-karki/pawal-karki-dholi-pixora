@@ -78,7 +78,7 @@ const ResetPasswordPage = () => {
         <div className="mb-6">
           <div className="relative h-16 w-48 overflow-hidden">
             <Image
-              src="/pixora.png"
+              src="/pixora_green.svg"
               alt="Pixora logo"
               fill
               sizes="120px"
@@ -131,7 +131,7 @@ const ResetPasswordPage = () => {
                 name="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
-                className={`w-full pl-9 pr-9 py-2 border rounded-lg bg-white text-gray-900 placeholder-gray-400 text-xs focus:outline-none focus:ring-0 focus:border-[#2657C1] transition-colors ${
+                className={`w-full pl-9 pr-9 py-2 border rounded-lg bg-white text-gray-900 placeholder-gray-400 text-xs focus:outline-none focus:ring-0 focus:border-emerald-600 transition-colors ${
                   formik.touched.password && formik.errors.password
                     ? "border-red-400"
                     : "border-gray-200"
@@ -176,7 +176,7 @@ const ResetPasswordPage = () => {
                 name="confirmPassword"
                 type={showConfirmPassword ? "text" : "password"}
                 placeholder="ReEnter your password"
-                className={`w-full pl-9 pr-9 py-2 border rounded-lg bg-white text-gray-900 placeholder-gray-400 text-xs focus:outline-none focus:ring-0 focus:border-[#2657C1] transition-colors ${
+                className={`w-full pl-9 pr-9 py-2 border rounded-lg bg-white text-gray-900 placeholder-gray-400 text-xs focus:outline-none focus:ring-0 focus:border-emerald-600 transition-colors ${
                   formik.touched.confirmPassword &&
                   formik.errors.confirmPassword
                     ? "border-red-400"
@@ -212,16 +212,7 @@ const ResetPasswordPage = () => {
           <button
             type="submit"
             disabled={isLoading || !formik.isValid}
-            className="w-full py-2.5 rounded-lg font-semibold text-xs transition-all flex items-center justify-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed text-white mt-1"
-            style={{ backgroundColor: "#2657C1" }}
-            onMouseEnter={(e) => {
-              if (!isLoading && formik.isValid) {
-                e.currentTarget.style.backgroundColor = "#1e4a9e";
-              }
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "#2657C1";
-            }}
+            className="w-full py-2.5 rounded-lg font-semibold text-xs transition-all flex items-center justify-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed text-white mt-1 bg-emerald-600 hover:bg-emerald-700"
           >
             {isLoading ? (
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

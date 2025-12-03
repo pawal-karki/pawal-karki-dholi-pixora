@@ -1,7 +1,7 @@
-import { basename } from "path";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
-import {dark} from "@clerk/themes";
+import { dark } from "@clerk/themes";
+import { ThemeProvider } from "@/providers/theme-provider";
 
 export default function RootLayout({
   children,
@@ -9,11 +9,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ClerkProvider
-      appearance={{ baseTheme: dark }}>
-      <html lang="en">
-        <body>{children}</body>
-      </html>
-    </ClerkProvider>
+    <html lang="en" suppressHydrationWarning>
+      <body suppressHydrationWarning>
+        <ClerkProvider appearance={{ baseTheme: dark }}>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+          </ThemeProvider>
+        </ClerkProvider>
+      </body>
+    </html>
   );
 }

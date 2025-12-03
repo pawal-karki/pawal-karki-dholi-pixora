@@ -7,14 +7,14 @@ export default function AuthLayout({
 }) {
   return (
     <div className="min-h-screen w-full flex items-center justify-center relative overflow-hidden">
-      {/* Gradient Background - matching the UI screenshot */}
+      {/* Gradient Background - Green color scheme */}
       <div
         className="absolute inset-0 z-0"
         style={{
           background: `
-            radial-gradient(ellipse 80% 50% at 20% 100%, rgba(59, 130, 246, 0.4), transparent),
-            radial-gradient(ellipse 60% 40% at 80% 80%, rgba(236, 72, 153, 0.35), transparent),
-            radial-gradient(ellipse 50% 30% at 90% 60%, rgba(139, 92, 246, 0.3), transparent),
+            radial-gradient(ellipse 80% 50% at 20% 100%, rgba(5, 150, 105, 0.4), transparent),
+            radial-gradient(ellipse 60% 40% at 80% 80%, rgba(16, 185, 129, 0.35), transparent),
+            radial-gradient(ellipse 50% 30% at 90% 60%, rgba(20, 184, 166, 0.3), transparent),
             linear-gradient(to bottom, #0a0a0f 0%, #0d0d14 100%)
           `,
         }}

@@ -1,16 +1,16 @@
 import React from "react";
-import { redirect } from "next/navigation";
-import { currentUser } from "@clerk/nextjs/server";
-import { getAuthDetails } from "@/lib/queries";
+import { getAuthDetails, verifyAndAccpetInvitations } from "@/lib/queries";
 
 const Page = async () => {
-  const authUser = await currentUser();
-  if (!authUser) return redirect("/agency/sign-in");
-
+  // Verify invitations and get agency ID (works for both Clerk and JWT auth)
   const agencyId = await verifyAndAccpetInvitations();
+  console.log("Agency ID:", agencyId);
 
-  const  user  = await getAuthDetails();
+  // Get full user details
+  const user = await getAuthDetails();
+  console.log("User:", user);
 
   return <div>Agency Dashboard</div>;
 };
+
 export default Page;

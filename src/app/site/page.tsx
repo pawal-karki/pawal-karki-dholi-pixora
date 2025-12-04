@@ -40,7 +40,11 @@ export default function Home() {
           <div className="bottom-0 top-[-50%] bg-gradient-to-t dark:from-background left-0 right-0 absolute z-10"></div>
         </div>
       </section>
-      <section className="flex justify-center items-center flex-col gap-4 md:mt-20 px-4 pb-20">
+      {/* Pricing section – target for navbar `#pricing` link */}
+      <section
+        id="pricing"
+        className="flex justify-center items-center flex-col gap-4 md:mt-20 px-4 pb-20 scroll-mt-32 md:scroll-mt-40 lg:scroll-mt-48"
+      >
         <h2 className="text-4xl font-bold text-center">
           Create your website in minutes
         </h2>
@@ -48,6 +52,7 @@ export default function Home() {
           Create your website in minutes with our easy to use drag and drop
           builder.
         </p>
+        {/* pricing cards link from the navigation bar*/}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8 max-w-6xl">
           {pricingCards.map((card) => (
             <Card

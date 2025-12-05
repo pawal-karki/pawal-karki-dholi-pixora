@@ -74,7 +74,14 @@ export const getAuthDetails = async () => {
     },
   });
 
-  return userData;
+  // Never leak password hash to the rest of the app
+  if (!userData) return null;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { password, ...safeUser } = userData as typeof userData & {
+    password?: string | null;
+  };
+
+  return safeUser;
 };
 
 /**
@@ -285,6 +292,7 @@ export const verifyAndAccpetInvitations = async () => {
     }
   } else {
     // No invitation - check if user already has an agency
+    
     const existingUser = await db.user.findUnique({
       where: { email: clerkUser.emailAddresses[0].emailAddress },
     });

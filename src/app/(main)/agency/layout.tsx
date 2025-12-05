@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function AuthLayout({
+export default function PageLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -29,10 +29,7 @@ export default function AuthLayout({
       />
 
       {/* Content */}
-      <div className="relative z-10 w-full px-4">
-        {children}
-      </div>
+      <div className="relative z-10 w-full px-4">{children}</div>
     </div>
   );
 }
-

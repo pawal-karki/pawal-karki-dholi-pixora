@@ -40,10 +40,38 @@ enum Plan {
 }
 
 enum Icon {
+ settings
+  chart
+  calendar
+  check
+  chip
+  compass
+  database
+  flag
+  home
   info
-  settings
-  users
-  tickets
+  link
+  lock
+  messages
+  notification
+  payment
+  power
+  receipt
+  shield
+  star
+  tune
+  videorecorder
+  wallet
+  warning
+  headphone
+  send
+  pipelines
+  person
+  category
+  contact
+  clipboardIcon
+
+
 }
 
 model User {

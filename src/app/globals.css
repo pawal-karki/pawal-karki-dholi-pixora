@@ -124,12 +124,16 @@ body {
 @keyframes glow-pulse-light {
   0%,
   100% {
-    box-shadow: 0 4px 20px rgba(16, 185, 129, 0.25),
-      0 0 30px rgba(16, 185, 129, 0.15), 0 0 0 1px rgba(16, 185, 129, 0.1);
+    box-shadow:
+      0 4px 20px rgba(16, 185, 129, 0.25),
+      0 0 30px rgba(16, 185, 129, 0.15),
+      0 0 0 1px rgba(16, 185, 129, 0.1);
   }
   50% {
-    box-shadow: 0 8px 30px rgba(16, 185, 129, 0.35),
-      0 0 50px rgba(16, 185, 129, 0.2), 0 0 0 1px rgba(16, 185, 129, 0.2);
+    box-shadow:
+      0 8px 30px rgba(16, 185, 129, 0.35),
+      0 0 50px rgba(16, 185, 129, 0.2),
+      0 0 0 1px rgba(16, 185, 129, 0.2);
   }
 }
 
@@ -137,11 +141,13 @@ body {
 @keyframes glow-pulse-dark {
   0%,
   100% {
-    box-shadow: 0 0 20px rgba(16, 185, 129, 0.4),
+    box-shadow:
+      0 0 20px rgba(16, 185, 129, 0.4),
       0 0 40px rgba(16, 185, 129, 0.2);
   }
   50% {
-    box-shadow: 0 0 35px rgba(16, 185, 129, 0.6),
+    box-shadow:
+      0 0 35px rgba(16, 185, 129, 0.6),
       0 0 70px rgba(16, 185, 129, 0.3);
   }
 }
@@ -159,13 +165,15 @@ body {
 }
 
 .card-glow-hover:hover {
-  box-shadow: 0 8px 30px rgba(16, 185, 129, 0.3),
+  box-shadow:
+    0 8px 30px rgba(16, 185, 129, 0.3),
     0 0 40px rgba(16, 185, 129, 0.2);
   transform: translateY(-4px);
 }
 
 .dark .card-glow-hover:hover {
-  box-shadow: 0 0 30px rgba(16, 185, 129, 0.5),
+  box-shadow:
+    0 0 30px rgba(16, 185, 129, 0.5),
     0 0 60px rgba(16, 185, 129, 0.25);
   transform: translateY(-4px);
 }
@@ -176,13 +184,16 @@ body {
 }
 
 .card-subtle-glow:hover {
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08),
+  box-shadow:
+    0 8px 25px rgba(0, 0, 0, 0.08),
     0 4px 15px rgba(16, 185, 129, 0.12);
   transform: translateY(-2px);
 }
 
 .dark .card-subtle-glow:hover {
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 20px rgba(16, 185, 129, 0.2);
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.3),
+    0 0 20px rgba(16, 185, 129, 0.2);
   transform: translateY(-2px);
 }
 
@@ -257,7 +268,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: avatar-pulse 2s ease-in-out infinite,
+  animation:
+    avatar-pulse 2s ease-in-out infinite,
     avatar-glow 2s ease-in-out infinite;
   overflow: hidden;
 }
@@ -267,4 +279,57 @@ body {
   height: 100%;
   object-fit: cover;
   border-radius: 50%;
+}
+
+/* UploadThing Component Styling - Override blue colors with emerald/teal */
+.uploadthing-wrapper button,
+.uploadthing-wrapper [role="button"],
+.uploadthing-wrapper [data-ut-element="button"] {
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+  border-color: hsl(var(--primary)) !important;
+}
+
+.uploadthing-wrapper button:hover,
+.uploadthing-wrapper [role="button"]:hover,
+.uploadthing-wrapper [data-ut-element="button"]:hover {
+  background-color: hsl(var(--primary) / 0.9) !important;
+}
+
+/* Override all blue colors in UploadThing components */
+.uploadthing-wrapper * {
+  --ut-primary: hsl(var(--primary));
+  --ut-primary-foreground: hsl(var(--primary-foreground));
+}
+
+/* UploadThing button specific overrides */
+.uploadthing-wrapper button[class*="bg-"],
+.uploadthing-wrapper [class*="bg-blue"] {
+  background-color: hsl(var(--primary)) !important;
+}
+
+.uploadthing-wrapper button[class*="text-"],
+.uploadthing-wrapper [class*="text-blue"] {
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+/* UploadThing SVG icons */
+.uploadthing-wrapper svg {
+  color: hsl(var(--primary)) !important;
+}
+
+/* UploadThing allowed content */
+.uploadthing-wrapper [data-ut-element="allowedContent"],
+.uploadthing-wrapper p[class*="text-"] {
+  color: hsl(var(--muted-foreground)) !important;
+}
+
+/* UploadThing dropzone states */
+.uploadthing-wrapper [class*="ut-ready"],
+.uploadthing-wrapper [class*="ut-uploading"] {
+  border-color: hsl(var(--primary)) !important;
+}
+
+.uploadthing-wrapper [class*="ut-uploading"] {
+  background-color: hsl(var(--primary) / 0.1) !important;
 }

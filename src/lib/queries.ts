@@ -2,11 +2,12 @@
 
 import { currentUser } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
-import { User } from "@prisma/client";
+import { Agency, Role, User } from "@prisma/client";
 import { redirect } from "next/navigation";
 import { clerkClient } from "@clerk/nextjs/server";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/auth";
+import { v4 } from "uuid";
 
 /**
  * Gets the current user's email from either Clerk or JWT auth.
@@ -292,10 +293,218 @@ export const verifyAndAccpetInvitations = async () => {
     }
   } else {
     // No invitation - check if user already has an agency
-    
+
     const existingUser = await db.user.findUnique({
       where: { email: clerkUser.emailAddresses[0].emailAddress },
     });
     return existingUser?.agencyId || null;
   }
+};
+
+export const updateAgencyDetails = async (
+  agencyId: string,
+  details: Partial<Agency>
+) => {
+  if (!agencyId) return null;
+  const agency = await db.agency.update({
+    where: { id: agencyId },
+    data: {
+      ...details,
+      updatedAt: new Date(),
+    },
+  });
+  return agency; // return the updated agency as a response
+};
+
+/**
+ * Initializes or updates the current user in the database.
+ * Works with both Clerk and JWT auth.
+ */
+export const initUser = async (newUser?: Partial<User>) => {
+  const clerkUser = await currentUser();
+  const userEmail = await getCurrentUserEmail();
+
+  if (!userEmail) return null;
+
+  if (clerkUser) {
+    const userData = await db.user.upsert({
+      where: { email: clerkUser.emailAddresses[0].emailAddress },
+      update: {
+        ...newUser,
+        avatarUrl: clerkUser.imageUrl,
+        name:
+          `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim() ||
+          "User",
+      },
+      create: {
+        id: clerkUser.id,
+        avatarUrl: clerkUser.imageUrl,
+        name:
+          `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim() ||
+          "User",
+        email: clerkUser.emailAddresses[0].emailAddress,
+        role: (newUser?.role as Role) || "SUBACCOUNT_USER",
+      },
+    });
+
+    try {
+      const client = await clerkClient();
+      await client.users.updateUserMetadata(clerkUser.id, {
+        privateMetadata: {
+          role: newUser?.role || "SUBACCOUNT_USER",
+        },
+      });
+    } catch (error) {
+      console.log("Could not update Clerk metadata:", error);
+    }
+
+    return userData;
+  }
+
+  const existingUser = await db.user.findUnique({
+    where: { email: userEmail },
+  });
+
+  if (existingUser) {
+    const userData = await db.user.update({
+      where: { email: userEmail },
+      data: {
+        ...newUser,
+        updatedAt: new Date(),
+      },
+    });
+    return userData;
+  }
+
+  return null;
+};
+
+// Input type for creating/updating agency (more flexible than Prisma's Agency type)
+type UpsertAgencyInput = {
+  id: string;
+  name: string;
+  agencyLogo: string;
+  companyEmail: string;
+  companyPhone: string;
+  whiteLabel: boolean;
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  country: string;
+  connectAccountId: string;
+  customerId: string;
+  goal: number;
+  createdAt?: Date;
+  updatedAt?: Date;
+};
+
+/**
+ * Creates or updates an agency with default sidebar options.
+ * Links the current user to the agency.
+ */
+export const upsertAgency = async (agency: UpsertAgencyInput) => {
+  if (!agency.companyEmail) return null;
+
+  const userEmail = await getCurrentUserEmail();
+  if (!userEmail) return null;
+
+  try {
+    const agencyDetails = await db.agency.upsert({
+      where: { id: agency.id },
+      update: {
+        name: agency.name,
+        agencyLogo: agency.agencyLogo,
+        companyEmail: agency.companyEmail,
+        companyPhone: agency.companyPhone,
+        whiteLabel: agency.whiteLabel,
+        address: agency.address,
+        city: agency.city,
+        state: agency.state,
+        zipCode: agency.zipCode,
+        country: agency.country,
+        goal: agency.goal,
+        connectAccountId: agency.connectAccountId,
+        customerId: agency.customerId,
+        updatedAt: new Date(),
+      },
+      create: {
+        id: agency.id,
+        name: agency.name,
+        agencyLogo: agency.agencyLogo,
+        companyEmail: agency.companyEmail,
+        companyPhone: agency.companyPhone,
+        whiteLabel: agency.whiteLabel,
+        address: agency.address,
+        city: agency.city,
+        state: agency.state,
+        zipCode: agency.zipCode,
+        country: agency.country,
+        goal: agency.goal,
+        connectAccountId: agency.connectAccountId,
+        customerId: agency.customerId,
+        users: {
+          connect: { email: userEmail },
+        },
+        SidebarOptions: {
+          create: [
+            {
+              name: "Dashboard",
+              icon: "category",
+              link: `/agency/${agency.id}`,
+            },
+            {
+              name: "Launchpad",
+              icon: "clipboardIcon",
+              link: `/agency/${agency.id}/launchpad`,
+            },
+            {
+              name: "Billing",
+              icon: "payment",
+              link: `/agency/${agency.id}/billing`,
+            },
+            {
+              name: "Settings",
+              icon: "settings",
+              link: `/agency/${agency.id}/settings`,
+            },
+            {
+              name: "Sub Accounts",
+              icon: "person",
+              link: `/agency/${agency.id}/all-subaccounts`,
+            },
+            {
+              name: "Team",
+              icon: "shield",
+              link: `/agency/${agency.id}/team`,
+            },
+          ],
+        },
+      },
+    });
+
+    return agencyDetails;
+  } catch (error) {
+    console.log("Error upserting agency:", error);
+    return null;
+  }
+};
+
+/**
+ * Deletes an agency and all related data.
+ *
+ * This is a destructive operation that removes:
+ * - The agency itself
+ * - All subaccounts under the agency
+ * - All users associated with the agency
+ * - All related data (funnels, contacts, etc.)
+ *
+ * @param agencyId - The ID of the agency to delete
+ * @returns The deleted agency object
+ */
+export const deleteAgency = async (agencyId: string) => {
+  const response = await db.agency.delete({
+    where: { id: agencyId },
+  });
+  return response;
 };

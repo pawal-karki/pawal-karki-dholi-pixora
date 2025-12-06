@@ -9,10 +9,13 @@ import { User } from "@prisma/client";
 import AgencyDetails from "@/components/forms/agencyDetails";
 
 type PageProps = {
-  searchParams: { [key: string]: string | undefined };
+  searchParams: Promise<{ [key: string]: string | undefined }>;
 };
 
 const Page = async ({ searchParams }: PageProps) => {
+  // Await searchParams (required in Next.js 15+)
+  const params = await searchParams;
+  
   // Verify invitations and get agency ID (works for both Clerk and JWT auth)
   const agencyId = await verifyAndAccpetInvitations();
   console.log("Agency ID:", agencyId);
@@ -24,21 +27,21 @@ const Page = async ({ searchParams }: PageProps) => {
     if (user?.role === "SUBACCOUNT_USER" || user?.role === "SUBACCOUNT_GUEST") {
       return redirect("/agency");
     } else if (["AGENCY_OWNER", "AGENCY_ADMIN"].includes(user?.role ?? "")) {
-      if (searchParams?.plans) {
+      if (params?.plans) {
         return redirect(
-          `/agency/${agencyId}/billing?plan=${searchParams.plans}`
+          `/agency/${agencyId}/billing?plan=${params.plans}`
         );
       }
 
       // Handle Stripe billing redirect from Stripe
       // The state parameter is passed by Stripe when redirecting back from billing
       // Format: statePath___agencyId (e.g., "billing___agency123")
-      if (searchParams?.state) {
-        const [statePath, stateAgencyId] = searchParams.state.split("___");
+      if (params?.state) {
+        const [statePath, stateAgencyId] = params.state.split("___");
         if (!stateAgencyId) return <div>Not Authorized</div>;
         return redirect(
           `/agency/${stateAgencyId}?state=${statePath}?code=${
-            searchParams.code ?? ""
+            params.code ?? ""
           }`
         );
       }

@@ -1,9 +1,8 @@
-import React from 'react'
-
-const page = ({ params }: { params: { agencyId: string } }) => {
-  return (
-    <div>{params.agencyId}</div>
-  )
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ agencyId: string }>;
+}) {
+  const { agencyId } = await params;
+  return <div>{agencyId}</div>;
 }
-
-export default page

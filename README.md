@@ -1,6 +1,6 @@
 # Pixora
 
-A modern SaaS platform built with Next.js 15 and Bun.
+A modern platform built with Next.js 15 and Bun.
 
 ## Tech Stack
 

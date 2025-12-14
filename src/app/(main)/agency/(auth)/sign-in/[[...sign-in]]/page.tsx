@@ -166,8 +166,9 @@ const SignInPage = () => {
                 id="email"
                 name="email"
                 type="email"
+                autoComplete="email"
                 placeholder="Enter your email"
-                className={`w-full pl-9 pr-3 py-2 border rounded-lg bg-white text-gray-900 placeholder-gray-400 text-xs focus:outline-none focus:ring-0 focus:border-emerald-600 transition-colors ${
+                className={`w-full pl-9 pr-3 py-2 border rounded-lg bg-white text-gray-900 placeholder-gray-400 text-xs focus:outline-none focus:ring-0 focus:border-emerald-600 transition-colors autofill:bg-white autofill:text-gray-900 autofill:shadow-[inset_0_0_0px_1000px_rgb(255,255,255)] ${
                   formik.touched.email && formik.errors.email
                     ? "border-red-400"
                     : "border-gray-200"
@@ -200,8 +201,9 @@ const SignInPage = () => {
                 id="password"
                 name="password"
                 type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
                 placeholder="Enter your password"
-                className={`w-full pl-9 pr-9 py-2 border rounded-lg bg-white text-gray-900 placeholder-gray-400 text-xs focus:outline-none focus:ring-0 focus:border-emerald-600 transition-colors ${
+                className={`w-full pl-9 pr-9 py-2 border rounded-lg bg-white text-gray-900 placeholder-gray-400 text-xs focus:outline-none focus:ring-0 focus:border-emerald-600 transition-colors autofill:bg-white autofill:text-gray-900 autofill:shadow-[inset_0_0_0px_1000px_rgb(255,255,255)] ${
                   formik.touched.password && formik.errors.password
                     ? "border-red-400"
                     : "border-gray-200"

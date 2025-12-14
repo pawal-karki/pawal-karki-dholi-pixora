@@ -415,3 +415,18 @@ model AddOns {
   @@index([agencyId])
 }
 
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  email     String
+  otp       String
+  expiresAt DateTime
+  verified  Boolean  @default(false)
+  used      Boolean  @default(false)
+
+  @@index([email])
+  @@index([otp])
+}
+

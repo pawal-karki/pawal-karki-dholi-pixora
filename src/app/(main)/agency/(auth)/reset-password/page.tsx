@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { Eye, EyeOff, Lock } from "lucide-react";
-import { useSearchParams } from "next/navigation";
+import { Eye, EyeOff, Lock, CheckCircle } from "lucide-react";
+import { useSearchParams, useRouter } from "next/navigation";
 
 const validationSchema = Yup.object({
   password: Yup.string()
@@ -25,9 +26,28 @@ const ResetPasswordPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [redirectCountdown, setRedirectCountdown] = useState(5);
 
   const searchParams = useSearchParams();
+  const router = useRouter();
   const token = searchParams.get("token");
+
+  // Redirect to forgot-password if no token
+  useEffect(() => {
+    if (!token) {
+      router.push("/agency/forgot-password");
+    }
+  }, [token, router]);
+
+  // Countdown and redirect after success
+  useEffect(() => {
+    if (success && redirectCountdown > 0) {
+      const timer = setTimeout(() => setRedirectCountdown(redirectCountdown - 1), 1000);
+      return () => clearTimeout(timer);
+    } else if (success && redirectCountdown === 0) {
+      router.push("/agency/sign-in");
+    }
+  }, [success, redirectCountdown, router]);
 
   const formik = useFormik({
     initialValues: {
@@ -107,8 +127,22 @@ const ResetPasswordPage = () => {
 
         {/* Success Message */}
         {success && (
-          <div className="bg-green-50 border border-green-200 text-green-600 px-3 py-2 rounded-lg text-xs mb-4">
-            {success}
+          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-4 rounded-lg mb-4">
+            <div className="flex items-start gap-3">
+              <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium">{success}</p>
+                <p className="text-xs text-green-600 mt-1">
+                  Redirecting to login in {redirectCountdown}s...
+                </p>
+                <Link
+                  href="/agency/sign-in"
+                  className="text-xs text-emerald-700 hover:text-emerald-800 font-medium underline mt-2 inline-block"
+                >
+                  Go to login now
+                </Link>
+              </div>
+            </div>
           </div>
         )}
 

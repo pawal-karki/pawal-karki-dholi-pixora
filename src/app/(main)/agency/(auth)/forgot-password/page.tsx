@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 
@@ -15,7 +16,7 @@ const validationSchema = Yup.object({
 const ForgotPasswordPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const router = useRouter();
 
   const formik = useFormik({
     initialValues: {
@@ -25,10 +26,8 @@ const ForgotPasswordPage = () => {
     onSubmit: async (values) => {
       setIsLoading(true);
       setError(null);
-      setSuccess(null);
 
       try {
-        // Call API to start forgot-password flow (implement separately)
         const response = await fetch("/api/auth/forgot-password", {
           method: "POST",
           headers: {
@@ -45,9 +44,8 @@ const ForgotPasswordPage = () => {
           throw new Error(data.error || "Unable to process request");
         }
 
-        setSuccess(
-          "If this email exists, we have sent a password reset link to your inbox."
-        );
+        // Redirect to OTP verification page
+        router.push(`/agency/verify-otp?email=${encodeURIComponent(values.email)}`);
       } catch (err) {
         setError(
           err instanceof Error
@@ -93,13 +91,6 @@ const ForgotPasswordPage = () => {
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-600 px-3 py-2 rounded-lg text-xs mb-4">
             {error}
-          </div>
-        )}
-
-        {/* Success Message */}
-        {success && (
-          <div className="bg-green-50 border border-green-200 text-green-600 px-3 py-2 rounded-lg text-xs mb-4">
-            {success}
           </div>
         )}
 

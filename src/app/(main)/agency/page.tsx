@@ -13,7 +13,7 @@ type PageProps = {
 };
 
 const Page = async ({ searchParams }: PageProps) => {
-  // Await searchParams (required in Next.js 15+)
+  
   const params = await searchParams;
   
   // Verify invitations and get agency ID (works for both Clerk and JWT auth)

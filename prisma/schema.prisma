@@ -118,6 +118,7 @@ model Agency {
   Notifications Notification[]
   Subscriptions Subscription[]
   AddOns AddOns[]
+  Testimonials Testimonial[]
 }
 
 model SubAccount {
@@ -147,6 +148,7 @@ model SubAccount {
   pipelines      Pipeline[]
   tags           Tag[]
   notifications  Notification[]
+  products       Product[]
 
   @@index([agencyId])
 }
@@ -430,3 +432,30 @@ model PasswordResetToken {
   @@index([otp])
 }
 
+
+model Product {
+  id           String     @id @default(uuid())
+  name         String
+  price        String
+  description  String?
+  image        String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  subAccountId String
+  subAccount   SubAccount @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
+
+  @@index([subAccountId])
+}
+
+model Testimonial {
+  id        String   @id @default(uuid())
+  name      String
+  avatarUrl String   @db.Text
+  message   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  agencyId  String
+  agency    Agency   @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+
+  @@index([agencyId])
+}

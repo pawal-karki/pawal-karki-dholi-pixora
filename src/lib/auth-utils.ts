@@ -1,3 +1,5 @@
+ "use client";
+
 /**
  * Auth utility functions for managing JWT and Clerk authentication
  */

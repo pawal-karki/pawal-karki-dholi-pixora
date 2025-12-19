@@ -274,3 +274,68 @@ This is an automated message from Pixora.
 export function generateOTP(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
+
+interface SendInvitationEmailParams {
+  to: string;
+  role: string;
+  agencyName: string;
+  invitationLink: string;
+}
+
+export async function sendInvitationEmail({
+  to,
+  role,
+  agencyName,
+  invitationLink,
+}: SendInvitationEmailParams): Promise<boolean> {
+  console.log(`LOG: Attempting to send invitation email to ${to} via SMTP (User: ${process.env.GMAIL_USER ? "Set" : "Not Set"})`);
+  const mailOptions = {
+    from: `"Pixora" <${process.env.GMAIL_USER}>`,
+    to,
+    subject: `You've been invited to join ${agencyName} on Pixora`,
+    html: `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background-color: #f0fdf4; }
+    .container { max-width: 480px; margin: 0 auto; background-color: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 8px 40px rgba(0,0,0,0.1); }
+    .header { background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 32px; text-align: center; }
+    .content { padding: 32px; text-align: center; }
+    .button { display: inline-block; background-color: #059669; color: #ffffff; padding: 14px 28px; border-radius: 12px; text-decoration: none; font-weight: 600; margin-top: 24px; }
+    .footer { background-color: #f9fafb; padding: 24px; text-align: center; font-size: 12px; color: #6b7280; }
+  </style>
+</head>
+<body>
+  <div style="padding: 40px 16px;">
+    <div class="container">
+      <div class="header">
+        <h1 style="color: white; margin: 0; font-size: 24px;">Invitation</h1>
+      </div>
+      <div class="content">
+        <h2 style="margin: 0 0 16px; color: #111827;">Join ${agencyName}</h2>
+        <p style="color: #4b5563; line-height: 1.6; margin: 0;">
+          You have been invited to join <strong>${agencyName}</strong> as a <strong>${role}</strong> on Pixora.
+        </p>
+        <a href="${invitationLink}" class="button" style="color: #ffffff;">Accept Invitation</a>
+      </div>
+      <div class="footer">
+        <p>If you didn't expect this invitation, you can ignore this email.</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (error) {
+    console.error("Error sending invitation email:", error);
+    return false;
+  }
+}

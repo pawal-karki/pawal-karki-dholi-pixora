@@ -2,54 +2,26 @@
 
 import { ClerkProvider } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
-import { useEffect, useState } from "react";
 
 type AuthProviderProps = {
   children: React.ReactNode;
 };
 
 /**
- * AuthProvider - Conditionally wraps children with ClerkProvider
- *
- * - If user is authenticated via JWT (auth_token cookie), ClerkProvider is not used
- * - If user is authenticated via Clerk OAuth, ClerkProvider is active
- * - On public pages, ClerkProvider is available for OAuth login options
+ * AuthProvider - Always wraps children with ClerkProvider for consistency
+ * 
+ * ClerkProvider must always be present to avoid React hooks count mismatch
+ * since it internally uses hooks. The app handles dual auth (JWT + Clerk)
+ * at the component level, not the provider level.
  */
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [authMethod, setAuthMethod] = useState<"jwt" | "clerk" | "none">(
-    "none"
-  );
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-
-    // Check for JWT token in localStorage
-    const jwtToken = localStorage.getItem("auth_token");
-
-    if (jwtToken) {
-      setAuthMethod("jwt");
-    } else {
-      // Default to clerk for OAuth support
-      setAuthMethod("clerk");
-    }
-  }, []);
-
-  // During SSR or before mount, render with ClerkProvider for OAuth support
-  if (!mounted) {
-    return (
-      <ClerkProvider appearance={{ baseTheme: dark }}>{children}</ClerkProvider>
-    );
-  }
-
-  // If authenticated via JWT, don't wrap with ClerkProvider
-  if (authMethod === "jwt") {
-    return <>{children}</>;
-  }
-
-  // For Clerk auth or unauthenticated users (for OAuth options)
+  // Always wrap with ClerkProvider for consistent hook count
+  // Individual components check auth method when needed
   return (
-    <ClerkProvider appearance={{ baseTheme: dark }}>{children}</ClerkProvider>
+    <ClerkProvider appearance={{ baseTheme: dark }}>
+      {children}
+    </ClerkProvider>
   );
 }
+
 

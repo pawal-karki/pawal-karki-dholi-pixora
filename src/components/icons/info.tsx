@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Info = () => {
+const Info = ({ className = "" }: { className?: string }) => {
   return (
     <svg
       width="24"
@@ -8,24 +8,37 @@ const Info = () => {
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      className={`text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-all duration-300 group-hover:scale-105 ${className}`}
     >
+      {/* Modern info design */}
       <circle
         cx="12"
         cy="12"
         r="10"
-        className={`  fill-[#C8CDD8] text-xl transition-all`}
+        stroke="currentColor"
+        strokeWidth="1.5"
+        fill="currentColor"
+        fillOpacity="0.1"
       />
-      <path
-        fillRule="evenodd"
-        clipRule="evenodd"
-        d="M12 11C12.5523 11 13 11.4477 13 12V17.0009C13 17.5532 12.5523 18.0009 12 18.0009C11.4477 18.0009 11 17.5532 11 17.0009V12C11 11.4477 11.4477 11 12 11Z"
-        className={`  fill-[#70799A] text-xl transition-all`}
+
+      {/* Information symbol */}
+      <rect
+        x="11"
+        y="8"
+        width="2"
+        height="2"
+        rx="1"
+        fill="currentColor"
+        fillOpacity="0.8"
       />
-      <circle
-        cx="12"
-        cy="8"
-        r="1"
-        className={`  fill-[#70799A] text-xl transition-all`}
+      <rect
+        x="11"
+        y="12"
+        width="2"
+        height="5"
+        rx="1"
+        fill="currentColor"
+        fillOpacity="0.8"
       />
     </svg>
   );

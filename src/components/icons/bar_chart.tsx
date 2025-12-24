@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 const BarChart = () => {
   return (
@@ -21,6 +21,7 @@ const BarChart = () => {
         d="M7 8C7.55228 8 8 8.44772 8 9V17C8 17.5523 7.55228 18 7 18C6.44772 18 6 17.5523 6 17V9C6 8.44772 6.44772 8 7 8Z"
         className={`  fill-[#C8CDD8] text-xl transition-all`}
       />
+
       <path
         fillRule="evenodd"
         clipRule="evenodd"

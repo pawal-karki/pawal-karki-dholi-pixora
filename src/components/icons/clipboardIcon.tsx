@@ -3,36 +3,21 @@ import React from 'react';
 const ClipboardIcon = () => {
   return (
     <svg
+      xmlns="http://www.w3.org/2000/svg"
       width="24"
       height="24"
       viewBox="0 0 24 24"
       fill="none"
-      xmlns="http://www.w3.org/2000/svg"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="lucide lucide-rocket-icon lucide-rocket"
     >
-      <rect
-        x="3"
-        y="3"
-        width="18"
-        height="19"
-        rx="3"
-        className={`  fill-[#C8CDD8] text-xl transition-all`}
-      />
-      <path
-        d="M14 3C14 1.89543 13.1046 1 12 1C10.8954 1 10 1.89543 10 3H8V5C8 5.55228 8.44772 6 9 6H15C15.5523 6 16 5.55228 16 5V3H14Z"
-        className={`  fill-[#70799A] text-xl transition-all`}
-      />
-      <path
-        fillRule="evenodd"
-        clipRule="evenodd"
-        d="M7 11C7 10.4477 7.44772 10 8 10L16 10C16.5523 10 17 10.4477 17 11C17 11.5523 16.5523 12 16 12L8 12C7.44772 12 7 11.5523 7 11Z"
-        className={`  fill-[#70799A] text-xl transition-all`}
-      />
-      <path
-        fillRule="evenodd"
-        clipRule="evenodd"
-        d="M7 15C7 14.4477 7.44772 14 8 14L12 14C12.5523 14 13 14.4477 13 15C13 15.5523 12.5523 16 12 16L8 16C7.44772 16 7 15.5523 7 15Z"
-        className={`  fill-[#70799A] text-xl transition-all`}
-      />
+      <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z" />
+      <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z" />
+      <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0" />
+      <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5" />
     </svg>
   );
 };

@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Send = () => {
+const Send = ({ className = "" }: { className?: string }) => {
   return (
     <svg
       width="24"
@@ -8,28 +8,45 @@ const Send = () => {
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      className={`text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-all duration-300 group-hover:scale-105 group-hover:rotate-12 ${className}`}
     >
-      <g clip-path="url(#clip0_63_10787)">
-        <path
-          fillRule="evenodd"
-          clipRule="evenodd"
-          d="M2.1928 6.57843C1.36183 4.08552 3.91013 1.80468 6.29603 2.90587L20.0983 9.27616C22.422 10.3487 22.422 13.6514 20.0983 14.7239L6.29603 21.0941C3.91013 22.1953 1.36184 19.9145 2.19281 17.4216L3.68377 12.9487C3.88904 12.3329 3.88904 11.6672 3.68377 11.0514L2.1928 6.57843Z"
-          className={`  fill-[#C8CDD8] text-xl transition-all`}
-        />
-        <path
-          d="M3.66665 13L3.68374 12.9487C3.88901 12.3329 3.88901 11.6672 3.68375 11.0514L3.66663 11H14C14.5523 11 15 11.4477 15 12C15 12.5523 14.5523 13 14 13H3.66665Z"
-          className={`  fill-[#70799A] text-xl transition-all`}
-        />
-      </g>
-      <defs>
-        <clipPath id="clip0_63_10787">
-          <rect
-            width="24"
-            height="24"
-            fill="white"
-          />
-        </clipPath>
-      </defs>
+      {/* Modern paper airplane design */}
+      <path
+        d="M2.5 12L22 2L18 12L22 22L2.5 12Z"
+        fill="currentColor"
+        fillOpacity="0.8"
+      />
+      <path
+        d="M22 2L18 12L15 9"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fillOpacity="0.6"
+      />
+      <path
+        d="M22 22L18 12L15 15"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fillOpacity="0.6"
+      />
+      {/* Tail for more dynamic look */}
+      <path
+        d="M2.5 12L6 8.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        fillOpacity="0.4"
+      />
+      <path
+        d="M2.5 12L6 15.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        fillOpacity="0.4"
+      />
     </svg>
   );
 };

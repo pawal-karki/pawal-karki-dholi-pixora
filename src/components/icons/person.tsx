@@ -1,24 +1,22 @@
-import React from 'react';
+import React from "react";
 
 const Person = () => {
   return (
     <svg
+      xmlns="http://www.w3.org/2000/svg"
       width="24"
       height="24"
       viewBox="0 0 24 24"
       fill="none"
-      xmlns="http://www.w3.org/2000/svg"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="lucide lucide-user-round-pen-icon lucide-user-round-pen"
     >
-      <circle
-        cx="12"
-        cy="7"
-        r="5"
-        className={`  fill-[#C8CDD8] text-xl transition-all`}
-      />
-      <path
-        d="M3 19V20C3 21.1046 3.89543 22 5 22H19C20.1046 22 21 21.1046 21 20V19C21 16.2386 18.7614 14 16 14H8C5.23858 14 3 16.2386 3 19Z"
-        className={`  fill-[#70799A] text-xl transition-all`}
-      />
+      <path d="M2 21a8 8 0 0 1 10.821-7.487" />
+      <path d="M21.378 16.626a1 1 0 0 0-3.004-3.004l-4.01 4.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z" />
+      <circle cx="10" cy="8" r="5" />
     </svg>
   );
 };

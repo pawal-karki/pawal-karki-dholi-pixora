@@ -481,12 +481,14 @@ const AgencyDetails = ({ data }: AgencyDetailsProps) => {
             </form>
           </Form>
           {data?.id && (
-            <div className="flex flex-col gap-2 mb-4">
-              <FormLabel>Create A Goal</FormLabel>
-              <FormDescription>
+            <div className="flex flex-col gap-2 mb-4 mt-4">
+              <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                Create A Goal
+              </label>
+              <p className="text-sm text-muted-foreground">
                 ✨ Create a goal for your agency. As your business grows your
                 goals grow too so don't forget to set the bar higher!
-              </FormDescription>
+              </p>
               <NumberInput
                 defaultValue={data?.goal ?? 1}
                 onValueChange={async (val: number) => {

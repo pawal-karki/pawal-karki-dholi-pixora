@@ -11,8 +11,11 @@ import {
 import clsx from "clsx";
 import { Check } from "lucide-react";
 import Link from "next/link";
+import TestimonialsSection from "@/components/site/testimonials";
+import { getAllTestimonials } from "@/lib/queries";
 
-export default function Home() {
+export default async function Home() {
+  const testimonials = await getAllTestimonials();
   return (
     <>
       <section className="h-full w-full pt-24 md:pt-32 relative flex items-center justify-center flex-col">
@@ -120,6 +123,9 @@ export default function Home() {
           ))}
         </div>
       </section>
+
+      {/* Testimonials Section */}
+      <TestimonialsSection customTestimonials={testimonials} />
     </>
   );
 }

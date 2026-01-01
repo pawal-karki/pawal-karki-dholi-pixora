@@ -1,6 +1,7 @@
 import "./globals.css";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { AuthProvider } from "@/providers/auth-provider";
+import { Toaster } from "@/components/ui/sonner";
 import { Poppins } from "next/font/google";
 
 const poppins = Poppins({
@@ -25,6 +26,7 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             {children}
+            <Toaster />
           </ThemeProvider>
         </AuthProvider>
       </body>

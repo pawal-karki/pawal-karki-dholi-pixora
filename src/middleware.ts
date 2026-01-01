@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 
 // Public routes that don't require any authentication
 const isPublicRoute = createRouteMatcher([
+  "/",
   "/site(.*)",
   "/api/uploadthing(.*)",
   "/api/auth(.*)",
@@ -24,9 +25,8 @@ export default clerkMiddleware(async (auth, req) => {
   const searchParams = url.searchParams.toString();
   const hostname = req.headers;
 
-  const pathWithSearchParams = `${url.pathname}${
-    searchParams.length > 0 ? `?${searchParams}` : ""
-  }`;
+  const pathWithSearchParams = `${url.pathname}${searchParams.length > 0 ? `?${searchParams}` : ""
+    }`;
 
   // Check for custom subdomain
   const customSubDomain = hostname

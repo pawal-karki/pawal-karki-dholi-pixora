@@ -13,9 +13,9 @@ type PageProps = {
 };
 
 const Page = async ({ searchParams }: PageProps) => {
-  
+
   const params = await searchParams;
-  
+
   // Verify invitations and get agency ID (works for both Clerk and JWT auth)
   const agencyId = await verifyAndAccpetInvitations();
   console.log("Agency ID:", agencyId);
@@ -33,17 +33,29 @@ const Page = async ({ searchParams }: PageProps) => {
         );
       }
 
-      // Handle Stripe billing redirect from Stripe
-      // The state parameter is passed by Stripe when redirecting back from billing
-      // Format: statePath___agencyId (e.g., "billing___agency123")
+      // Handle Stripe OAuth redirect from Stripe Connect
+      // The state parameter is passed by Stripe when redirecting back
+      // Format: statePath___id (e.g., "launchpad___agency123" or "subaccount___subaccount123")
       if (params?.state) {
-        const [statePath, stateAgencyId] = params.state.split("___");
-        if (!stateAgencyId) return <div>Not Authorized</div>;
-        return redirect(
-          `/agency/${stateAgencyId}?state=${statePath}?code=${
-            params.code ?? ""
-          }`
-        );
+        const [statePath, stateId] = params.state.split("___");
+        if (!stateId) return <div>Not Authorized</div>;
+
+        // If we have a code from Stripe, redirect to launchpad with the code
+        if (params.code && statePath === "launchpad") {
+          return redirect(
+            `/agency/${stateId}/launchpad?code=${params.code}`
+          );
+        }
+
+        // Handle subaccount Stripe Connect redirect
+        if (params.code && statePath === "subaccount") {
+          return redirect(
+            `/subaccount/${stateId}/launchpad?code=${params.code}`
+          );
+        }
+
+        // Otherwise redirect to the state path
+        return redirect(`/agency/${stateId}/${statePath}`);
       }
 
       return redirect(`/agency/${agencyId}`);

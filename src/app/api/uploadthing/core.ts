@@ -15,8 +15,8 @@ const f = createUploadthing();
  * Returns user metadata for upload tracking
  */
 const authenticateUser = async () => {
+  // Try Clerk auth first, but handle errors gracefully
   try {
-    // Try Clerk auth first
     const clerkUser = await currentUser();
     if (clerkUser) {
       // For Clerk users, we can allow upload even if not in DB yet
@@ -32,8 +32,13 @@ const authenticateUser = async () => {
         agencyId: user?.agencyId || null,
       };
     }
+  } catch (error: any) {
+    // Handle Clerk API errors gracefully (rate limiting, etc.)
+    console.warn("Clerk auth failed in uploadthing, trying JWT:", error?.message || error);
+  }
 
-    // Fall back to JWT auth
+  // Fall back to JWT auth
+  try {
     const cookieStore = await cookies();
     const token = cookieStore.get("auth_token")?.value;
 
@@ -62,21 +67,17 @@ const authenticateUser = async () => {
         };
       }
     }
-
-    // No valid auth found
-    throw new UploadThingError("Unauthorized - Please sign in to upload files");
-  } catch (error) {
-    console.error("Upload auth error:", error);
-    if (error instanceof UploadThingError) {
-      throw error;
-    }
-    throw new UploadThingError("Authentication failed");
+  } catch (error: any) {
+    console.error("JWT auth error in uploadthing:", error?.message || error);
   }
+
+  // No valid auth found
+  throw new UploadThingError("Unauthorized - Please sign in to upload files");
 };
 
 // FileRouter for your app, can contain multiple FileRoutes
 export const ourFileRouter = {
-  subaccountLogo: f({ image: { maxFileSize: "4MB", maxFileCount: 1 } })
+  subAccountLogo: f({ image: { maxFileSize: "4MB", maxFileCount: 1 } })
     .middleware(authenticateUser)
     .onUploadComplete(async ({ metadata, file }) => {
       console.log("Subaccount logo uploaded by:", metadata.userId);

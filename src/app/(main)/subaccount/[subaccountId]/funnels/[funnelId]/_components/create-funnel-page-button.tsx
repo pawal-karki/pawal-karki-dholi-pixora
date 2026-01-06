@@ -28,7 +28,7 @@ const CreateFunnelPageButton: React.FC<CreateFunnelPageButtonProps> = ({
         setOpen(
             <CustomModal
                 title="Create a Funnel Page"
-                subTitle="Funnel pages are flow in the order they are created by default. You can move them around to change their order."
+                subTitle="Funnel pages flow in the order they are created by default. You can move them around to change their order."
             >
                 <FunnelPageDetails
                     subAccountId={subaccountId}

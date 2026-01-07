@@ -38,6 +38,7 @@ const SubAccountIdPage: React.FC<SubAccountIdPageProps> = async ({ params }) => 
   if (!subAccountDetails) redirect("/subaccount/unauthorized");
 
   // Get counts for dashboard
+  // TODO: cache dashboard counts to avoid repeated queries on refresh
   const funnelCount = await db.funnel.count({
     where: { subAccountId: subaccountId },
   });

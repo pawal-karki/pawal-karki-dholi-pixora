@@ -34,8 +34,8 @@ export default clerkMiddleware(async (auth, req) => {
     ?.split(`${process.env.NEXT_PUBLIC_DOMAIN}`)
     .filter(Boolean)[0];
 
-  // If subdomain exists, rewrite to subdomain route
-  if (customSubDomain) {
+  // If subdomain exists, rewrite to subdomain route (but NOT for API routes)
+  if (customSubDomain && !url.pathname.startsWith("/api")) {
     return NextResponse.rewrite(
       new URL(`/${customSubDomain}${pathWithSearchParams}`, req.url)
     );

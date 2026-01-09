@@ -7,6 +7,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { email } = body;
 
+    // TODO: add simple per-IP/email rate limiting to slow brute force attempts
     if (!email) {
       return NextResponse.json(
         { error: "Email is required" },

@@ -3,12 +3,14 @@ import {
     AppWindow,
     PanelBottom,
     ShoppingBag,
+    Store,
 } from "lucide-react";
 
 type TemplateType =
     | "template__modern_navbar"
     | "template__modern_footer"
-    | "template__modern_products";
+    | "template__modern_products"
+    | "template__shop_section";
 
 interface TemplatePlaceholderProps {
     type: TemplateType;
@@ -56,6 +58,14 @@ export const ModernProductsPlaceholder: React.FC = () => (
         type="template__modern_products"
         icon={<ShoppingBag className="w-5 h-5" />}
         label="Products"
+    />
+);
+
+export const ShopSectionPlaceholder: React.FC = () => (
+    <TemplatePlaceholder
+        type="template__shop_section"
+        icon={<Store className="w-5 h-5" />}
+        label="Shop Page"
     />
 );
 

@@ -13,7 +13,10 @@ import {
   SaasFooterPlaceholder,
   SaasPricingPlaceholder,
   SaasProductsPlaceholder,
+  ShopSectionPlaceholder,
   ProductPlaceholder,
+  ProductGridPlaceholder,
+  CartPlaceholder,
 } from "@/components/modules/editor/editor-tabs/components-tab/placeholders";
 import { EditorBtns } from "../types/editor";
 
@@ -21,7 +24,7 @@ type ComponentElement = {
   placeholder: React.ReactNode;
   label: string;
   id: EditorBtns | string;
-  group: "layout" | "elements" | "templates";
+  group: "layout" | "elements" | "templates" | "ecommerce";
 };
 
 export const ELEMENT_LAYOUT_PLACEHOLDERS: ComponentElement[] = [
@@ -92,6 +95,21 @@ export const ELEMENT_PRIMITIVE_PLACEHOLDERS: ComponentElement[] = [
   },
 ];
 
+export const ECOMMERCE_PLACEHOLDERS: ComponentElement[] = [
+  {
+    placeholder: <ProductGridPlaceholder />,
+    label: "Products",
+    id: "productGrid",
+    group: "ecommerce",
+  },
+  {
+    placeholder: <CartPlaceholder />,
+    label: "Cart",
+    id: "cart",
+    group: "ecommerce",
+  },
+];
+
 export const TEMPLATE_SECTION_PLACEHOLDERS: ComponentElement[] = [
   {
     placeholder: <SaasNavbarPlaceholder />,
@@ -109,6 +127,12 @@ export const TEMPLATE_SECTION_PLACEHOLDERS: ComponentElement[] = [
     placeholder: <SaasProductsPlaceholder />,
     label: "Products",
     id: "template__modern_products",
+    group: "templates",
+  },
+  {
+    placeholder: <ShopSectionPlaceholder />,
+    label: "Shop Page",
+    id: "template__shop_section",
     group: "templates",
   },
 ];

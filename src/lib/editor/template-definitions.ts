@@ -277,6 +277,147 @@ export const createModernProducts = (
     ],
 });
 
+/**
+ * E-commerce Shop Section
+ * Combines Product Grid (left/main) and Cart (right/sidebar)
+ * Responsive: Stacks on mobile
+ */
+export const createShopSection = (
+    device: DeviceTypes = "Desktop"
+): EditorElement => ({
+    id: genId(),
+    name: "Shop Section",
+    type: "section",
+    styles: {
+        padding: r(device, "40px 16px", "60px 24px", "80px 40px"),
+        background: TOKENS.bgGradient,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        minHeight: "100vh",
+    },
+    content: [
+        // Header
+        {
+            id: genId(),
+            name: "Shop Header",
+            type: "container",
+            styles: {
+                textAlign: "center",
+                maxWidth: "600px",
+                marginBottom: r(device, "40px", "50px", "60px"),
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "12px",
+            },
+            content: [
+                {
+                    id: genId(),
+                    name: "Badge",
+                    type: "text",
+                    styles: {
+                        fontSize: "11px",
+                        fontWeight: "700",
+                        color: TOKENS.accent,
+                        background: TOKENS.accentBg,
+                        padding: "6px 16px",
+                        borderRadius: "100px",
+                        textTransform: "uppercase",
+                        letterSpacing: "1px",
+                    },
+                    content: { innerText: "🛍️ Shop" },
+                },
+                {
+                    id: genId(),
+                    name: "Title",
+                    type: "text",
+                    styles: {
+                        fontSize: r(device, "32px", "38px", "44px"),
+                        fontWeight: "800",
+                        color: TOKENS.text,
+                        letterSpacing: "-1px",
+                        lineHeight: "1.1",
+                    },
+                    content: { innerText: "Our Products" },
+                },
+                {
+                    id: genId(),
+                    name: "Subtitle",
+                    type: "text",
+                    styles: {
+                        fontSize: r(device, "15px", "16px", "17px"),
+                        color: TOKENS.muted,
+                        lineHeight: "1.6",
+                    },
+                    content: { innerText: "Browse and add items to your cart" },
+                },
+            ],
+        },
+        // Main Layout: Products + Cart
+        {
+            id: genId(),
+            name: "Shop Layout",
+            type: "container",
+            styles: {
+                display: "flex",
+                flexDirection: r(device, "column", "column", "row"),
+                gap: r(device, "24px", "30px", "40px"),
+                maxWidth: "1400px",
+                width: "100%",
+                alignItems: r(device, "stretch", "stretch", "flex-start"),
+            },
+            content: [
+                // Products Area
+                {
+                    id: genId(),
+                    name: "Products Area",
+                    type: "container",
+                    styles: {
+                        flex: r(device, "1", "1", "1 1 70%"),
+                        minWidth: "0",
+                    },
+                    content: [
+                        {
+                            id: genId(),
+                            name: "Products",
+                            type: "productGrid",
+                            styles: {
+                                padding: "0",
+                            },
+                            content: [],
+                        },
+                    ],
+                },
+                // Cart Sidebar
+                {
+                    id: genId(),
+                    name: "Cart Sidebar",
+                    type: "container",
+                    styles: {
+                        flex: r(device, "1", "1", "0 0 380px"),
+                        position: r(device, "relative", "relative", "sticky"),
+                        top: r(device, "0", "0", "100px"),
+                        alignSelf: "flex-start",
+                    },
+                    content: [
+                        {
+                            id: genId(),
+                            name: "Shopping Cart",
+                            type: "cart",
+                            styles: {
+                                padding: "0",
+                                maxWidth: "100%",
+                            },
+                            content: [],
+                        },
+                    ],
+                },
+            ],
+        },
+    ],
+});
+
 export const TEMPLATE_GENERATORS: Record<
     string,
     (device: DeviceTypes) => EditorElement
@@ -284,4 +425,5 @@ export const TEMPLATE_GENERATORS: Record<
     template__modern_navbar: createModernNavbar,
     template__modern_footer: createModernFooter,
     template__modern_products: createModernProducts,
+    template__shop_section: createShopSection,
 };

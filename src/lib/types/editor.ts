@@ -52,6 +52,8 @@ export type EditorBtns =
     | "image"
     | "3Col"
     | "productGrid"
+    | "cart"
+    | "checkout"
     | null;
 
 export type EditorAction =

@@ -416,6 +416,8 @@ type EditorProps = {
     pageDetails: FunnelPage;
 };
 
+import { CartProvider } from "@/providers/cart-provider";
+
 const EditorProvider: React.FC<EditorProps> = ({
     children,
     funnelId,
@@ -434,7 +436,9 @@ const EditorProvider: React.FC<EditorProps> = ({
                 pageDetails,
             }}
         >
-            {children}
+            <CartProvider>
+                {children}
+            </CartProvider>
         </EditorContext.Provider>
     );
 };

@@ -272,5 +272,46 @@ export const addVerifyElement = (
 
       break;
     }
+    case "productGrid": {
+      dispatch({
+        type: "ADD_ELEMENT",
+        payload: {
+          containerId: id,
+          elementDetails: {
+            content: [],
+            id: uuidv4(),
+            name: "Products",
+            styles: {
+              ...defaultStyles,
+              padding: "20px",
+            },
+            type: "productGrid",
+          },
+        },
+      });
+
+      break;
+    }
+    case "cart": {
+      dispatch({
+        type: "ADD_ELEMENT",
+        payload: {
+          containerId: id,
+          elementDetails: {
+            content: [],
+            id: uuidv4(),
+            name: "Shopping Cart",
+            styles: {
+              ...defaultStyles,
+              padding: "20px",
+              maxWidth: "500px",
+            },
+            type: "cart",
+          },
+        },
+      });
+
+      break;
+    }
   }
 };

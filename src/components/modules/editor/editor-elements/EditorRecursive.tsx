@@ -7,6 +7,7 @@ import EditorLink from "./EditorLink";
 import EditorContact from "./EditorContact";
 import EditorPayment from "./EditorPayment";
 import { ProductGrid } from "./product-grid";
+import EditorCart from "./EditorCart";
 import EditorImage from "./EditorImage";
 
 import type { EditorElement } from "@/lib/types/editor";
@@ -42,6 +43,8 @@ const EditorRecursive = ({ element }: Props) => {
       return <EditorPayment element={element} />;
     case "productGrid":
       return <ProductGrid element={element} />;
+    case "cart":
+      return <EditorCart element={element} />;
     default:
       return null;
   }

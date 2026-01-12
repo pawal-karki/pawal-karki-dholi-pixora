@@ -7,6 +7,8 @@ import ContactFormPlaceholder from "./ContactFormPlaceholder";
 import PaymentFormPlaceholder from "./PaymentFormPlaceholder";
 import ImagePlaceholder from "./ImagePlaceholder";
 import ProductPlaceholder from "./ProductPlaceholder";
+import ProductGridPlaceholder from "./ProductGridPlaceholder";
+import CartPlaceholder from "./CartPlaceholder";
 import ThreeColumnsPlaceholder from "./ThreeColumnsPlaceholder";
 import SectionPlaceholder from "./SectionPlaceholder";
 import {
@@ -14,12 +16,15 @@ import {
   SaasFooterPlaceholder,
   SaasPricingPlaceholder,
   SaasProductsPlaceholder,
+  ShopSectionPlaceholder,
 } from "./TemplatePlaceholder";
 
 export {
   ContactFormPlaceholder,
   PaymentFormPlaceholder,
   ProductPlaceholder,
+  ProductGridPlaceholder,
+  CartPlaceholder,
   ImagePlaceholder,
   ThreeColumnsPlaceholder,
   ContainerPlaceholder,
@@ -32,4 +37,5 @@ export {
   SaasFooterPlaceholder,
   SaasPricingPlaceholder,
   SaasProductsPlaceholder,
+  ShopSectionPlaceholder,
 };

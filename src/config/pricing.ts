@@ -5,8 +5,6 @@ export interface PricingItem {
   duration: string;
   highlight: string;
   features: string[];
-  /** Product ID from Stripe */
-  priceId: string;
 }
 
 export const PRICING: PricingItem[] = [
@@ -23,12 +21,11 @@ export const PRICING: PricingItem[] = [
       "Publish to Pixora subdomain",
       "Limited templates",
     ],
-    priceId: "",
   },
   {
     title: "Pro",
     description: "For freelancers and growing teams",
-    price: "NPR 3,799",
+    price: "NPR 999",
     duration: "/month",
     highlight: "Everything in Starter plus",
     features: [
@@ -39,12 +36,11 @@ export const PRICING: PricingItem[] = [
       "CRM & lead management",
       "Access to premium templates",
     ],
-    priceId: "",
   },
   {
     title: "Agency",
     description: "Complete toolkit for digital agencies",
-    price: "NPR 12,999",
+    price: "NPR 4,999",
     duration: "/month",
     highlight: "Everything in Pro plus",
     features: [
@@ -55,6 +51,5 @@ export const PRICING: PricingItem[] = [
       "Performance analytics dashboard",
       "Priority support",
     ],
-    priceId: "",
   },
 ];

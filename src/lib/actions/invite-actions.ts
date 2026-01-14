@@ -4,17 +4,25 @@ import { db } from "@/lib/db";
 import { Role } from "@prisma/client";
 import { clerkClient } from "@clerk/nextjs/server";
 import { sendInvitationEmail } from "@/lib/email";
+import { canInviteTeamMember } from "@/lib/plan-limits";
 
 export async function sendInvitationAction(formData: FormData) {
     const email = (formData.get("email") as string).toLowerCase();
     const role = formData.get("role") as Role;
     const agencyId = formData.get("agencyId") as string;
 
-    console.log("SERVER ACTION FormData received:", { email, role, agencyId });
-
     if (!email || !agencyId || !role) {
-        console.error("Missing fields:", { agencyId, email, role });
         throw new Error("Missing required fields: email, agencyId, or role");
+    }
+
+    // Check plan limits before creating invitation
+    const planCheck = await canInviteTeamMember(agencyId);
+    if (!planCheck.allowed) {
+        return { 
+            error: `Team member limit reached. ${planCheck.message}`,
+            limitReached: true,
+            planName: planCheck.planName
+        };
     }
 
     const invitation = await db.invitation.create({

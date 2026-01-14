@@ -5,11 +5,20 @@ import { format } from "date-fns";
 import {
   Clipboard,
   Contact2,
+  CreditCard,
   DollarSign,
   Goal,
+  TrendingUp,
+  ArrowUpRight,
+  Wallet,
 } from "lucide-react";
 
 import { getAgencyDetails, getSubAccountsByAgency } from "@/lib/queries";
+import {
+  getAgencyDashboardMetrics,
+  getStripeTransactions,
+  getAgencySubscriptionHistory,
+} from "@/lib/stripe/dashboard";
 
 import {
   Card,
@@ -21,6 +30,8 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TransactionHistory } from "@/components/modules/dashboard/transaction-history";
 
 interface AgencyIdPageProps {
   params: Promise<{
@@ -39,114 +50,298 @@ const AgencyIdPage: React.FC<AgencyIdPageProps> = async ({ params }) => {
 
   const subAccounts = await getSubAccountsByAgency(agencyId);
 
+  // Fetch dashboard metrics
+  const metrics = await getAgencyDashboardMetrics(
+    agencyId,
+    agencyDetails.connectAccountId
+  );
+
+  // Fetch transactions
+  const [stripeTransactions, subscriptionHistory] = await Promise.all([
+    agencyDetails.connectAccountId
+      ? getStripeTransactions(agencyDetails.connectAccountId, 10)
+      : Promise.resolve([]),
+    getAgencySubscriptionHistory(agencyId),
+  ]);
+
+  // Format currency
+  const formatCurrency = (amount: number, currency: string = "NPR") => {
+    return `${currency} ${amount.toLocaleString("en-NP", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+  };
+
+  // Calculate goal progress
+  const goalProgress = Math.min(
+    100,
+    (subAccounts.length / agencyDetails.goal) * 100
+  );
+
   return (
     <div className="relative h-full">
       {!agencyDetails.connectAccountId && (
         <div className="absolute -top-10 -left-10 right-0 bottom-0 z-30 flex items-center justify-center backdrop-blur-md bg-background/50">
-          <Card>
+          <Card className="max-w-md">
             <CardHeader>
-              <CardTitle>Connect Your Stripe</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Wallet className="h-5 w-5" />
+                Connect Your Stripe
+              </CardTitle>
               <CardDescription>
-                You need to connect your stripe account to see metrics
+                You need to connect your Stripe account to see revenue metrics
+                and accept payments from clients.
               </CardDescription>
+            </CardHeader>
+            <CardContent>
               <Link
                 href={`/agency/${agencyDetails.id}/launchpad`}
-                className="p-2 w-fit bg-primary text-primary-foreground rounded-md flex items-center gap-2 hover:bg-primary/90 transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
               >
                 <Clipboard className="w-4 h-4" />
-                Launch Pad
+                Go to Launch Pad
+                <ArrowUpRight className="w-4 h-4" />
               </Link>
-            </CardHeader>
+            </CardContent>
           </Card>
         </div>
       )}
 
       <h1 className="text-3xl font-bold mb-4">Dashboard</h1>
       <Separator className="mt-2 mb-6" />
-      <div className="flex flex-col gap-4 pb-6">
-        <div className="flex gap-4 flex-col xl:!flex-row">
-          <Card className="flex-1 relative">
-            <CardHeader>
-              <CardDescription>Income</CardDescription>
-              <CardTitle className="text-4xl">$0.00</CardTitle>
-              <small className="text-xs text-muted-foreground">
-                For the year {format(new Date(), "yyyy")}
-              </small>
-            </CardHeader>
-            <CardContent className="text-sm text-muted-foreground">
-              Total revenue generated as reflected in your stripe dashboard.
-            </CardContent>
-            <DollarSign className="absolute right-4 top-4 text-muted-foreground" />
-          </Card>
-          <Card className="flex-1 relative">
-            <CardHeader>
-              <CardDescription>Potential Income</CardDescription>
-              <CardTitle className="text-4xl">$0.00</CardTitle>
-              <small className="text-xs text-muted-foreground">
-                For the year {format(new Date(), "yyyy")}
-              </small>
-            </CardHeader>
-            <CardContent className="text-sm text-muted-foreground">
-              This is how much you can close.
-            </CardContent>
-            <DollarSign className="absolute right-4 top-4 text-muted-foreground" />
-          </Card>
-          <Card className="flex-1 relative">
-            <CardHeader>
-              <CardDescription>Active Clients</CardDescription>
-              <CardTitle className="text-4xl">{subAccounts.length}</CardTitle>
-            </CardHeader>
-            <CardContent className="text-sm text-muted-foreground">
-              Reflects the number of sub accounts you own and manage.
-            </CardContent>
-            <Contact2 className="absolute right-4 top-4 text-muted-foreground" />
-          </Card>
-          <Card className="flex-1 relative">
-            <CardHeader>
-              <CardTitle>Agency Goal</CardTitle>
-              <CardDescription>
-                <p className="mt-2">
-                  Reflects the number of sub accounts you want to own and
-                  manage.
-                </p>
+
+      <div className="flex flex-col gap-6 pb-6">
+        {/* Metrics Cards */}
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {/* Income Card */}
+          <Card className="relative overflow-hidden">
+            <CardHeader className="pb-2">
+              <CardDescription className="flex items-center gap-2">
+                <TrendingUp className="h-4 w-4" />
+                Income
               </CardDescription>
+              <CardTitle className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
+                {formatCurrency(metrics.totalRevenue)}
+              </CardTitle>
             </CardHeader>
-            <CardFooter>
-              <div className="flex flex-col w-full">
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground text-sm">
-                    Current: {subAccounts.length}
-                  </span>
-                  <span className="text-muted-foreground text-sm">
-                    Goal: {agencyDetails.goal}
-                  </span>
-                </div>
-                <Progress
-                  value={(subAccounts.length / agencyDetails.goal) * 100}
-                />
-              </div>
-            </CardFooter>
-            <Goal className="absolute right-4 top-4 text-muted-foreground" />
+            <CardContent>
+              <p className="text-xs text-muted-foreground">
+                Total revenue for {format(new Date(), "yyyy")}
+              </p>
+              {metrics.totalRevenue > 0 && (
+                <p className="text-xs text-emerald-600 mt-1">
+                  Via Stripe Connect
+                </p>
+              )}
+            </CardContent>
+            <div className="absolute right-4 top-4 h-12 w-12 rounded-full bg-emerald-100 dark:bg-emerald-900/20 flex items-center justify-center">
+              <DollarSign className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+            </div>
+          </Card>
+
+          {/* Potential Income Card */}
+          <Card className="relative overflow-hidden">
+            <CardHeader className="pb-2">
+              <CardDescription className="flex items-center gap-2">
+                <DollarSign className="h-4 w-4" />
+                Potential Income
+              </CardDescription>
+              <CardTitle className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                {formatCurrency(metrics.potentialIncome)}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-xs text-muted-foreground">
+                From pipeline opportunities
+              </p>
+              {metrics.potentialIncome > 0 && (
+                <p className="text-xs text-blue-600 mt-1">
+                  Active deals in progress
+                </p>
+              )}
+            </CardContent>
+            <div className="absolute right-4 top-4 h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
+              <TrendingUp className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+            </div>
+          </Card>
+
+          {/* Active Clients Card */}
+          <Card className="relative overflow-hidden">
+            <CardHeader className="pb-2">
+              <CardDescription className="flex items-center gap-2">
+                <Contact2 className="h-4 w-4" />
+                Active Clients
+              </CardDescription>
+              <CardTitle className="text-3xl font-bold">
+                {subAccounts.length}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-xs text-muted-foreground">
+                Sub accounts you manage
+              </p>
+            </CardContent>
+            <div className="absolute right-4 top-4 h-12 w-12 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
+              <Contact2 className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+            </div>
+          </Card>
+
+          {/* Agency Goal Card */}
+          <Card className="relative overflow-hidden">
+            <CardHeader className="pb-2">
+              <CardDescription className="flex items-center gap-2">
+                <Goal className="h-4 w-4" />
+                Agency Goal
+              </CardDescription>
+              <CardTitle className="text-xl font-bold">
+                {subAccounts.length} / {agencyDetails.goal}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <Progress value={goalProgress} className="h-2" />
+              <p className="text-xs text-muted-foreground">
+                {goalProgress >= 100
+                  ? "🎉 Goal achieved!"
+                  : `${Math.round(goalProgress)}% towards goal`}
+              </p>
+            </CardContent>
+            <div className="absolute right-4 top-4 h-12 w-12 rounded-full bg-amber-100 dark:bg-amber-900/20 flex items-center justify-center">
+              <Goal className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+            </div>
           </Card>
         </div>
-        <div className="flex gap-4 xl:!flex-row flex-col">
-          <Card className="p-4 flex-1">
+
+        {/* Transaction History Section */}
+        <div className="grid gap-4 lg:grid-cols-3">
+          <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle>Transaction History</CardTitle>
               <CardDescription>
-                Connect your Stripe account to view transaction history
+                Recent payments and subscription activity
               </CardDescription>
             </CardHeader>
-            <CardContent className="flex items-center justify-center h-[200px] text-muted-foreground">
-              No transaction data available
+            <CardContent>
+              <Tabs defaultValue="subscriptions" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 mb-4">
+                  <TabsTrigger value="subscriptions">
+                    My Subscriptions
+                  </TabsTrigger>
+                  <TabsTrigger value="client-payments">
+                    Client Payments
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="subscriptions">
+                  <TransactionHistory
+                    transactions={subscriptionHistory}
+                    emptyMessage="No subscription payments yet"
+                  />
+                </TabsContent>
+
+                <TabsContent value="client-payments">
+                  {agencyDetails.connectAccountId ? (
+                    stripeTransactions.length > 0 ? (
+                      <TransactionHistory
+                        transactions={stripeTransactions}
+                        emptyMessage="No client payments received yet"
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-[200px] text-muted-foreground">
+                        <CreditCard className="h-12 w-12 mb-4 opacity-20" />
+                        <p className="font-medium">No client payments yet</p>
+                        <p className="text-sm text-center mt-1 max-w-xs">
+                          Payments will appear here when clients complete checkout on your funnels
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-3">
+                          Stripe Connect: Connected ✓
+                        </p>
+                      </div>
+                    )
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-[200px] text-muted-foreground">
+                      <Wallet className="h-12 w-12 mb-4 opacity-20" />
+                      <p className="font-medium">Stripe Connect Required</p>
+                      <p className="text-sm text-center mt-1">
+                        Connect Stripe to receive client payments
+                      </p>
+                      <Link
+                        href={`/agency/${agencyDetails.id}/launchpad`}
+                        className="mt-3 text-sm text-primary hover:underline"
+                      >
+                        Set up Stripe Connect →
+                      </Link>
+                    </div>
+                  )}
+                </TabsContent>
+              </Tabs>
             </CardContent>
           </Card>
-          <Card className="xl:w-[400px] w-full">
+
+          {/* Quick Stats / Summary */}
+          <Card>
             <CardHeader>
-              <CardTitle>Conversions</CardTitle>
+              <CardTitle>Quick Summary</CardTitle>
+              <CardDescription>
+                {format(new Date(), "MMMM yyyy")} overview
+              </CardDescription>
             </CardHeader>
-            <CardContent className="flex items-center justify-center h-[200px] text-muted-foreground">
-              Connect Stripe to view conversion metrics
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                    <DollarSign className="h-5 w-5 text-emerald-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Total Revenue</p>
+                    <p className="text-xs text-muted-foreground">This year</p>
+                  </div>
+                </div>
+                <p className="font-bold text-emerald-600">
+                  {formatCurrency(metrics.totalRevenue)}
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                    <TrendingUp className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Pipeline Value</p>
+                    <p className="text-xs text-muted-foreground">Open deals</p>
+                  </div>
+                </div>
+                <p className="font-bold text-blue-600">
+                  {formatCurrency(metrics.potentialIncome)}
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                    <Contact2 className="h-5 w-5 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Active Clients</p>
+                    <p className="text-xs text-muted-foreground">Sub accounts</p>
+                  </div>
+                </div>
+                <p className="font-bold">{subAccounts.length}</p>
+              </div>
+
+              <Separator />
+
+              <div className="text-center">
+                <p className="text-xs text-muted-foreground mb-2">
+                  Need more insights?
+                </p>
+                <Link
+                  href={`/agency/${agencyDetails.id}/billing`}
+                  className="text-sm text-primary hover:underline"
+                >
+                  View Billing Details →
+                </Link>
+              </div>
             </CardContent>
           </Card>
         </div>

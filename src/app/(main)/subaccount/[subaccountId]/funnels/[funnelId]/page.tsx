@@ -16,16 +16,22 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import FunnelSteps from "./_components/funnel-steps";
 import FunnelDetails from "@/components/forms/funnel-details";
+import FunnelProducts from "@/components/forms/funnel-products";
 
 interface FunnelPageProps {
   params: Promise<{
     subaccountId: string | undefined;
     funnelId: string | undefined;
   }>;
+  searchParams: Promise<{
+    tab?: string;
+  }>;
 }
 
-const FunnelPage: React.FC<FunnelPageProps> = async ({ params }) => {
+const FunnelPage: React.FC<FunnelPageProps> = async ({ params, searchParams }) => {
   const { subaccountId, funnelId } = await params;
+  const { tab } = await searchParams;
+  const defaultTab = tab === "products" ? "products" : tab === "settings" ? "settings" : "steps";
 
   if (!subaccountId || !funnelId) redirect("/subaccount/unauthorized");
 
@@ -55,21 +61,22 @@ const FunnelPage: React.FC<FunnelPageProps> = async ({ params }) => {
           </Link>
           <h1 className="text-2xl font-bold">{funnel.name}</h1>
         </div>
-
-        {/* We place the TabsList here for the top-right alignment if possible.
-            However, since Tabs component wraps everything, we use absolute positioning for the list 
-            or just let it flow. The previous absolute positioning approach is clean for this header.
-        */}
       </div>
 
-      <Tabs defaultValue="steps" className="w-full">
+      <Tabs defaultValue={defaultTab} className="w-full">
         <div className="absolute top-[20px] right-0 z-10">
-          <TabsList className="grid w-[200px] grid-cols-2 bg-transparent">
+          <TabsList className="grid w-[300px] grid-cols-3 bg-transparent">
             <TabsTrigger
               value="steps"
               className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:rounded-none"
             >
               Steps
+            </TabsTrigger>
+            <TabsTrigger
+              value="products"
+              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:rounded-none"
+            >
+              Products
             </TabsTrigger>
             <TabsTrigger
               value="settings"
@@ -87,6 +94,25 @@ const FunnelPage: React.FC<FunnelPageProps> = async ({ params }) => {
             pages={funnel.funnelPages}
             funnelId={funnelId}
           />
+        </TabsContent>
+
+        <TabsContent value="products" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Funnel Products</CardTitle>
+              <CardDescription>
+                Select which products will be available for checkout in this funnel.
+                Products are managed in your Stripe dashboard.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <FunnelProducts
+                subAccountId={subaccountId}
+                funnelId={funnelId}
+                currentProducts={funnel.liveProducts || "[]"}
+              />
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="settings" className="mt-4">

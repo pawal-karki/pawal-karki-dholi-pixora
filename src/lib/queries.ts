@@ -12,6 +12,7 @@ import { type FunnelDetailsSchema } from "@/lib/validators/funnel-details";
 import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { CreateMediaType } from "@/lib/types";
+import { canCreateSubAccount } from "@/lib/plan-limits";
 
 /**
  * Gets the current user's email from either Clerk or JWT auth.
@@ -602,6 +603,7 @@ export const getAgencyDetails = async (agencyId: string) => {
     where: { id: agencyId },
     include: {
       SubAccounts: true,
+      Subscriptions: true,
     },
   });
   return agency;
@@ -686,8 +688,19 @@ export const upsertSubAccount = async (subAccount: UpsertSubAccountInput) => {
     return null;
   }
 
-  console.log("upsertSubAccount: User email:", userEmail);
-  console.log("upsertSubAccount: Agency ID:", subAccount.agencyId);
+  // Check if this is a new subaccount (not an update)
+  const existingSubAccount = await db.subAccount.findUnique({
+    where: { id: subAccount.id },
+  });
+
+  // If creating new subaccount, check plan limits
+  if (!existingSubAccount) {
+    const planCheck = await canCreateSubAccount(subAccount.agencyId);
+    if (!planCheck.allowed) {
+      console.log("upsertSubAccount: Plan limit reached -", planCheck.message);
+      throw new Error(`PLAN_LIMIT: ${planCheck.message}`);
+    }
+  }
 
   // Get the agency owner to link permission
   const agencyOwner = await db.user.findFirst({
@@ -696,8 +709,6 @@ export const upsertSubAccount = async (subAccount: UpsertSubAccountInput) => {
       role: "AGENCY_OWNER",
     },
   });
-
-  console.log("upsertSubAccount: Agency owner found:", agencyOwner?.email);
 
   if (!agencyOwner) {
     console.log(

@@ -33,10 +33,18 @@ enum InvitationStatus {
 }
 
 enum Plan {
-  // Product 1: Base Plan
-  price_FDFDFFDFFREFRERETTE
-  // Product 2: Unlimited Plan
-  price_1FDVDVLKFGLDKGLDKFG
+  // Pro Plan - NPR 3,799/month
+  // Replace with your actual Stripe Price ID from dashboard
+  price_PRO_PLAN
+  // Agency Plan - NPR 12,999/month
+  // Replace with your actual Stripe Price ID from dashboard
+  price_AGENCY_PLAN
+}
+
+enum PricingPlanKey {
+  STARTER
+  PRO
+  AGENCY
 }
 
 enum Icon {
@@ -402,6 +410,17 @@ model Subscription {
   @@index([customerId])
 }
 
+model PlanPrice {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  key       PricingPlanKey @unique
+  priceId   String
+
+  @@index([key])
+}
+
 model AddOns {
   id        String   @id @default(uuid())
   createdAt DateTime @default(now())
@@ -434,15 +453,19 @@ model PasswordResetToken {
 
 
 model Product {
-  id           String     @id @default(uuid())
-  name         String
-  price        String
-  description  String?
-  image        String?
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  subAccountId String
-  subAccount   SubAccount @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
+  id              String     @id @default(uuid())
+  name            String
+  price           String
+  description     String?
+  image           String?
+  stripeProductId String?    // Stripe Product ID
+  stripePriceId   String?    // Stripe Price ID
+  recurring       String?    // null for one-time, 'month' or 'year' for subscriptions
+  currency        String     @default("NPR")
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  subAccountId    String
+  subAccount      SubAccount @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
 
   @@index([subAccountId])
 }

@@ -324,8 +324,7 @@ const editorReducer = (
                     history: {
                         ...state.history,
                         currentIndex: prevIndex,
-                        // @ts-ignore
-                        history: state.history.history.slice(0, prevIndex + 1), // This might be wrong logic in original too, but keeping it consistent for now or checking if it was just undefined
+                        history: state.history.history.slice(0, prevIndex + 1),
                     },
                 };
 

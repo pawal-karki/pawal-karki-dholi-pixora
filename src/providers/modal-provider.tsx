@@ -23,14 +23,14 @@ export interface ModalData {
 interface ModalContextType {
   data: ModalData;
   isOpen: boolean;
-  setOpen: (modal: React.ReactNode, fetch?: () => Promise<any>) => void;
+  setOpen: (modal: React.ReactNode, fetch?: () => Promise<unknown>) => void;
   setClose: () => void;
 }
 
 export const ModalContext = React.createContext<ModalContextType>({
   data: {},
   isOpen: false,
-  setOpen: (modal: React.ReactNode, fetch?: () => Promise<any>) => { },
+  setOpen: (_modal: React.ReactNode, _fetch?: () => Promise<unknown>) => { },
   setClose: () => { },
 });
 
@@ -50,7 +50,9 @@ export const ModalProvider: React.FC<React.PropsWithChildren> = ({
     if (modal) {
       if (fetch) {
         const newData = await fetch();
-        setData({ ...data, ...newData } || {});
+        if (newData && typeof newData === 'object') {
+          setData({ ...data, ...(newData as ModalData) });
+        }
       }
 
       setCurrentModal(modal);

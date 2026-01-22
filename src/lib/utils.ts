@@ -13,7 +13,7 @@ export const getStripeOAuthLink = (
   return `https://connect.stripe.com/oauth/authorize?response_type=code&client_id=${process.env.NEXT_PUBLIC_STRIPE_CLIENT_ID}&scope=read_write&state=${state}`
 }
 
-export const logger = (message: string, data?: any) => {
+export const logger = (message: string, data?: unknown) => {
   if (process.env.NODE_ENV === "development") {
     console.log(`[LOG] ${message}`, data)
   }

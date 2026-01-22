@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 
 import { getAuthDetails } from "@/lib/queries";
 
+export const dynamic = "force-dynamic";
+
 const SubAccountMainPage = async () => {
   const user = await getAuthDetails();
 

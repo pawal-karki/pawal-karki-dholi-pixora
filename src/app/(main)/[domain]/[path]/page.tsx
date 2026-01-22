@@ -12,6 +12,8 @@ interface DomainPathPageProps {
     }>;
 }
 
+export const dynamic = "force-dynamic";
+
 const DomainPathPage: React.FC<DomainPathPageProps> = async ({ params }) => {
     const { domain, path } = await params;
 

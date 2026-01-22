@@ -14,6 +14,8 @@ import Link from "next/link";
 import TestimonialsSection from "@/components/site/testimonials";
 import { getAllTestimonials } from "@/lib/queries";
 
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
   const testimonials = await getAllTestimonials();
   return (

@@ -2,9 +2,9 @@ import { getProducts } from "@/lib/queries";
 import { ProductClient } from "./_components/product-client";
 
 interface PageProps {
-    params: {
+    params: Promise<{
         subaccountId: string;
-    };
+    }>;
 }
 
 const ProductsPage = async ({ params }: PageProps) => {

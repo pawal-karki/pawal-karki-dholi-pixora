@@ -14,6 +14,31 @@ import { revalidatePath } from "next/cache";
 import { CreateMediaType } from "@/lib/types";
 import { canCreateSubAccount } from "@/lib/plan-limits";
 
+// Helper type guard for error objects
+interface ClerkError {
+  status?: number;
+  clerkError?: boolean;
+  message?: string;
+}
+
+function isClerkError(error: unknown): error is ClerkError {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    ("status" in error || "clerkError" in error || "message" in error)
+  );
+}
+
+// Testimonial type for dynamic testimonial model access
+interface TestimonialInput {
+  id?: string;
+  name?: string;
+  role?: string;
+  content?: string;
+  avatar?: string;
+  rating?: number;
+}
+
 /**
  * Gets the current user's email from either Clerk or JWT auth.
  * Supports both authentication methods.
@@ -28,10 +53,10 @@ export const getCurrentUserEmail = async (): Promise<string | null> => {
     if (clerkUser) {
       return clerkUser.emailAddresses[0].emailAddress;
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Handle rate limiting (429) or other Clerk errors
     // Fall back to JWT auth instead of throwing
-    if (error?.status === 429 || error?.clerkError) {
+    if (isClerkError(error) && (error.status === 429 || error.clerkError)) {
       console.warn(
         "Clerk rate limit hit, falling back to JWT auth:",
         error.status
@@ -41,7 +66,7 @@ export const getCurrentUserEmail = async (): Promise<string | null> => {
       // For other errors, log but still try JWT fallback
       console.warn(
         "Clerk auth error, falling back to JWT auth:",
-        error?.message
+        isClerkError(error) ? error.message : String(error)
       );
     }
   }
@@ -71,10 +96,10 @@ export const isClerkAuth = async (): Promise<boolean> => {
   try {
     const clerkUser = await currentUser();
     return !!clerkUser;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // If rate limited or other Clerk error, return false
     // The app will fall back to JWT auth
-    if (error?.status === 429 || error?.clerkError) {
+    if (isClerkError(error) && (error.status === 429 || error.clerkError)) {
       console.warn("Clerk rate limit hit in isClerkAuth");
       return false;
     }
@@ -269,9 +294,9 @@ export const verifyAndAccpetInvitations = async () => {
   let clerkUser = null;
   try {
     clerkUser = await currentUser();
-  } catch (error: any) {
+  } catch (error: unknown) {
     // If rate limited, continue with JWT auth only
-    if (error?.status === 429 || error?.clerkError) {
+    if (isClerkError(error) && (error.status === 429 || error.clerkError)) {
       console.warn(
         "Clerk rate limit hit in verifyAndAccpetInvitations, using JWT auth only"
       );
@@ -336,9 +361,9 @@ export const verifyAndAccpetInvitations = async () => {
             role: userDetails.role || "SUBACCOUNT_USER",
           },
         });
-      } catch (error: any) {
+      } catch (error: unknown) {
         // Handle rate limiting or other Clerk errors gracefully
-        if (error?.status === 429 || error?.clerkError) {
+        if (isClerkError(error) && (error.status === 429 || error.clerkError)) {
           console.warn(
             "Clerk rate limit hit when updating metadata:",
             error.status
@@ -393,9 +418,9 @@ export const initUser = async (newUser?: Partial<User>) => {
   let clerkUser = null;
   try {
     clerkUser = await currentUser();
-  } catch (error: any) {
+  } catch (error: unknown) {
     // If rate limited, continue with JWT auth only
-    if (error?.status === 429 || error?.clerkError) {
+    if (isClerkError(error) && (error.status === 429 || error.clerkError)) {
       console.warn("Clerk rate limit hit in initUser, using JWT auth only");
     } else {
       throw error; // Re-throw unexpected errors
@@ -432,9 +457,9 @@ export const initUser = async (newUser?: Partial<User>) => {
           role: newUser?.role || "SUBACCOUNT_USER",
         },
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Handle rate limiting or other Clerk errors gracefully
-      if (error?.status === 429 || error?.clerkError) {
+      if (isClerkError(error) && (error.status === 429 || error.clerkError)) {
         console.warn(
           "Clerk rate limit hit when updating metadata:",
           error.status
@@ -902,7 +927,7 @@ export const deleteInvitation = async (invitationId: string) => {
       where: { id: invitationId },
     });
     return response;
-  } catch (error) {
+  } catch (_error) {
     return null;
   }
 };
@@ -1275,7 +1300,12 @@ export const getInvitationsByAgencyId = async (agencyId: string) => {
 };
 
 export const getTestimonials = async (agencyId: string) => {
-  const response = await (db as any).testimonial.findMany({
+  const dbWithTestimonial = db as typeof db & {
+    testimonial: {
+      findMany: (args: { where?: { agencyId?: string } }) => Promise<unknown[]>;
+    };
+  };
+  const response = await dbWithTestimonial.testimonial.findMany({
     where: { agencyId },
   });
   return response;
@@ -1283,10 +1313,19 @@ export const getTestimonials = async (agencyId: string) => {
 
 export const upsertTestimonial = async (
   agencyId: string,
-  testimonial: any
+  testimonial: TestimonialInput
 ) => {
   const testimonialId = testimonial.id || v4();
-  const response = await (db as any).testimonial.upsert({
+  const dbWithTestimonial = db as typeof db & {
+    testimonial: {
+      upsert: (args: {
+        where: { id: string };
+        update: TestimonialInput;
+        create: TestimonialInput & { id: string; agencyId: string };
+      }) => Promise<unknown>;
+    };
+  };
+  const response = await dbWithTestimonial.testimonial.upsert({
     where: { id: testimonialId },
     update: testimonial,
     create: { ...testimonial, id: testimonialId, agencyId },
@@ -1295,13 +1334,23 @@ export const upsertTestimonial = async (
 };
 
 export const deleteTestimonial = async (testimonialId: string) => {
-  const response = await (db as any).testimonial.delete({
+  const dbWithTestimonial = db as typeof db & {
+    testimonial: {
+      delete: (args: { where: { id: string } }) => Promise<unknown>;
+    };
+  };
+  const response = await dbWithTestimonial.testimonial.delete({
     where: { id: testimonialId },
   });
   return response;
 };
 
 export const getAllTestimonials = async () => {
-  const response = await (db as any).testimonial.findMany();
+  const dbWithTestimonial = db as typeof db & {
+    testimonial: {
+      findMany: () => Promise<unknown[]>;
+    };
+  };
+  const response = await dbWithTestimonial.testimonial.findMany();
   return response;
 };

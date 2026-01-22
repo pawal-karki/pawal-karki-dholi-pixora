@@ -14,6 +14,7 @@ export const createSaasProducts = (
             flexDirection: "column",
             alignItems: "center",
         },
+        "",
         [
             container(
                 "Header",
@@ -26,6 +27,7 @@ export const createSaasProducts = (
                     alignItems: "center",
                     gap: "16px",
                 },
+                "",
                 [
                     text(
                         "Badge",
@@ -39,6 +41,7 @@ export const createSaasProducts = (
                             textTransform: "uppercase",
                             letterSpacing: "0.5px",
                         },
+                        "",
                         "Featured Products"
                     ),
                     text(
@@ -50,6 +53,7 @@ export const createSaasProducts = (
                             letterSpacing: "-1px",
                             lineHeight: "1.1",
                         },
+                        "",
                         "Selected Products"
                     ),
                     text(
@@ -60,6 +64,7 @@ export const createSaasProducts = (
                             lineHeight: "1.7",
                             maxWidth: "600px",
                         },
+                        "",
                         "Explore our collection of premium items crafted with attention to detail."
                     ),
                 ]
@@ -79,6 +84,7 @@ export const createSaasProducts = (
                     width: "100%",
                     maxWidth: "1400px",
                 },
+                "",
                 [...Array(3)].map((_, i) => {
                     const products = [
                         {
@@ -115,6 +121,7 @@ export const createSaasProducts = (
                             transition: TOKENS.transition,
                             position: "relative",
                         },
+                        "",
                         [
                             container(
                                 "Img Wrap",
@@ -124,6 +131,7 @@ export const createSaasProducts = (
                                     position: "relative",
                                     overflow: "hidden",
                                 },
+                                "",
                                 [
                                     {
                                         id: genId(),
@@ -151,6 +159,7 @@ export const createSaasProducts = (
                                     gap: "12px",
                                     flex: "1",
                                 },
+                                "",
                                 [
                                     container(
                                         "Row",
@@ -160,6 +169,7 @@ export const createSaasProducts = (
                                             alignItems: "flex-start",
                                             gap: "12px",
                                         },
+                                        "",
                                         [
                                             text(
                                                 "Name",
@@ -170,6 +180,7 @@ export const createSaasProducts = (
                                                     lineHeight: "1.3",
                                                     flex: "1",
                                                 },
+                                                "",
                                                 product.name
                                             ),
                                             text(
@@ -181,6 +192,7 @@ export const createSaasProducts = (
                                                     letterSpacing: "-0.5px",
                                                     whiteSpace: "nowrap",
                                                 },
+                                                "",
                                                 product.price
                                             ),
                                         ]
@@ -193,6 +205,7 @@ export const createSaasProducts = (
                                             lineHeight: "1.6",
                                             marginBottom: "4px",
                                         },
+                                        "",
                                         product.desc
                                     ),
 
@@ -204,6 +217,7 @@ export const createSaasProducts = (
                                             gap: "8px",
                                             marginTop: "8px",
                                         },
+                                        "",
                                         [
                                             link(
                                                 "Add to Cart",
@@ -224,6 +238,7 @@ export const createSaasProducts = (
                                                     transition: TOKENS.transition,
                                                     boxShadow: "0 4px 6px -1px rgba(99, 102, 241, 0.3)",
                                                 },
+                                                "",
                                                 "#cart",
                                                 "Add to Cart"
                                             ),

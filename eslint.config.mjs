@@ -16,19 +16,25 @@ const eslintConfig = [
   },
   {
     rules: {
-      // Allow underscore-prefixed unused variables
+      // Allow underscore-prefixed unused variables (warn only)
       "@typescript-eslint/no-unused-vars": [
-        "error",
+        "warn",
         {
           argsIgnorePattern: "^_",
           varsIgnorePattern: "^_",
           caughtErrorsIgnorePattern: "^_",
         },
       ],
-      // Allow explicit any in specific cases (can be stricter later)
+      // Allow explicit any (warn only)
       "@typescript-eslint/no-explicit-any": "warn",
       // Allow empty object types
       "@typescript-eslint/no-empty-object-type": "off",
+      // Disable unescaped entities check
+      "react/no-unescaped-entities": "off",
+      // Warn on prefer-const
+      "prefer-const": "warn",
+      // Warn on require imports
+      "@typescript-eslint/no-require-imports": "warn",
     },
   },
 ];

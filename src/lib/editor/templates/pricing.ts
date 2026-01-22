@@ -14,6 +14,7 @@ export const createSaasPricing = (
             flexDirection: "column",
             alignItems: "center",
         },
+        "",
         [
             container(
                 "Header",
@@ -26,6 +27,7 @@ export const createSaasPricing = (
                     alignItems: "center",
                     gap: "20px",
                 },
+                "",
                 [
                     text(
                         "Badge",
@@ -39,6 +41,7 @@ export const createSaasPricing = (
                             textTransform: "uppercase",
                             letterSpacing: "0.5px",
                         },
+                        "",
                         "Simple Pricing"
                     ),
                     text(
@@ -50,6 +53,7 @@ export const createSaasPricing = (
                             letterSpacing: "-1px",
                             lineHeight: "1.1",
                         },
+                        "",
                         "Fair price for everyone"
                     ),
                     text(
@@ -60,6 +64,7 @@ export const createSaasPricing = (
                             lineHeight: "1.7",
                             maxWidth: "600px",
                         },
+                        "",
                         "Start for free and scale as you grow. No credit card required."
                     ),
                 ]
@@ -80,6 +85,7 @@ export const createSaasPricing = (
                     maxWidth: "1400px",
                     alignItems: "stretch",
                 },
+                "",
                 [
                     ...[
                         {
@@ -127,27 +133,29 @@ export const createSaasPricing = (
                                 transition: TOKENS.transition,
                                 overflow: "hidden",
                             },
+                            "",
                             [
                                 // Badge
                                 p.badge
                                     ? container(
-                                          "Badge",
-                                          {
-                                              position: "absolute",
-                                              top: "20px",
-                                              right: "20px",
-                                              background: TOKENS.accent,
-                                              color: "#ffffff",
-                                              padding: "4px 12px",
-                                              borderRadius: "100px",
-                                              fontSize: "11px",
-                                              fontWeight: "700",
-                                              textTransform: "uppercase",
-                                              letterSpacing: "0.5px",
-                                          },
-                                          [text("Badge Text", {}, p.badge)]
-                                      )
-                                    : container("Spacer", { height: "0px" }, []),
+                                        "Badge",
+                                        {
+                                            position: "absolute",
+                                            top: "20px",
+                                            right: "20px",
+                                            background: TOKENS.accent,
+                                            color: "#ffffff",
+                                            padding: "4px 12px",
+                                            borderRadius: "100px",
+                                            fontSize: "11px",
+                                            fontWeight: "700",
+                                            textTransform: "uppercase",
+                                            letterSpacing: "0.5px",
+                                        },
+                                        "",
+                                        [text("Badge Text", {}, "", p.badge)]
+                                    )
+                                    : container("Spacer", { height: "0px" }, "", []),
 
                                 // Plan Name
                                 text(
@@ -158,6 +166,7 @@ export const createSaasPricing = (
                                         color: TOKENS.text,
                                         marginBottom: "12px",
                                     },
+                                    "",
                                     p.name
                                 ),
 
@@ -170,6 +179,7 @@ export const createSaasPricing = (
                                         gap: "6px",
                                         marginBottom: "8px",
                                     },
+                                    "",
                                     [
                                         text(
                                             "Price",
@@ -180,6 +190,7 @@ export const createSaasPricing = (
                                                 letterSpacing: "-2px",
                                                 lineHeight: "1",
                                             },
+                                            "",
                                             p.price
                                         ),
                                         text(
@@ -189,6 +200,7 @@ export const createSaasPricing = (
                                                 color: TOKENS.muted,
                                                 fontWeight: "500",
                                             },
+                                            "",
                                             "/month"
                                         ),
                                     ]
@@ -203,6 +215,7 @@ export const createSaasPricing = (
                                         lineHeight: "1.6",
                                         marginBottom: "28px",
                                     },
+                                    "",
                                     p.desc
                                 ),
 
@@ -230,6 +243,7 @@ export const createSaasPricing = (
                                             ? "0 4px 6px -1px rgba(99, 102, 241, 0.3)"
                                             : "none",
                                     },
+                                    "",
                                     "#",
                                     p.btn
                                 ),
@@ -243,6 +257,7 @@ export const createSaasPricing = (
                                         gap: r(device, "14px", "16px", "18px"),
                                         flex: "1",
                                     },
+                                    "",
                                     [
                                         "Unlimited Projects",
                                         "Analytics Dashboard",
@@ -256,6 +271,7 @@ export const createSaasPricing = (
                                                 gap: "12px",
                                                 alignItems: "flex-start",
                                             },
+                                            "",
                                             [
                                                 icon(
                                                     "Check Icon",
@@ -265,6 +281,7 @@ export const createSaasPricing = (
                                                         flexShrink: "0",
                                                         marginTop: "2px",
                                                     },
+                                                    "",
                                                     "✓"
                                                 ),
                                                 text(
@@ -274,6 +291,7 @@ export const createSaasPricing = (
                                                         color: TOKENS.text,
                                                         lineHeight: "1.5",
                                                     },
+                                                    "",
                                                     f
                                                 ),
                                             ]

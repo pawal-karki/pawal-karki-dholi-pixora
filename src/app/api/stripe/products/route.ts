@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { db } from "@/lib/db";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-12-15.clover",
-});
+import { stripe } from "@/lib/stripe/server";
 
 /**
  * GET - Fetch products (local DB + synced with Stripe)
@@ -40,7 +37,7 @@ export async function GET(req: NextRequest) {
 
     // If only local products requested, return them with connection status
     if (source === "local") {
-      return NextResponse.json({ 
+      return NextResponse.json({
         products: localProducts,
         stripeConnected,
       });
@@ -125,8 +122,8 @@ export async function POST(req: NextRequest) {
     const hasStripeConnect = !!subAccount?.connectAccountId;
 
     // Truncate description to prevent database errors (max 1000 chars)
-    const truncatedDescription = description && description.length > 1000 
-      ? description.substring(0, 1000) 
+    const truncatedDescription = description && description.length > 1000
+      ? description.substring(0, 1000)
       : description;
 
     // If localOnly flag or no Stripe Connect, create local product only
@@ -147,8 +144,8 @@ export async function POST(req: NextRequest) {
         success: true,
         product: localProduct,
         stripeConnected: false,
-        message: hasStripeConnect 
-          ? "Product created locally" 
+        message: hasStripeConnect
+          ? "Product created locally"
           : "Product created (connect Stripe in Launchpad to enable checkout)",
       });
     }
@@ -218,7 +215,7 @@ export async function POST(req: NextRequest) {
     });
   } catch (error: any) {
     console.error("Error creating product:", error);
-    
+
     // Return more specific error for Stripe errors
     if (error.type === "StripeInvalidRequestError") {
       return NextResponse.json(
@@ -226,7 +223,7 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    
+
     return NextResponse.json(
       { error: error.message || "Failed to create product" },
       { status: 500 }

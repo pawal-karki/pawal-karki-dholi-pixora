@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { db } from "@/lib/db";
+import { stripe } from "@/lib/stripe/server";
 
 /**
  * Checkout session creator for funnel payments.
@@ -9,9 +10,9 @@ import { db } from "@/lib/db";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { 
-      subAccountConnectedId, 
-      prices, 
+    const {
+      subAccountConnectedId,
+      prices,
       subAccountId,
       mode = "embedded", // 'embedded' or 'redirect'
       successUrl,
@@ -24,14 +25,14 @@ export async function POST(req: NextRequest) {
         where: { id: subAccountId },
         select: { connectAccountId: true },
       });
-      
+
       if (!subAccount?.connectAccountId) {
         return NextResponse.json(
           { error: "Stripe Connect not configured for this subaccount" },
           { status: 400 }
         );
       }
-      
+
       body.subAccountConnectedId = subAccount.connectAccountId;
     }
 
@@ -43,10 +44,6 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-      apiVersion: "2025-12-15.clover",
-    });
 
     const line_items = prices.map((p: any) => ({
       price: p?.priceId ?? p?.id ?? p,
@@ -69,16 +66,15 @@ export async function POST(req: NextRequest) {
         { stripeAccount: connectAccountId }
       );
 
-      return NextResponse.json({ 
+      return NextResponse.json({
         checkoutUrl: session.url,
         sessionId: session.id,
       });
     }
 
     // Embedded mode - used for payment element
-    const returnUrl = `${normalizedBaseUrl}checkout/return?session_id={CHECKOUT_SESSION_ID}${
-      subAccountId ? `&subaccountId=${encodeURIComponent(subAccountId)}` : ""
-    }`;
+    const returnUrl = `${normalizedBaseUrl}checkout/return?session_id={CHECKOUT_SESSION_ID}${subAccountId ? `&subaccountId=${encodeURIComponent(subAccountId)}` : ""
+      }`;
 
     const session = await stripe.checkout.sessions.create(
       {

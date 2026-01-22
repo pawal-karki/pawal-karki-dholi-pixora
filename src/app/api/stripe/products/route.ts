@@ -60,7 +60,7 @@ export async function GET(req: NextRequest) {
           expand: ["data.default_price"],
         },
         {
-          stripeAccount: subAccount.connectAccountId,
+          stripeAccount: subAccount.connectAccountId!,
         }
       );
 

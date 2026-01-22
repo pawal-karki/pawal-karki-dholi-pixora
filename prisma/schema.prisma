@@ -12,9 +12,8 @@ generator client {
 }
 
 datasource db {
-  provider     = "mysql"
-  url          = env("DATABASE_URL")
-  relationMode = "prisma"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 
@@ -322,7 +321,7 @@ model ClassName {
   name       String
   color      String
   funnelId   String
-  customData String? @db.LongText
+  customData String? @db.Text
 
   funnel Funnel @relation(fields: [funnelId], references: [id], onDelete: Cascade)
 
@@ -337,7 +336,7 @@ model FunnelPage {
   name         String
   pathName     String  @default("")
   visits       Int     @default(0)
-  content      String? @db.LongText
+  content      String? @db.Text
   order        Int
   previewImage String? @db.Text
   funnelId     String

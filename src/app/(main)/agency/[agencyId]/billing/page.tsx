@@ -20,6 +20,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle2, XCircle, Users, Layers } from "lucide-react";
 import AgencySubscriptionSection from "@/components/modules/agency/AgencySubscriptionSection";
+import { AutoDismissAlert } from "@/components/ui/auto-dismiss-alert";
 
 interface BillingPageProps {
   params: Promise<{ agencyId: string | undefined }>;
@@ -50,7 +51,7 @@ export default async function BillingPage({ params, searchParams }: BillingPageP
     db.planPrice.findMany(),
     getAgencyUsageStats(agencyId),
   ]);
-  
+
   const planPrices: Record<string, string> = {};
   for (const p of planPricesData) {
     planPrices[p.key] = p.priceId;
@@ -63,11 +64,11 @@ export default async function BillingPage({ params, searchParams }: BillingPageP
   const periodEnd = subscription?.currentPeriodEndDate;
 
   // Calculate usage percentages for progress bars
-  const subAccountUsagePercent = usageStats.subAccounts.max === Infinity 
-    ? 0 
+  const subAccountUsagePercent = usageStats.subAccounts.max === Infinity
+    ? 0
     : Math.min(100, (usageStats.subAccounts.current / usageStats.subAccounts.max) * 100);
-  const teamUsagePercent = usageStats.teamMembers.max === Infinity 
-    ? 0 
+  const teamUsagePercent = usageStats.teamMembers.max === Infinity
+    ? 0
     : Math.min(100, (usageStats.teamMembers.current / usageStats.teamMembers.max) * 100);
 
   return (
@@ -75,29 +76,23 @@ export default async function BillingPage({ params, searchParams }: BillingPageP
       <h1 className="text-3xl font-bold">Billing</h1>
       <Separator />
 
-      {/* Success/Canceled Alerts */}
+      {/* Success/Canceled Alerts - Auto dismiss after 5 seconds */}
       {success === "true" && (
-        <Alert className="border-emerald-500 bg-emerald-50 dark:bg-emerald-950">
-          <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-          <AlertTitle className="text-emerald-700 dark:text-emerald-300">
-            Subscription Successful!
-          </AlertTitle>
-          <AlertDescription className="text-emerald-600 dark:text-emerald-400">
-            Thank you for subscribing. Your plan has been activated.
-          </AlertDescription>
-        </Alert>
+        <AutoDismissAlert
+          type="success"
+          title="Subscription Successful!"
+          description="Thank you for subscribing. Your plan has been activated."
+          duration={5000}
+        />
       )}
 
       {canceled === "true" && (
-        <Alert className="border-amber-500 bg-amber-50 dark:bg-amber-950">
-          <XCircle className="h-4 w-4 text-amber-500" />
-          <AlertTitle className="text-amber-700 dark:text-amber-300">
-            Checkout Canceled
-          </AlertTitle>
-          <AlertDescription className="text-amber-600 dark:text-amber-400">
-            Your checkout was canceled. You can try again anytime.
-          </AlertDescription>
-        </Alert>
+        <AutoDismissAlert
+          type="warning"
+          title="Checkout Canceled"
+          description="Your checkout was canceled. You can try again anytime."
+          duration={5000}
+        />
       )}
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -155,8 +150,8 @@ export default async function BillingPage({ params, searchParams }: BillingPageP
                   </span>
                 </div>
                 {usageStats.subAccounts.max !== Infinity && (
-                  <Progress 
-                    value={subAccountUsagePercent} 
+                  <Progress
+                    value={subAccountUsagePercent}
                     className={subAccountUsagePercent >= 100 ? "bg-red-100" : ""}
                   />
                 )}
@@ -177,8 +172,8 @@ export default async function BillingPage({ params, searchParams }: BillingPageP
                   </span>
                 </div>
                 {usageStats.teamMembers.max !== Infinity && (
-                  <Progress 
-                    value={teamUsagePercent} 
+                  <Progress
+                    value={teamUsagePercent}
                     className={teamUsagePercent >= 100 ? "bg-red-100" : ""}
                   />
                 )}

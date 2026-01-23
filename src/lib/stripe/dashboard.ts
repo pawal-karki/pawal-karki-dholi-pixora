@@ -44,7 +44,8 @@ export async function getStripeConnectBalance(connectAccountId: string): Promise
  */
 export async function getStripeTransactions(
   connectAccountId: string,
-  limit: number = 10
+  limit: number = 10,
+  subAccountIds?: string[]
 ): Promise<TransactionData[]> {
   try {
     // Get charges from the connected account
@@ -58,9 +59,9 @@ export async function getStripeTransactions(
       }
     );
 
-    return charges.data.map((charge) => {
+    const formattedCharges = charges.data.map((charge) => {
       // Get subAccountId from charge metadata or payment_intent metadata
-      const subAccountId = charge.metadata?.subAccountId || 
+      const subAccountId = charge.metadata?.subAccountId ||
         (typeof charge.payment_intent === "object" && charge.payment_intent
           ? (charge.payment_intent as Stripe.PaymentIntent).metadata?.subAccountId
           : undefined);
@@ -80,6 +81,17 @@ export async function getStripeTransactions(
         subAccountId,
       };
     });
+
+    // Filter by subAccountIds if provided
+    if (subAccountIds) {
+      if (subAccountIds.length === 0) return [];
+
+      return formattedCharges.filter(charge =>
+        charge.subAccountId && subAccountIds.includes(charge.subAccountId)
+      );
+    }
+
+    return formattedCharges;
   } catch (error) {
     console.error("Error fetching Stripe transactions:", error);
     return [];
@@ -92,7 +104,8 @@ export async function getStripeTransactions(
 export async function getStripeTransactionsByDateRange(
   connectAccountId: string,
   startDate: Date,
-  endDate: Date
+  endDate: Date,
+  subAccountIds?: string[]
 ): Promise<TransactionData[]> {
   try {
     const allCharges: TransactionData[] = [];
@@ -117,7 +130,7 @@ export async function getStripeTransactionsByDateRange(
 
       const mappedCharges = charges.data.map((charge) => {
         // Get subAccountId from charge metadata or payment_intent metadata
-        const subAccountId = charge.metadata?.subAccountId || 
+        const subAccountId = charge.metadata?.subAccountId ||
           (typeof charge.payment_intent === "object" && charge.payment_intent
             ? (charge.payment_intent as Stripe.PaymentIntent).metadata?.subAccountId
             : undefined);
@@ -146,6 +159,15 @@ export async function getStripeTransactionsByDateRange(
       }
     }
 
+    // Filter by subAccountIds if provided
+    if (subAccountIds) {
+      if (subAccountIds.length === 0) return [];
+
+      return allCharges.filter(charge =>
+        charge.subAccountId && subAccountIds.includes(charge.subAccountId)
+      );
+    }
+
     return allCharges;
   } catch (error) {
     console.error("Error fetching Stripe transactions by date range:", error);
@@ -158,7 +180,8 @@ export async function getStripeTransactionsByDateRange(
  */
 export async function getYearlyRevenue(
   connectAccountId: string,
-  year: number = new Date().getFullYear()
+  year: number = new Date().getFullYear(),
+  subAccountIds?: string[]
 ): Promise<number> {
   try {
     const startOfYear = new Date(year, 0, 1);
@@ -171,15 +194,31 @@ export async function getYearlyRevenue(
           lte: Math.floor(endOfYear.getTime() / 1000),
         },
         limit: 100,
+        expand: ["data.payment_intent"],
       },
       {
         stripeAccount: connectAccountId,
       }
     );
 
-    // Sum up successful charges
+    // Sum up successful charges, optionally filtering by subAccountIds
     const total = charges.data
-      .filter((charge) => charge.status === "succeeded")
+      .filter((charge) => {
+        if (charge.status !== "succeeded") return false;
+
+        if (subAccountIds) {
+          if (subAccountIds.length === 0) return false;
+
+          const chargeSubAccountId = charge.metadata?.subAccountId ||
+            (typeof charge.payment_intent === "object" && charge.payment_intent
+              ? (charge.payment_intent as Stripe.PaymentIntent).metadata?.subAccountId
+              : undefined);
+
+          return chargeSubAccountId && subAccountIds.includes(chargeSubAccountId);
+        }
+
+        return true;
+      })
       .reduce((sum, charge) => sum + charge.amount, 0);
 
     return total / 100; // Convert from cents
@@ -235,12 +274,15 @@ export async function getPotentialIncome(agencyId: string): Promise<number> {
  */
 export async function getAgencyDashboardMetrics(
   agencyId: string,
-  connectAccountId: string | null
+  connectAccountId: string | null,
+  subAccountIds?: string[]
 ): Promise<DashboardMetrics> {
   const currentYear = new Date().getFullYear();
 
   const [totalRevenue, potentialIncome] = await Promise.all([
-    connectAccountId ? getYearlyRevenue(connectAccountId, currentYear) : Promise.resolve(0),
+    connectAccountId
+      ? getYearlyRevenue(connectAccountId, currentYear, subAccountIds)
+      : Promise.resolve(0),
     getPotentialIncome(agencyId),
   ]);
 

@@ -40,35 +40,34 @@ interface TestimonialInput {
 }
 
 /**
+ * Cached Clerk user fetch to prevent duplicate API calls within a request.
+ * Clerk API can be slow (~10s), so caching is critical for performance.
+ */
+const getClerkUserCached = cache(async () => {
+  try {
+    return await currentUser();
+  } catch (error: unknown) {
+    if (isClerkError(error) && (error.status === 429 || error.clerkError)) {
+      console.warn("Clerk rate limit hit:", error.status);
+      return null;
+    }
+    console.warn("Clerk auth error:", isClerkError(error) ? error.message : String(error));
+    return null;
+  }
+});
+
+/**
  * Gets the current user's email from either Clerk or JWT auth.
  * Supports both authentication methods.
- * Handles rate limiting gracefully by falling back to JWT auth.
+ * Uses cached Clerk call to prevent duplicate slow API requests.
  *
  * @returns The user's email or null if not authenticated
  */
 export const getCurrentUserEmail = async (): Promise<string | null> => {
-  try {
-    // First try Clerk auth
-    const clerkUser = await currentUser();
-    if (clerkUser) {
-      return clerkUser.emailAddresses[0].emailAddress;
-    }
-  } catch (error: unknown) {
-    // Handle rate limiting (429) or other Clerk errors
-    // Fall back to JWT auth instead of throwing
-    if (isClerkError(error) && (error.status === 429 || error.clerkError)) {
-      console.warn(
-        "Clerk rate limit hit, falling back to JWT auth:",
-        error.status
-      );
-      // Continue to JWT auth fallback below
-    } else {
-      // For other errors, log but still try JWT fallback
-      console.warn(
-        "Clerk auth error, falling back to JWT auth:",
-        isClerkError(error) ? error.message : String(error)
-      );
-    }
+  // First try Clerk auth (cached)
+  const clerkUser = await getClerkUserCached();
+  if (clerkUser) {
+    return clerkUser.emailAddresses[0].emailAddress;
   }
 
   // Fall back to JWT auth
@@ -114,9 +113,13 @@ export const isClerkAuth = async (): Promise<boolean> => {
  * Looks up the user by email, then finds their full profile
  * including their agency, subaccounts, sidebar options, and permissions.
  *
+ * This function is cached per-request to prevent duplicate DB calls.
+ *
  * @returns The user object with all relations, or null if not authenticated
  */
-export const getAuthDetails = async () => {
+import { cache } from "react";
+
+const getAuthDetailsInternal = async () => {
   const email = await getCurrentUserEmail();
   if (!email) return null;
 
@@ -148,6 +151,9 @@ export const getAuthDetails = async () => {
 
   return safeUser;
 };
+
+// Export cached version to deduplicate calls within a single request
+export const getAuthDetails = cache(getAuthDetailsInternal);
 
 /**
  * Creates a new team member for an agency.
@@ -290,20 +296,8 @@ export const saveActivityLogsNotification = async ({
 export const verifyAndAccpetInvitations = async () => {
   const userEmail = await getCurrentUserEmail();
 
-  // Try to get Clerk user, but handle rate limiting gracefully
-  let clerkUser = null;
-  try {
-    clerkUser = await currentUser();
-  } catch (error: unknown) {
-    // If rate limited, continue with JWT auth only
-    if (isClerkError(error) && (error.status === 429 || error.clerkError)) {
-      console.warn(
-        "Clerk rate limit hit in verifyAndAccpetInvitations, using JWT auth only"
-      );
-    } else {
-      throw error; // Re-throw unexpected errors
-    }
-  }
+  // Use cached Clerk user to avoid duplicate slow API calls
+  const clerkUser = await getClerkUserCached();
 
   // If no auth at all, redirect to sign-in
   if (!userEmail) {
@@ -365,7 +359,7 @@ export const verifyAndAccpetInvitations = async () => {
         password: null,
       });
     }
-    
+
     console.log("LOG: Created Team User:", userDetails);
 
     if (userDetails) {
@@ -682,7 +676,7 @@ export const deleteAgency = async (agencyId: string) => {
 /**
  * Gets agency details by ID including subaccounts
  */
-export const getAgencyDetails = async (agencyId: string) => {
+const getAgencyDetailsInternal = async (agencyId: string) => {
   const agency = await db.agency.findUnique({
     where: { id: agencyId },
     include: {
@@ -693,10 +687,13 @@ export const getAgencyDetails = async (agencyId: string) => {
   return agency;
 };
 
+// Export cached version for per-request deduplication
+export const getAgencyDetails = cache(getAgencyDetailsInternal);
+
 /**
  * Gets notifications for an agency
  */
-export const getNotifications = async (agencyId: string) => {
+const getNotificationsInternal = async (agencyId: string) => {
   const notifications = await db.notification.findMany({
     where: { agencyId },
     include: {
@@ -714,9 +711,13 @@ export const getNotifications = async (agencyId: string) => {
       },
     },
     orderBy: { createdAt: "desc" },
+    take: 20, // Limit to 20 most recent notifications for performance
   });
   return notifications;
 };
+
+// Export cached version for per-request deduplication  
+export const getNotifications = cache(getNotificationsInternal);
 
 /**
  * Gets subaccounts for an agency
@@ -1017,7 +1018,7 @@ export const updateUser = async (user: Partial<User>) => {
     throw new Error("Either email or id must be provided to update user");
   }
 
-  const whereClause = user.id 
+  const whereClause = user.id
     ? { id: user.id }
     : { email: user.email! };
 

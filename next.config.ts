@@ -29,12 +29,22 @@ const nextConfig: NextConfig = {
   productionBrowserSourceMaps: false,
   // Experimental features for faster builds
   experimental: {
-    // Optimize package imports
+    // Optimize package imports for faster builds
     optimizePackageImports: [
       "lucide-react",
       "@radix-ui/react-icons",
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-popover",
+      "@radix-ui/react-dropdown-menu",
+      "@radix-ui/react-tabs",
+      "@radix-ui/react-select",
+      "@radix-ui/react-accordion",
+      "@radix-ui/react-scroll-area",
       "date-fns",
       "recharts",
+      "@tremor/react",
+      "framer-motion",
+      "@clerk/nextjs",
     ],
   },
 };

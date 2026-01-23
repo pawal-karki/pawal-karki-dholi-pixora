@@ -30,19 +30,22 @@ interface BillingPageProps {
 export default async function BillingPage({ params, searchParams }: BillingPageProps) {
   const { agencyId } = await params;
   const { success, canceled, session_id } = await searchParams;
-  const user = await getAuthDetails();
 
-  if (!user) redirect("/agency/sign-in");
   if (!agencyId) redirect("/agency/unauthorized");
 
+  // Parallelize initial data fetches
+  const [user, agencyDetails] = await Promise.all([
+    getAuthDetails(),
+    getAgencyDetails(agencyId),
+  ]);
+
+  if (!user) redirect("/agency/sign-in");
+  if (!agencyDetails) redirect("/agency/unauthorized");
+
   // Sync subscription from Stripe session if returning from checkout
-  // This is a fallback for when webhooks are not configured
   if (success === "true" && session_id) {
     await syncSubscriptionFromSession(session_id, agencyId);
   }
-
-  const agencyDetails = await getAgencyDetails(agencyId);
-  if (!agencyDetails) redirect("/agency/unauthorized");
 
   const isOwner = user.role === Role.AGENCY_OWNER;
 

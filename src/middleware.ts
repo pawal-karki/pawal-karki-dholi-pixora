@@ -21,57 +21,69 @@ const isAuthPage = createRouteMatcher([
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
-  const url = req.nextUrl;
-  const searchParams = url.searchParams.toString();
-  const hostname = req.headers;
+  try {
+    const url = req.nextUrl;
+    const searchParams = url.searchParams.toString();
+    const hostname = req.headers;
 
-  const pathWithSearchParams = `${url.pathname}${searchParams.length > 0 ? `?${searchParams}` : ""
-    }`;
+    const pathWithSearchParams = `${url.pathname}${searchParams.length > 0 ? `?${searchParams}` : ""
+      }`;
 
-  // Check for custom subdomain
-  const host = hostname.get("host") || "";
-  
-  // Handle Vercel domain format: subdomain.project.vercel.app or subdomain.custom-domain.com
-  let customSubDomain: string | null = null;
-  
-  if (process.env.NEXT_PUBLIC_DOMAIN) {
-    // If NEXT_PUBLIC_DOMAIN is set, use it to extract subdomain
-    // Example: NEXT_PUBLIC_DOMAIN = "pawal-karki-dholi-pixora.vercel.app"
-    // Host = "sohail.pawal-karki-dholi-pixora.vercel.app"
-    // Result: "sohail"
-    const baseDomain = process.env.NEXT_PUBLIC_DOMAIN;
+    // Check for custom subdomain
+    const host = hostname.get("host") || "";
     
-    // Check if host ends with base domain
-    if (host.endsWith(baseDomain)) {
-      const subdomainPart = host.slice(0, host.length - baseDomain.length);
-      // Remove trailing dot if present
-      customSubDomain = subdomainPart.replace(/\.$/, "").trim();
+    // Handle Vercel domain format: subdomain.project.vercel.app or subdomain.custom-domain.com
+    let customSubDomain: string | null = null;
+    
+    if (process.env.NEXT_PUBLIC_DOMAIN) {
+      // If NEXT_PUBLIC_DOMAIN is set, use it to extract subdomain
+      // Example: NEXT_PUBLIC_DOMAIN = "pawal-karki-dholi-pixora.vercel.app"
+      // Host = "sohail.pawal-karki-dholi-pixora.vercel.app"
+      // Result: "sohail"
+      const baseDomain = process.env.NEXT_PUBLIC_DOMAIN;
       
-      // If subdomain is empty or just dots, it's the main domain
-      if (!customSubDomain || customSubDomain === "") {
-        customSubDomain = null;
+      // Check if host ends with base domain
+      if (host.endsWith(baseDomain)) {
+        const subdomainPart = host.slice(0, host.length - baseDomain.length);
+        // Remove trailing dot if present
+        customSubDomain = subdomainPart.replace(/\.$/, "").trim();
+        
+        // If subdomain is empty or just dots, it's the main domain
+        if (!customSubDomain || customSubDomain === "") {
+          customSubDomain = null;
+        }
+      }
+    } else {
+      // Fallback: Check if host has multiple parts (subdomain exists)
+      // For Vercel: subdomain.project.vercel.app has 3+ parts
+      // For custom domain: subdomain.domain.com has 3+ parts
+      const hostParts = host.split(".");
+      if (hostParts.length >= 3) {
+        // Check if it's not a known TLD pattern (e.g., www, api, etc.)
+        const firstPart = hostParts[0];
+        const knownPrefixes = ["www", "api", "app", "admin"];
+        if (!knownPrefixes.includes(firstPart.toLowerCase())) {
+          customSubDomain = firstPart;
+        }
       }
     }
-  } else {
-    // Fallback: Check if host has multiple parts (subdomain exists)
-    // For Vercel: subdomain.project.vercel.app has 3+ parts
-    // For custom domain: subdomain.domain.com has 3+ parts
-    const hostParts = host.split(".");
-    if (hostParts.length >= 3) {
-      // Check if it's not a known TLD pattern (e.g., www, api, etc.)
-      const firstPart = hostParts[0];
-      const knownPrefixes = ["www", "api", "app", "admin"];
-      if (!knownPrefixes.includes(firstPart.toLowerCase())) {
-        customSubDomain = firstPart;
-      }
-    }
-  }
 
   // If subdomain exists and is not empty, rewrite to subdomain route (but NOT for API routes)
   if (customSubDomain && customSubDomain.trim() !== "" && !url.pathname.startsWith("/api")) {
-    return NextResponse.rewrite(
-      new URL(`/${customSubDomain}${pathWithSearchParams}`, req.url)
-    );
+    try {
+      // Clean the subdomain to prevent issues
+      const cleanSubDomain = customSubDomain.trim().toLowerCase();
+      
+      // Prevent infinite loops by checking if we're already on a domain route
+      if (!url.pathname.startsWith(`/${cleanSubDomain}`)) {
+        return NextResponse.rewrite(
+          new URL(`/${cleanSubDomain}${pathWithSearchParams}`, req.url)
+        );
+      }
+    } catch (error) {
+      console.error("Error rewriting subdomain:", error);
+      // Fall through to continue processing
+    }
   }
 
   // Redirect /sign-in and /sign-up to /agency/sign-in
@@ -108,7 +120,12 @@ export default clerkMiddleware(async (auth, req) => {
     return NextResponse.rewrite(new URL(`${pathWithSearchParams}`, req.url));
   }
 
-  return NextResponse.next();
+    return NextResponse.next();
+  } catch (error) {
+    console.error("Middleware error:", error);
+    // Return a proper response instead of crashing
+    return NextResponse.next();
+  }
 });
 
 export const config = {

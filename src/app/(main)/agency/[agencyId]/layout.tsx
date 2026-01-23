@@ -2,7 +2,7 @@ import React from "react";
 import { redirect } from "next/navigation";
 import { Role } from "@prisma/client";
 
-import { verifyAndAccpetInvitations, getAuthDetails, getNotifications } from "@/lib/queries";
+import { getAuthDetails, getNotifications } from "@/lib/queries";
 
 import Sidebar from "@/components/navigation/sidebar";
 import BlurPage from "@/components/global/blur-page";
@@ -19,17 +19,20 @@ const AgencyIdLayout: React.FC<AgencyIdLayoutProps> = async ({
   children,
 }) => {
   const { agencyId } = await params;
+
+  if (!agencyId) redirect("/agency");
+
+  // Only check auth - invitation verification already done on /agency page
   const user = await getAuthDetails();
-  const verifiedAgencyId = await verifyAndAccpetInvitations();
 
   if (!user) redirect("/agency/sign-in");
-  if (!verifiedAgencyId || !agencyId) redirect("/agency");
+  if (!user.agencyId) redirect("/agency");
 
   if (user.role !== Role.AGENCY_OWNER && user.role !== Role.AGENCY_ADMIN) {
     redirect("/agency/unauthorized");
   }
 
-  const notifications = await getNotifications(verifiedAgencyId);
+  const notifications = await getNotifications(user.agencyId);
 
   return (
     <div className="h-screen overflow-hidden">

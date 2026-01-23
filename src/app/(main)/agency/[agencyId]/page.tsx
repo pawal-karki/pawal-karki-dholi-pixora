@@ -47,33 +47,28 @@ const AgencyIdPage: React.FC<AgencyIdPageProps> = async ({ params }) => {
 
   if (!agencyId) redirect("/agency/unauthorized");
 
-  const agencyDetails = await getAgencyDetails(agencyId);
+  // Parallelize initial data fetches
+  const [agencyDetails, subAccounts] = await Promise.all([
+    getAgencyDetails(agencyId),
+    getSubAccountsByAgency(agencyId),
+  ]);
 
   if (!agencyDetails) redirect("/agency/unauthorized");
 
-  const subAccounts = await getSubAccountsByAgency(agencyId);
+  const subAccountIds = subAccounts.map((sub) => sub.id);
 
-  // Fetch dashboard metrics
-  const metrics = await getAgencyDashboardMetrics(
-    agencyId,
-    agencyDetails.connectAccountId
-  );
-
-  // Fetch transactions
+  // Parallelize all Stripe/metrics fetches
   const endDate = new Date();
-  const startDate = subMonths(endDate, 3); // Last 3 months for graph
-  
-  const [stripeTransactions, subscriptionHistory, graphTransactions] = await Promise.all([
+  const startDate = subMonths(endDate, 3);
+
+  const [metrics, stripeTransactions, subscriptionHistory, graphTransactions] = await Promise.all([
+    getAgencyDashboardMetrics(agencyId, agencyDetails.connectAccountId, subAccountIds),
     agencyDetails.connectAccountId
-      ? getStripeTransactions(agencyDetails.connectAccountId, 10)
+      ? getStripeTransactions(agencyDetails.connectAccountId, 10, subAccountIds)
       : Promise.resolve([]),
     getAgencySubscriptionHistory(agencyId),
     agencyDetails.connectAccountId
-      ? getStripeTransactionsByDateRange(
-          agencyDetails.connectAccountId,
-          startDate,
-          endDate
-        )
+      ? getStripeTransactionsByDateRange(agencyDetails.connectAccountId, startDate, endDate, subAccountIds)
       : Promise.resolve([]),
   ]);
 
@@ -234,14 +229,14 @@ const AgencyIdPage: React.FC<AgencyIdPageProps> = async ({ params }) => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-                <ClientTransactionGraph
-                  transactions={graphTransactions}
-                  potentialIncome={metrics.potentialIncome}
-                  startDate={startDate}
-                  endDate={endDate}
-                  currency={metrics.currency}
-                />
-              </CardContent>
+              <ClientTransactionGraph
+                transactions={graphTransactions}
+                potentialIncome={metrics.potentialIncome}
+                startDate={startDate}
+                endDate={endDate}
+                currency={metrics.currency}
+              />
+            </CardContent>
           </Card>
         )}
 

@@ -16,12 +16,12 @@ const Page = async ({ searchParams }: PageProps) => {
 
   const params = await searchParams;
 
-  // Verify invitations and get agency ID (works for both Clerk and JWT auth)
-  const agencyId = await verifyAndAccpetInvitations();
+  // Parallelize data fetches for better performance
+  const [agencyId, user] = await Promise.all([
+    verifyAndAccpetInvitations(),
+    getAuthDetails(),
+  ]);
   console.log("Agency ID:", agencyId);
-
-  // Get full user details (already returns the user object without password)
-  const user = await getAuthDetails();
 
   if (agencyId) {
     if (user?.role === "SUBACCOUNT_USER" || user?.role === "SUBACCOUNT_GUEST") {

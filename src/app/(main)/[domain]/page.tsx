@@ -14,40 +14,59 @@ interface DomainPageProps {
 export const dynamic = "force-dynamic";
 
 const DomainPage: React.FC<DomainPageProps> = async ({ params }) => {
-  const { domain } = await params;
+  try {
+    const { domain } = await params;
 
-  if (!domain) notFound();
+    if (!domain) {
+      notFound();
+      return;
+    }
 
-  // Middleware might leave a trailing dot, so we remove it if present.
-  const domainName = domain.endsWith('.') ? domain.slice(0, -1) : domain;
+    // Middleware might leave a trailing dot, so we remove it if present.
+    const domainName = domain.endsWith('.') ? domain.slice(0, -1) : domain;
 
-  const domainData = await getDomainContent(domainName);
+    // Clean the domain name (remove any invalid characters)
+    const cleanDomainName = domainName.trim().toLowerCase();
 
-  if (!domainData) notFound();
+    if (!cleanDomainName) {
+      notFound();
+      return;
+    }
 
-  // For the root page, we find the page with no pathName (empty string or null)
-  // Actually, typical implementation stores pathName as empty string for home?
-  // Or maybe '/'?
-  // The reference code used `!page.pathName`.
-  const pageData = domainData.funnelPages.find((page) => !page.pathName || page.pathName === "");
+    const domainData = await getDomainContent(cleanDomainName);
 
-  if (!pageData) notFound();
+    if (!domainData) {
+      notFound();
+      return;
+    }
 
-  await updateFunnelPageVisits(pageData.id);
+    // For the root page, we find the page with no pathName (empty string or null)
+    const pageData = domainData.funnelPages.find((page) => !page.pathName || page.pathName === "");
 
-  return (
-    <EditorProvider
-      subAccountId={domainData.subAccountId}
-      pageDetails={pageData}
-      funnelId={domainData.id}
-    >
-      <FunnelEditor
-        funnelPageId={pageData.id}
-        funnelPageDetails={pageData}
-        liveMode
-      />
-    </EditorProvider>
-  );
+    if (!pageData) {
+      notFound();
+      return;
+    }
+
+    await updateFunnelPageVisits(pageData.id);
+
+    return (
+      <EditorProvider
+        subAccountId={domainData.subAccountId}
+        pageDetails={pageData}
+        funnelId={domainData.id}
+      >
+        <FunnelEditor
+          funnelPageId={pageData.id}
+          funnelPageDetails={pageData}
+          liveMode
+        />
+      </EditorProvider>
+    );
+  } catch (error) {
+    console.error("Error loading domain page:", error);
+    notFound();
+  }
 };
 
 export default DomainPage;

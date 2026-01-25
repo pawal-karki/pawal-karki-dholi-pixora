@@ -33,6 +33,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import {
@@ -53,11 +54,22 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { cssTextToStyle, styleToCssText } from "@/lib/editor/css-utils";
 
 interface SettingsTabProps { }
 
 const SettingsTab: React.FC<SettingsTabProps> = ({ }) => {
   const { editor, dispatch } = useEditor();
+  const [cssText, setCssText] = React.useState<string>("");
+
+  React.useEffect(() => {
+    if (!editor.editor.selectedElement.id) {
+      setCssText("");
+      return;
+    }
+
+    setCssText(styleToCssText(editor.editor.selectedElement.styles));
+  }, [editor.editor.selectedElement.id, editor.editor.selectedElement.styles]);
 
   const handleChangeCustomValues = (e: React.ChangeEvent<HTMLInputElement>) => {
     const settingProperty = e.target.id;
@@ -233,6 +245,39 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ }) => {
               </AccordionContent>
             </AccordionItem>
           )}
+
+        <AccordionItem value="Css" className="px-6 py-0 border-y-[1px]">
+          <AccordionTrigger className="!no-underline">
+            Custom CSS
+          </AccordionTrigger>
+          <AccordionContent>
+            <div className="flex flex-col gap-2">
+              <Label>CSS Rules</Label>
+              <Textarea
+                value={cssText}
+                onChange={(event) => setCssText(event.target.value)}
+                onBlur={() => {
+                  const parsedStyles = cssTextToStyle(cssText);
+                  dispatch({
+                    type: "UPDATE_ELEMENT",
+                    payload: {
+                      elementDetails: {
+                        ...editor.editor.selectedElement,
+                        styles: parsedStyles,
+                      },
+                    },
+                  });
+                }}
+                placeholder="e.g. padding: 16px; border-radius: 12px;"
+                className="font-mono text-xs min-h-[140px]"
+              />
+              <p className="text-xs text-muted-foreground">
+                Use standard CSS rules. These replace the current styles on the
+                selected element.
+              </p>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
 
         <AccordionItem value="Typography" className="px-6 py-0 border-y-[1px]">
           <AccordionTrigger className="!no-underline">

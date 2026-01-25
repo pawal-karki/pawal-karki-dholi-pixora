@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { EditorElement } from "@/lib/types/editor";
 import { useEditor } from "@/hooks/use-editor";
 import { useCart } from "@/providers/cart-provider";
+import { setDraggedElement } from "@/lib/editor/dnd";
 
 interface Product {
   id: string;
@@ -36,6 +37,7 @@ interface ProductGridProps {
 export const ProductGrid: React.FC<ProductGridProps> = ({ element }) => {
   const { dispatch, editor: editorState, subAccountId } = useEditor();
   const { editor } = editorState;
+  const isEditor = !editor.liveMode && !editor.previewMode;
 
   const [products, setProducts] = useState<Product[]>([]);
   const [agencyId, setAgencyId] = useState<string | null>(null);
@@ -96,6 +98,16 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ element }) => {
     });
   };
 
+  const handleDragStart = (event: React.DragEvent) => {
+    if (editor.liveMode || editor.previewMode) {
+      event.preventDefault();
+      return;
+    }
+
+    event.stopPropagation();
+    setDraggedElement(event, element.id);
+  };
+
   const handleAddToCart = (product: Product) => {
     if (!cart || !agencyId) {
       toast.error("Cannot add to cart", {
@@ -133,10 +145,12 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ element }) => {
     <div
       style={element.styles}
       onClick={handleSelect}
-      className={cn("relative w-full", {
-        "border border-dashed p-4": !editor.liveMode,
+      draggable={!editor.liveMode && !editor.previewMode}
+      onDragStart={handleDragStart}
+      className={cn(isEditor && "relative", {
+        "border border-dashed p-4": isEditor,
         "border border-blue-500 p-4":
-          editor.selectedElement.id === element.id,
+          isEditor && editor.selectedElement.id === element.id,
       })}
     >
       {/* Editor label */}

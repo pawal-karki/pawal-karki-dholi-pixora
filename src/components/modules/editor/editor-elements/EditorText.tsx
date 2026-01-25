@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import type { EditorElement } from "@/lib/types/editor";
 import { cn } from "@/lib/utils";
 import { formatTextOnKeyboard } from "@/lib/editor/utils";
+import { setDraggedElement } from "@/lib/editor/dnd";
 
 interface EditorTextProps {
   element: EditorElement;
@@ -19,6 +20,7 @@ const EditorText: React.FC<EditorTextProps> = ({ element }) => {
   const { editor } = editorState;
   const [isEditing, setIsEditing] = React.useState(false);
   const spanRef = React.useRef<HTMLSpanElement | null>(null);
+  const isEditor = !editor.liveMode && !editor.previewMode;
 
   const handleDeleteElement = () => {
     dispatch({
@@ -44,6 +46,16 @@ const EditorText: React.FC<EditorTextProps> = ({ element }) => {
     formatTextOnKeyboard(event, editor, dispatch);
   };
 
+  const handleDragStart = (event: React.DragEvent) => {
+    if (editor.liveMode || editor.previewMode || isEditing) {
+      event.preventDefault();
+      return;
+    }
+
+    event.stopPropagation();
+    setDraggedElement(event, element.id);
+  };
+
   React.useEffect(() => {
     if (isEditing && spanRef.current) {
       // Move cursor to end of text
@@ -59,15 +71,16 @@ const EditorText: React.FC<EditorTextProps> = ({ element }) => {
   return (
     <div
       className={cn(
-        "p-0.5 w-full m-1 relative text-base min-h-7 transition-all cursor-text",
-        element.className,
+        isEditor && "relative transition-all cursor-text",
         {
           "border-blue-500 border-solid":
-            editor.selectedElement.id === element.id,
-          "border-dashed border": !editor.liveMode,
+            isEditor && editor.selectedElement.id === element.id,
+          "border-dashed border": isEditor,
         }
       )}
       style={element.styles}
+      draggable={!editor.liveMode && !editor.previewMode && !isEditing}
+      onDragStart={handleDragStart}
       onClick={handleClickOnBody}
     >
       {editor.selectedElement.id === element.id && !editor.liveMode && (

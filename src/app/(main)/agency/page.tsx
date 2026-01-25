@@ -27,9 +27,9 @@ const Page = async ({ searchParams }: PageProps) => {
     if (user?.role === "SUBACCOUNT_USER" || user?.role === "SUBACCOUNT_GUEST") {
       return redirect("/agency");
     } else if (["AGENCY_OWNER", "AGENCY_ADMIN"].includes(user?.role ?? "")) {
-      if (params?.plans) {
+      if (params?.plan) {
         return redirect(
-          `/agency/${agencyId}/billing?plan=${params.plans}`
+          `/agency/${agencyId}/billing?plan=${params.plan}`
         );
       }
 

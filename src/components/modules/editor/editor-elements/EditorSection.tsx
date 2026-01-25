@@ -9,6 +9,9 @@ import EditorRecursive from "./EditorRecursive";
 import { cn } from "@/lib/utils";
 import { type EditorElement } from "@/lib/types/editor";
 import { Trash } from "lucide-react";
+import type { EditorBtns } from "@/lib/types/editor";
+import { addVerifyElement } from "@/lib/editor/add-verify-element";
+import { getDraggedElementId, setDraggedElement } from "@/lib/editor/dnd";
 
 interface EditorSectionProps {
   element: EditorElement;
@@ -18,6 +21,62 @@ const EditorSection: React.FC<EditorSectionProps> = ({ element }) => {
   const { content, type } = element;
   const { editor: editorState, dispatch } = useEditor();
   const { editor } = editorState;
+  const isEditor = !editor.liveMode && !editor.previewMode;
+
+  const appliedStyles: React.CSSProperties = {
+    ...(element.styles || {}),
+  };
+
+  if (type === "section" && appliedStyles.width === undefined) {
+    appliedStyles.width = "100%";
+  }
+
+  const handleOnDrop = (event: React.DragEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (editor.liveMode || editor.previewMode) {
+      return;
+    }
+
+    const draggedElementId = getDraggedElementId(event);
+    if (draggedElementId) {
+      if (draggedElementId !== element.id) {
+        dispatch({
+          type: "MOVE_ELEMENT",
+          payload: {
+            elementId: draggedElementId,
+            targetContainerId: element.id,
+          },
+        });
+      }
+      return;
+    }
+
+    const componentType = event.dataTransfer.getData(
+      "componentType"
+    ) as EditorBtns;
+
+    if (!componentType) {
+      return;
+    }
+
+    addVerifyElement(componentType, element.id, dispatch, editor.device);
+  };
+
+  const handleDragOver = (event: React.DragEvent) => {
+    event.preventDefault();
+  };
+
+  const handleDragStart = (event: React.DragEvent) => {
+    if (editor.liveMode || editor.previewMode) {
+      event.preventDefault();
+      return;
+    }
+
+    event.stopPropagation();
+    setDraggedElement(event, element.id);
+  };
 
   const handleDeleteElement = () => {
     dispatch({
@@ -40,18 +99,20 @@ const EditorSection: React.FC<EditorSectionProps> = ({ element }) => {
 
   return (
     <section
-      style={element.styles}
-      className={cn("relative p-4 transition-all", element.className, {
-        "h-fit": type === "container",
-        "h-full": type === "__body",
-        "m-4": type === "container",
-        "border-blue-500":
-          editor.selectedElement.id === element.id && !editor.liveMode,
-        "border-solid":
-          editor.selectedElement.id === element.id && !editor.liveMode,
-        "border-dashed border": !editor.liveMode,
+      style={appliedStyles}
+      draggable={!editor.liveMode && !editor.previewMode}
+      className={cn(isEditor && "relative p-4 transition-all", {
+        "h-fit": isEditor && type === "container",
+        "h-full": isEditor && type === "__body",
+        "m-4": isEditor && type === "container",
+        "border-blue-500": isEditor && editor.selectedElement.id === element.id,
+        "border-solid": isEditor && editor.selectedElement.id === element.id,
+        "border-dashed border": isEditor,
       })}
       id="innerContainer"
+      onDragOver={handleDragOver}
+      onDrop={handleOnDrop}
+      onDragStart={handleDragStart}
       onClick={handleOnClickBody}
     >
       {editor.selectedElement.id === element.id && !editor.liveMode && (

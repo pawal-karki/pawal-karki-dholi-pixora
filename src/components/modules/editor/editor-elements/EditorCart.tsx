@@ -21,6 +21,7 @@ import { useCart } from "@/providers/cart-provider";
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { setDraggedElement } from "@/lib/editor/dnd";
 
 interface EditorCartProps {
     element: EditorElement;
@@ -30,6 +31,7 @@ export const EditorCart: React.FC<EditorCartProps> = ({ element }) => {
     const { dispatch, editor: editorState, subAccountId, funnelId } = useEditor();
     const { editor } = editorState;
     const [isCheckingOut, setIsCheckingOut] = useState(false);
+    const isEditor = !editor.liveMode && !editor.previewMode;
 
     // Try to use cart
     let cart: ReturnType<typeof useCart> | null = null;
@@ -54,6 +56,16 @@ export const EditorCart: React.FC<EditorCartProps> = ({ element }) => {
             type: "DELETE_ELEMENT",
             payload: { elementDetails: element },
         });
+    };
+
+    const handleDragStart = (event: React.DragEvent) => {
+        if (editor.liveMode || editor.previewMode) {
+            event.preventDefault();
+            return;
+        }
+
+        event.stopPropagation();
+        setDraggedElement(event, element.id);
     };
 
     const formatPrice = (price: number, currency: string = "NPR") => {
@@ -138,13 +150,14 @@ export const EditorCart: React.FC<EditorCartProps> = ({ element }) => {
         <div
             style={element.styles}
             onClick={handleOnClickBody}
+            draggable={!editor.liveMode && !editor.previewMode}
+            onDragStart={handleDragStart}
             className={cn(
-                "relative w-full transition-all",
+                isEditor && "relative transition-all",
                 {
                     "!border-blue-500 !border-solid p-4":
-                        editor.selectedElement.id === element.id,
-                    "!border-dashed !border p-4": !editor.liveMode,
-                    "p-0": editor.liveMode,
+                        isEditor && editor.selectedElement.id === element.id,
+                    "!border-dashed !border p-4": isEditor,
                 }
             )}
         >

@@ -12,12 +12,24 @@ import clsx from "clsx";
 import { Check } from "lucide-react";
 import Link from "next/link";
 import TestimonialsSection from "@/components/site/testimonials";
-import { getAllTestimonials } from "@/lib/queries";
+import { getAllTestimonials, getAuthDetails } from "@/lib/queries";
+import { db } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const testimonials = await getAllTestimonials();
+  const [testimonials, authDetails, planPricesData] = await Promise.all([
+    getAllTestimonials(),
+    getAuthDetails(),
+    db.planPrice.findMany(),
+  ]);
+
+  // Create a map of plan key to price ID (e.g., { PRO: "price_123", AGENCY: "price_456" })
+  const planPrices: Record<string, string> = {};
+  for (const p of planPricesData) {
+    planPrices[p.key] = p.priceId;
+  }
+
   return (
     <>
       <section className="h-full w-full pt-36 md:pt-44 relative flex items-center justify-center flex-col">
@@ -59,70 +71,99 @@ export default async function Home() {
         </p>
         {/* pricing cards link from the navigation bar*/}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8 max-w-6xl">
-          {pricingCards.map((card) => (
-            <Card
-              key={card.title}
-              className={clsx(
-                "flex flex-col h-full transition-all duration-300",
-                {
-                  "border-2 border-primary card-glow card-glow-hover":
-                    card.title === "Pro",
-                  "card-subtle-glow": card.title !== "Pro",
-                }
-              )}
-            >
-              <CardHeader className="pb-4">
-                <CardTitle
-                  className={clsx("text-xl font-bold", {
-                    "text-primary": card.title === "Pro",
-                  })}
-                >
-                  {card.title}
-                </CardTitle>
-                <CardDescription className="text-muted-foreground min-h-[40px]">
-                  {card.description}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-4 flex-grow">
-                <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-bold">{card.price}</span>
-                  <span className="text-sm text-muted-foreground">
-                    {card.duration}
-                  </span>
-                </div>
-                <div className="flex-grow">
-                  <p className="text-sm font-semibold mb-3">{card.highlight}</p>
-                  <ul className="flex flex-col gap-2">
-                    {card.features.map((feature) => (
-                      <li
-                        key={feature}
-                        className="flex items-start gap-2 text-sm"
-                      >
-                        <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </CardContent>
-              <CardFooter className="pt-4 mt-auto">
-                <Link
-                  href={`/agency?plan=${card.priceId}`}
-                  className={clsx(
-                    "w-full text-center py-2.5 rounded-md font-medium transition-all duration-300",
-                    {
-                      "bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-[0_4px_20px_rgba(16,185,129,0.35)] dark:hover:shadow-[0_0_25px_rgba(16,185,129,0.5)]":
-                        card.title === "Pro",
-                      "bg-muted hover:bg-muted/80 hover:shadow-sm":
-                        card.title !== "Pro",
-                    }
-                  )}
-                >
-                  Get Started
-                </Link>
-              </CardFooter>
-            </Card>
-          ))}
+          {pricingCards.map((card) => {
+            // Logic to determine redirect path
+            // 1. If not logged in -> /agency?plan=ID (Login -> Signup -> Agency -> Billing?plan=ID)
+            // 2. If logged in but no agency -> /agency (Create Agency)
+            // 3. If logged in + agency -> /agency/[id]/billing?plan=ID (Direct to billing instructions)
+
+            let href = `/agency?plan=${card.priceId}`;
+            let priceId = card.priceId;
+
+            // Override with DB price ID if available
+            if (card.title === "Pro" && planPrices["PRO"]) {
+              priceId = planPrices["PRO"];
+              href = `/agency?plan=${priceId}`;
+            } else if (card.title === "Agency" && planPrices["AGENCY"]) {
+              priceId = planPrices["AGENCY"];
+              href = `/agency?plan=${priceId}`;
+            }
+
+            if (authDetails) {
+              if (authDetails.agencyId) {
+                // User has an agency, go to their billing page
+                href = `/agency/${authDetails.agencyId}/billing?plan=${priceId}`;
+              } else {
+                // User is logged in but has no agency, go to create agency
+                href = `/agency`;
+              }
+            }
+
+            return (
+              <Card
+                key={card.title}
+                className={clsx(
+                  "flex flex-col h-full transition-all duration-300",
+                  {
+                    "border-2 border-primary card-glow card-glow-hover":
+                      card.title === "Pro",
+                    "card-subtle-glow": card.title !== "Pro",
+                  }
+                )}
+              >
+                <CardHeader className="pb-4">
+                  <CardTitle
+                    className={clsx("text-xl font-bold", {
+                      "text-primary": card.title === "Pro",
+                    })}
+                  >
+                    {card.title}
+                  </CardTitle>
+                  <CardDescription className="text-muted-foreground min-h-[40px]">
+                    {card.description}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="flex flex-col gap-4 flex-grow">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-3xl font-bold">{card.price}</span>
+                    <span className="text-sm text-muted-foreground">
+                      {card.duration}
+                    </span>
+                  </div>
+                  <div className="flex-grow">
+                    <p className="text-sm font-semibold mb-3">{card.highlight}</p>
+                    <ul className="flex flex-col gap-2">
+                      {card.features.map((feature) => (
+                        <li
+                          key={feature}
+                          className="flex items-start gap-2 text-sm"
+                        >
+                          <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </CardContent>
+                <CardFooter className="pt-4 mt-auto">
+                  <Link
+                    href={href}
+                    className={clsx(
+                      "w-full text-center py-2.5 rounded-md font-medium transition-all duration-300",
+                      {
+                        "bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-[0_4px_20px_rgba(16,185,129,0.35)] dark:hover:shadow-[0_0_25px_rgba(16,185,129,0.5)]":
+                          card.title === "Pro",
+                        "bg-muted hover:bg-muted/80 hover:shadow-sm":
+                          card.title !== "Pro",
+                      }
+                    )}
+                  >
+                    Get Started
+                  </Link>
+                </CardFooter>
+              </Card>
+            );
+          })}
         </div>
       </section>
 

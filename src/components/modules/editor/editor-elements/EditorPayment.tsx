@@ -19,6 +19,7 @@ import Loading from "@/components/global/loading";
 import { getStripe } from "@/lib/stripe/stripe-client";
 import { cn } from "@/lib/utils";
 import type { EditorElement } from "@/lib/types/editor";
+import { setDraggedElement } from "@/lib/editor/dnd";
 
 interface EditorPaymentProps {
   element: EditorElement;
@@ -40,6 +41,7 @@ const EditorPayment: React.FC<EditorPaymentProps> = ({ element }) => {
     subAccountId,
   } = useEditor();
   const { editor } = editorState;
+  const isEditor = !editor.liveMode && !editor.previewMode;
 
   const [clientSecret, setClientSecret] = React.useState<string>("");
   const [livePrices, setLivePrices] = React.useState<any[]>([]);
@@ -161,6 +163,16 @@ const EditorPayment: React.FC<EditorPaymentProps> = ({ element }) => {
       type: "DELETE_ELEMENT",
       payload: { elementDetails: element },
     });
+  };
+
+  const handleDragStart = (event: React.DragEvent) => {
+    if (editor.liveMode || editor.previewMode) {
+      event.preventDefault();
+      return;
+    }
+
+    event.stopPropagation();
+    setDraggedElement(event, element.id);
   };
 
   // Render content based on payment state
@@ -303,14 +315,15 @@ const EditorPayment: React.FC<EditorPaymentProps> = ({ element }) => {
   return (
     <div
       style={element.styles}
-      draggable
+      draggable={!editor.liveMode && !editor.previewMode}
       onClick={handleOnClickBody}
+      onDragStart={handleDragStart}
       className={cn(
-        "p-0.5 w-full m-1 relative text-base min-h-7 transition-all underline-offset-4 flex items-center justify-center",
+        isEditor && "relative transition-all flex items-center justify-center",
         {
           "border-blue-500 border-solid":
-            editor.selectedElement.id === element.id,
-          "border-dashed border": !editor.liveMode,
+            isEditor && editor.selectedElement.id === element.id,
+          "border-dashed border": isEditor,
         }
       )}
     >

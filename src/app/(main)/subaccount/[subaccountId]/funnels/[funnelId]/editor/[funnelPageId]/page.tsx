@@ -5,8 +5,9 @@ import { getFunnelPageDetails } from "@/lib/queries";
 
 import EditorProvider from "@/providers/editor/editor-provider";
 import FunnelEditorNavigation from "@/components/modules/editor/FunnelEditorNavigation";
-import FunnelEditorSidebar from "@/components/modules/editor/FunnelEditorSidebar";
 import FunnelEditor from "@/components/modules/editor/FunnelEditor";
+import FunnelEditorLeftSidebar from "@/components/modules/editor/FunnelEditorLeftSidebar";
+import FunnelEditorRightSidebar from "@/components/modules/editor/FunnelEditorRightSidebar";
 
 type Props = {
   params: Promise<{
@@ -39,18 +40,24 @@ const FunnelIdEditorPage = async ({
         funnelId={funnelId}
         pageDetails={funnelPageDetails}
       >
-        <FunnelEditorNavigation
-          funnelId={funnelId}
-          funnelPageDetails={funnelPageDetails}
-          subAccountId={subaccountId}
-        />
-        <FunnelEditor
-          funnelPageId={funnelPageId}
-          funnelPageDetails={funnelPageDetails}
-        />
-        <FunnelEditorSidebar
-          subAccountId={subaccountId}
-        />
+        <div className="flex h-full w-full flex-col">
+          <FunnelEditorNavigation
+            funnelId={funnelId}
+            funnelPageDetails={funnelPageDetails}
+            subAccountId={subaccountId}
+          />
+          <FunnelEditorLeftSidebar />
+          <FunnelEditorRightSidebar subAccountId={subaccountId} />
+          <div className="relative flex-1 overflow-auto bg-muted/40 md:pl-80 md:pr-80">
+            <div className="relative flex min-h-full w-full items-start justify-center px-4 py-6">
+              <FunnelEditor
+                funnelPageId={funnelPageId}
+                funnelPageDetails={funnelPageDetails}
+                className="border border-border/60 shadow-lg rounded-2xl"
+              />
+            </div>
+          </div>
+        </div>
       </EditorProvider>
     </div>
   );

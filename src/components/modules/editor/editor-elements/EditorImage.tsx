@@ -2,7 +2,6 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
 import { Trash } from "lucide-react";
 
 import { useEditor } from "@/hooks/use-editor";
@@ -10,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 
 import { type EditorElement } from "@/lib/types/editor";
 import { cn } from "@/lib/utils";
+import { setDraggedElement } from "@/lib/editor/dnd";
 
 interface EditorImageProps {
   element: EditorElement;
@@ -18,6 +18,7 @@ interface EditorImageProps {
 const EditorImage: React.FC<EditorImageProps> = ({ element }) => {
   const { dispatch, editor: editorState } = useEditor();
   const { editor } = editorState;
+  const isEditor = !editor.liveMode && !editor.previewMode;
 
   const handleOnClickBody = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -37,16 +38,30 @@ const EditorImage: React.FC<EditorImageProps> = ({ element }) => {
     });
   };
 
+  const handleDragStart = (event: React.DragEvent) => {
+    if (editor.liveMode || editor.previewMode) {
+      event.preventDefault();
+      return;
+    }
+
+    event.stopPropagation();
+    setDraggedElement(event, element.id);
+  };
+
   return (
     <div
       style={element.styles}
-      draggable={!editor.liveMode}
+      draggable={!editor.liveMode && !editor.previewMode}
       onClick={handleOnClickBody}
-      className={cn("relative p-0.5 min-w-12 min-h-7 flex items-center justify-center", element.className, {
-        "border-blue-500 border-solid":
-          editor.selectedElement.id === element.id,
-        "border-dashed border": !editor.liveMode,
-      })}
+      onDragStart={handleDragStart}
+      className={cn(
+        isEditor && "relative flex items-center justify-center",
+        {
+          "border-blue-500 border-solid":
+            isEditor && editor.selectedElement.id === element.id,
+          "border-dashed border": isEditor,
+        }
+      )}
     >
       {editor.selectedElement.id === element.id && !editor.liveMode && (
         <Badge className="absolute -top-6 -left-0.5 rounded-none rounded-t-md bg-emerald-500 text-white">
@@ -58,6 +73,7 @@ const EditorImage: React.FC<EditorImageProps> = ({ element }) => {
           src={element.content.src}
           alt={element.content.alt as string}
           style={element.styles}
+          draggable={false}
         />
       )}
       {editor.selectedElement.id === element.id && !editor.liveMode && (

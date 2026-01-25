@@ -71,6 +71,13 @@ export type EditorAction =
         };
     }
     | {
+        type: "MOVE_ELEMENT";
+        payload: {
+            elementId: string;
+            targetContainerId: string;
+        };
+    }
+    | {
         type: "DELETE_ELEMENT";
         payload: {
             elementDetails: EditorElement;

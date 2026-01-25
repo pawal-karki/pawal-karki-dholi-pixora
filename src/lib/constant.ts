@@ -47,7 +47,7 @@ export const pricingCards = [
   {
     title: "Pro",
     description: "For freelancers and growing teams",
-    price: "NPR 3,799",
+    price: "NPR 999",
     duration: "/month",
     highlight: "Everything in Starter plus",
     features: [
@@ -63,7 +63,7 @@ export const pricingCards = [
   {
     title: "Agency",
     description: "Complete toolkit for digital agencies",
-    price: "NPR 12,999",
+    price: "NPR 4,999",
     duration: "/month",
     highlight: "Everything in Pro plus",
     features: [

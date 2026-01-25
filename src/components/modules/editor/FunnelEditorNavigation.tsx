@@ -10,6 +10,8 @@ import {
   Clock,
   Eye,
   Laptop,
+  PanelLeft,
+  PanelRight,
   Redo2,
   Smartphone,
   Tablet,
@@ -39,12 +41,16 @@ interface FunnelEditorNavigationProps {
   funnelId: string;
   subAccountId: string;
   funnelPageDetails: FunnelPage;
+  onOpenLeftPanel?: () => void;
+  onOpenRightPanel?: () => void;
 }
 
 const FunnelEditorNavigation: React.FC<FunnelEditorNavigationProps> = ({
   funnelId,
   funnelPageDetails,
   subAccountId,
+  onOpenLeftPanel,
+  onOpenRightPanel,
 }) => {
   const router = useRouter();
   const { editor, dispatch } = useEditor();
@@ -174,29 +180,28 @@ const FunnelEditorNavigation: React.FC<FunnelEditorNavigationProps> = ({
     <TooltipProvider delayDuration={300}>
       <nav
         className={cn(
-          "border-b flex items-center justify-between px-6 py-4 gap-2 transition-all",
+          "border-b bg-background/90 backdrop-blur flex flex-col md:flex-row md:items-center md:justify-between px-4 md:px-6 py-3 md:py-4 gap-3 transition-all",
           {
             "h-0 p-0 -mt-2 overflow-hidden": editor.editor.previewMode,
           }
         )}
       >
-        <aside className="flex items-center gap-4 max-w-[300px] w-full">
+        <aside className="flex items-center gap-3 w-full md:max-w-[360px]">
           <Link href={`/subaccount/${subAccountId}/funnels/${funnelId}`}>
             <ArrowLeftCircle aria-label="Back" />
           </Link>
-          <div className="flex flex-col w-full">
-            <div className="flex items-center gap-2">
-              <Input
-                defaultValue={funnelPageDetails.name}
-                onBlur={handleBlurTitleChange}
-                className="border-none h-7 m-0 p-0 text-lg font-medium rounded-sm"
-              />
-            </div>
-            <div className="text-sm text-muted-foreground">
+          <div className="flex flex-col w-full min-w-0">
+            <Input
+              defaultValue={funnelPageDetails.name}
+              onBlur={handleBlurTitleChange}
+              className="border-none h-7 m-0 p-0 text-base md:text-lg font-medium rounded-sm truncate"
+              suppressHydrationWarning
+            />
+            <div className="hidden md:flex text-sm text-muted-foreground">
               Path: /{funnelPageDetails.pathName}
             </div>
 
-            <span className="text-muted-foreground text-xs inline-flex items-center gap-1 mt-1">
+            <span className="hidden md:inline-flex text-muted-foreground text-xs items-center gap-1 mt-1">
               <Clock className="w-3 h-3" />
               {format(
                 new Date(funnelPageDetails.updatedAt),
@@ -204,8 +209,19 @@ const FunnelEditorNavigation: React.FC<FunnelEditorNavigationProps> = ({
               )}
             </span>
           </div>
+          {onOpenLeftPanel && (
+            <Button
+              variant="outline"
+              size="icon"
+              className="md:hidden"
+              onClick={onOpenLeftPanel}
+              aria-label="Open components panel"
+            >
+              <PanelLeft className="h-4 w-4" />
+            </Button>
+          )}
         </aside>
-        <aside>
+        <aside className="flex flex-wrap items-center justify-between w-full md:w-auto gap-3">
           <Tabs
             defaultValue="Desktop"
             className="w-fit"
@@ -261,8 +277,7 @@ const FunnelEditorNavigation: React.FC<FunnelEditorNavigationProps> = ({
               </Tooltip>
             </TabsList>
           </Tabs>
-        </aside>
-        <aside className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
           <Tooltip>
             <TooltipTrigger asChild>
               <span>
@@ -287,7 +302,7 @@ const FunnelEditorNavigation: React.FC<FunnelEditorNavigationProps> = ({
               <p className="inline-flex items-center gap-2">
                 Preview{" "}
                 <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-                  <div className="text-xs">⌘</div>P
+                  <div className="text-xs">Cmd</div>P
                 </kbd>
               </p>
             </TooltipContent>
@@ -307,7 +322,7 @@ const FunnelEditorNavigation: React.FC<FunnelEditorNavigationProps> = ({
               <p className="inline-flex items-center gap-2">
                 Undo{" "}
                 <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-                  <div className="text-xs">⌘</div>Z
+                  <div className="text-xs">Cmd</div>Z
                 </kbd>
               </p>
             </TooltipContent>
@@ -331,7 +346,7 @@ const FunnelEditorNavigation: React.FC<FunnelEditorNavigationProps> = ({
               <p className="inline-flex items-center gap-2">
                 Redo{" "}
                 <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-                  <div className="text-xs">⌘</div>Y
+                  <div className="text-xs">Cmd</div>Y
                 </kbd>
               </p>
             </TooltipContent>
@@ -340,7 +355,7 @@ const FunnelEditorNavigation: React.FC<FunnelEditorNavigationProps> = ({
             <Button
               onClick={handleSave}
               disabled={isLoading}
-              className={"w-24 px-0"}
+              className={"w-20 md:w-24 px-0"}
             >
               {isLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -351,6 +366,18 @@ const FunnelEditorNavigation: React.FC<FunnelEditorNavigationProps> = ({
                 editor.history.history.length > 1 &&
                 `(${editor.history.history.length <= 50 ? editor.history.history.length : "50+"})`}
             </Button>
+          </div>
+          {onOpenRightPanel && (
+            <Button
+              variant="outline"
+              size="icon"
+              className="md:hidden"
+              onClick={onOpenRightPanel}
+              aria-label="Open settings panel"
+            >
+              <PanelRight className="h-4 w-4" />
+            </Button>
+          )}
           </div>
         </aside>
       </nav>

@@ -6,6 +6,7 @@ import { EditorElement } from "@/lib/types/editor";
 import { cn } from "@/lib/utils";
 import { Trash } from "lucide-react";
 import React from "react";
+import { setDraggedElement } from "@/lib/editor/dnd";
 
 interface EditorVideoProps {
   element: EditorElement;
@@ -14,6 +15,7 @@ interface EditorVideoProps {
 const EditorVideo: React.FC<EditorVideoProps> = ({ element }) => {
   const { editor: editorState, dispatch } = useEditor();
   const { editor } = editorState;
+  const isEditor = !editor.liveMode && !editor.previewMode;
 
   const handleClickOnBody = (event: React.MouseEvent) => {
     event.stopPropagation();
@@ -35,17 +37,28 @@ const EditorVideo: React.FC<EditorVideoProps> = ({ element }) => {
     });
   };
 
+  const handleDragStart = (event: React.DragEvent) => {
+    if (editor.liveMode || editor.previewMode) {
+      event.preventDefault();
+      return;
+    }
+
+    event.stopPropagation();
+    setDraggedElement(event, element.id);
+  };
+
   return (
     <div
       style={element.styles}
-      draggable
+      draggable={!editor.liveMode && !editor.previewMode}
       onClick={handleClickOnBody}
+      onDragStart={handleDragStart}
       className={cn(
-        "p-1 w-full m-1 relative text-base transition-all flex items-center justify-center",
+        isEditor && "relative transition-all flex items-center justify-center",
         {
           "border-blue-500 border-solid":
-            editor.selectedElement.id === element.id,
-          "border-dashed border": !editor.liveMode,
+            isEditor && editor.selectedElement.id === element.id,
+          "border-dashed border": isEditor,
         }
       )}
     >

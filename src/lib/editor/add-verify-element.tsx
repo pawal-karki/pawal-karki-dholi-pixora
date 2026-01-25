@@ -95,6 +95,7 @@ export const addVerifyElement = (
             type: "section",
             styles: {
               ...defaultStyles,
+              width: "100%",
             },
           },
         },
@@ -114,6 +115,7 @@ export const addVerifyElement = (
             type: "container",
             styles: {
               ...defaultStyles,
+              width: "100%",
             },
           },
         },
@@ -202,6 +204,13 @@ export const addVerifyElement = (
       break;
     }
     case "2Col": {
+      const columnStyles = {
+        ...defaultStyles,
+        width: "100%",
+        flex: "1 1 300px",
+        minWidth: "240px",
+      };
+
       dispatch({
         type: "ADD_ELEMENT",
         payload: {
@@ -212,20 +221,27 @@ export const addVerifyElement = (
                 content: [],
                 id: uuidv4(),
                 name: "Container",
-                styles: { ...defaultStyles, width: "100%" },
+                styles: columnStyles,
                 type: "container",
               },
               {
                 content: [],
                 id: uuidv4(),
                 name: "Container",
-                styles: { ...defaultStyles, width: "100%" },
+                styles: columnStyles,
                 type: "container",
               },
             ],
             id: uuidv4(),
             name: "Two Columns",
-            styles: { ...defaultStyles, display: "flex" },
+            styles: {
+              ...defaultStyles,
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "24px",
+              alignItems: "stretch",
+              width: "100%",
+            },
             type: "2Col",
           },
         },
@@ -234,6 +250,13 @@ export const addVerifyElement = (
       break;
     }
     case "3Col": {
+      const columnStyles = {
+        ...defaultStyles,
+        width: "100%",
+        flex: "1 1 220px",
+        minWidth: "200px",
+      };
+
       dispatch({
         type: "ADD_ELEMENT",
         payload: {
@@ -244,27 +267,34 @@ export const addVerifyElement = (
                 content: [],
                 id: uuidv4(),
                 name: "Container",
-                styles: { ...defaultStyles, width: "100%" },
+                styles: columnStyles,
                 type: "container",
               },
               {
                 content: [],
                 id: uuidv4(),
                 name: "Container",
-                styles: { ...defaultStyles, width: "100%" },
+                styles: columnStyles,
                 type: "container",
               },
               {
                 content: [],
                 id: uuidv4(),
                 name: "Container",
-                styles: { ...defaultStyles, width: "100%" },
+                styles: columnStyles,
                 type: "container",
               },
             ],
             id: uuidv4(),
             name: "Three Columns",
-            styles: { ...defaultStyles, display: "flex" },
+            styles: {
+              ...defaultStyles,
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "20px",
+              alignItems: "stretch",
+              width: "100%",
+            },
             type: "3Col",
           },
         },

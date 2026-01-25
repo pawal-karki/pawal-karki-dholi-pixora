@@ -134,6 +134,106 @@ const deleteElement = (elements: EditorElement[], action: EditorAction) => {
     });
 };
 
+const findElementById = (
+    elements: EditorElement[],
+    elementId: string
+): EditorElement | undefined => {
+    for (const element of elements) {
+        if (element.id === elementId) {
+            return element;
+        }
+
+        if (Array.isArray(element.content)) {
+            const nested = findElementById(element.content, elementId);
+            if (nested) {
+                return nested;
+            }
+        }
+    }
+
+    return undefined;
+};
+
+const containsElementId = (element: EditorElement, elementId: string): boolean => {
+    if (!Array.isArray(element.content)) {
+        return false;
+    }
+
+    return element.content.some((child) => {
+        if (child.id === elementId) {
+            return true;
+        }
+
+        return containsElementId(child, elementId);
+    });
+};
+
+const removeElementById = (
+    elements: EditorElement[],
+    elementId: string
+): { elements: EditorElement[]; removed?: EditorElement } => {
+    let removed: EditorElement | undefined;
+
+    const nextElements = elements.reduce<EditorElement[]>((acc, element) => {
+        if (element.id === elementId) {
+            removed = element;
+            return acc;
+        }
+
+        if (Array.isArray(element.content)) {
+            const result = removeElementById(element.content, elementId);
+            if (result.removed) {
+                removed = result.removed;
+                acc.push({ ...element, content: result.elements });
+                return acc;
+            }
+        }
+
+        acc.push(element);
+        return acc;
+    }, []);
+
+    return { elements: nextElements, removed };
+};
+
+const insertElementById = (
+    elements: EditorElement[],
+    targetContainerId: string,
+    elementToInsert: EditorElement
+): { elements: EditorElement[]; inserted: boolean } => {
+    let inserted = false;
+
+    const nextElements = elements.map((element) => {
+        if (element.id === targetContainerId && Array.isArray(element.content)) {
+            inserted = true;
+            return {
+                ...element,
+                content: [...element.content, elementToInsert],
+            };
+        }
+
+        if (Array.isArray(element.content)) {
+            const result = insertElementById(
+                element.content,
+                targetContainerId,
+                elementToInsert
+            );
+
+            if (result.inserted) {
+                inserted = true;
+                return {
+                    ...element,
+                    content: result.elements,
+                };
+            }
+        }
+
+        return element;
+    });
+
+    return { elements: nextElements, inserted };
+};
+
 const editorReducer = (
     state: EditorState = initialState,
     action: EditorAction
@@ -205,6 +305,73 @@ const editorReducer = (
             const updatedEditor = {
                 ...state.editor,
                 elements: updatedElements,
+            };
+
+            const updatedHistory = [
+                ...state.history.history.slice(0, state.history.currentIndex + 1),
+                { ...updatedEditor },
+            ];
+
+            const newEditorState: EditorState = {
+                ...state,
+                editor: updatedEditor,
+                history: {
+                    ...state.history,
+                    history: updatedHistory,
+                    currentIndex: updatedHistory.length - 1,
+                },
+            };
+
+            return newEditorState;
+        }
+        case "MOVE_ELEMENT": {
+            const { elementId, targetContainerId } = action.payload;
+
+            if (elementId === "__body" || elementId === targetContainerId) {
+                return state;
+            }
+
+            const elementToMove = findElementById(state.editor.elements, elementId);
+            const targetElement = findElementById(
+                state.editor.elements,
+                targetContainerId
+            );
+
+            if (!elementToMove || !targetElement) {
+                return state;
+            }
+
+            if (!Array.isArray(targetElement.content)) {
+                return state;
+            }
+
+            if (containsElementId(elementToMove, targetContainerId)) {
+                return state;
+            }
+
+            const removedResult = removeElementById(state.editor.elements, elementId);
+
+            if (!removedResult.removed) {
+                return state;
+            }
+
+            const insertResult = insertElementById(
+                removedResult.elements,
+                targetContainerId,
+                removedResult.removed
+            );
+
+            if (!insertResult.inserted) {
+                return state;
+            }
+
+            const updatedEditor = {
+                ...state.editor,
+                elements: insertResult.elements,
+                selectedElement:
+                    state.editor.selectedElement.id === elementId
+                        ? removedResult.removed
+                        : state.editor.selectedElement,
             };
 
             const updatedHistory = [

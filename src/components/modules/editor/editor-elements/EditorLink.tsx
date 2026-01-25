@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { type EditorElement } from "@/lib/types/editor";
 import { formatTextOnKeyboard } from "@/lib/editor/utils";
 import { cn } from "@/lib/utils";
+import { setDraggedElement } from "@/lib/editor/dnd";
 
 interface EditorLinkProps {
   element: EditorElement;
@@ -21,6 +22,7 @@ const EditorLink: React.FC<EditorLinkProps> = ({ element }) => {
   const { editor } = editorState;
   const [isEditing, setIsEditing] = React.useState(false);
   const spanRef = React.useRef<HTMLSpanElement | null>(null);
+  const isEditor = !editor.liveMode && !editor.previewMode;
 
   const handleOnClickBody = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -43,6 +45,16 @@ const EditorLink: React.FC<EditorLinkProps> = ({ element }) => {
     formatTextOnKeyboard(event, editor, dispatch);
   };
 
+  const handleDragStart = (event: React.DragEvent) => {
+    if (editor.liveMode || editor.previewMode || isEditing) {
+      event.preventDefault();
+      return;
+    }
+
+    event.stopPropagation();
+    setDraggedElement(event, element.id);
+  };
+
   React.useEffect(() => {
     if (isEditing && spanRef.current) {
       const range = document.createRange();
@@ -57,15 +69,15 @@ const EditorLink: React.FC<EditorLinkProps> = ({ element }) => {
   return (
     <div
       style={element.styles}
-      draggable={!editor.liveMode}
+      draggable={!editor.liveMode && !editor.previewMode && !isEditing}
       onClick={handleOnClickBody}
+      onDragStart={handleDragStart}
       className={cn(
-        "p-0.5 w-full m-1 relative text-base min-h-7 transition-all underline-offset-4 cursor-pointer",
-        element.className,
+        isEditor && "relative transition-all underline-offset-4 cursor-pointer",
         {
           "!border-blue-500 !border-solid":
-            editor.selectedElement.id === element.id,
-          "!border-dashed !border": !editor.liveMode,
+            isEditor && editor.selectedElement.id === element.id,
+          "!border-dashed !border": isEditor,
         }
       )}
     >

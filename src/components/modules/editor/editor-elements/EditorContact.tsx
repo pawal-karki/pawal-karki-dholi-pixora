@@ -12,6 +12,7 @@ import EditorContactForm from "@/components/forms/EditorContactForm";
 import { cn } from "@/lib/utils";
 import type { EditorElement } from "@/lib/types/editor";
 import type { ContactDetailsSchema } from "@/lib/validators/contact-details";
+import { setDraggedElement } from "@/lib/editor/dnd";
 
 interface EditorContactForm {
   element: EditorElement;
@@ -27,6 +28,7 @@ const EditorContact: React.FC<EditorContactForm> = ({ element }) => {
     pageDetails,
   } = useEditor();
   const { editor } = editorState;
+  const isEditor = !editor.liveMode && !editor.previewMode;
 
   const handleOnClickBody = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -66,6 +68,16 @@ const EditorContact: React.FC<EditorContactForm> = ({ element }) => {
     });
   };
 
+  const handleDragStart = (event: React.DragEvent) => {
+    if (editor.liveMode || editor.previewMode) {
+      event.preventDefault();
+      return;
+    }
+
+    event.stopPropagation();
+    setDraggedElement(event, element.id);
+  };
+
   const onFormSubmit = async (values: ContactDetailsSchema) => {
     if (editor.liveMode || editor.previewMode) {
       try {
@@ -96,13 +108,15 @@ const EditorContact: React.FC<EditorContactForm> = ({ element }) => {
   return (
     <div
       onClick={handleOnClickBody}
+      draggable={!editor.liveMode && !editor.previewMode}
+      onDragStart={handleDragStart}
       className={cn(
-        "p-[2px] w-full m-[5px] relative text-[16px] transition-all flex items-center justify-center",
+        isEditor && "relative transition-all flex items-center justify-center",
         {
-          "border-blue-500": editor.selectedElement.id === element.id,
-
-          "border-solid": editor.selectedElement.id === element.id,
-          "!border-dashed !border": !editor.liveMode,
+          "border-blue-500":
+            isEditor && editor.selectedElement.id === element.id,
+          "border-solid": isEditor && editor.selectedElement.id === element.id,
+          "!border-dashed !border": isEditor,
         }
       )}
     >

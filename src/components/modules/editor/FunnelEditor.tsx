@@ -9,17 +9,20 @@ import EditorRecursive from "./editor-elements/EditorRecursive";
 import { useEditor } from "@/hooks/use-editor";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { normalizeEditorElements } from "@/lib/editor/normalize-elements";
 
 interface FunnelEditorProps {
   funnelPageId: string;
   liveMode?: boolean;
   funnelPageDetails: FunnelPage;
+  className?: string;
 }
 
 const FunnelEditor: React.FC<FunnelEditorProps> = ({
   funnelPageId,
   liveMode,
   funnelPageDetails,
+  className,
 }) => {
   const { editor, dispatch } = useEditor();
 
@@ -35,12 +38,18 @@ const FunnelEditor: React.FC<FunnelEditorProps> = ({
   React.useEffect(() => {
     if (!funnelPageDetails) return undefined;
 
+    const parsedElements = funnelPageDetails.content
+      ? JSON.parse(funnelPageDetails.content)
+      : "";
+
+    const normalizedElements = Array.isArray(parsedElements)
+      ? normalizeEditorElements(parsedElements)
+      : parsedElements;
+
     dispatch({
       type: "LOAD_DATA",
       payload: {
-        elements: funnelPageDetails.content
-          ? JSON.parse(funnelPageDetails.content)
-          : "",
+        elements: normalizedElements,
         withLive: !!liveMode,
       },
     });
@@ -59,6 +68,7 @@ const FunnelEditor: React.FC<FunnelEditorProps> = ({
   };
 
   const { globalStyles } = editor.editor;
+  const isEditor = !editor.editor.previewMode && !editor.editor.liveMode;
 
   const cssVars = {
     "--primary": globalStyles?.colors?.primary || "#000000",
@@ -71,13 +81,17 @@ const FunnelEditor: React.FC<FunnelEditorProps> = ({
     <div
       style={cssVars}
       className={cn(
-        "h-screen overflow-y-hidden overflow-x-hidden ml-[320px] mr-[320px] z-[999999] bg-white scrollbar scrollbar-thumb-muted-foreground/20 scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar-medium transition-all duration-300",
+        isEditor
+          ? "relative min-h-full w-full bg-white transition-all duration-300"
+          : "w-full",
         {
-          "ml-0 mr-0 p-0": editor.editor.previewMode || editor.editor.liveMode,
-          "!w-[850px] mx-auto": editor.editor.device === "Tablet" && !editor.editor.previewMode,
-          "!w-[420px] mx-auto": editor.editor.device === "Mobile" && !editor.editor.previewMode,
-          "pb-[100px] use-automation-zoom-in": !editor.editor.previewMode && !editor.editor.liveMode,
-        }
+          "max-w-[850px] w-full mx-auto":
+            isEditor && editor.editor.device === "Tablet",
+          "max-w-[420px] w-full mx-auto":
+            isEditor && editor.editor.device === "Mobile",
+          "pb-16 use-automation-zoom-in": isEditor,
+        },
+        isEditor && className
       )}
       onClick={handleClickElement}
     >

@@ -1,15 +1,14 @@
 import React from "react";
 import { Trash } from "lucide-react";
-import { v4 as uuidv4 } from "uuid";
 
 import { useEditor } from "@/hooks/use-editor";
 import { Badge } from "@/components/ui/badge";
 import EditorRecursive from "./EditorRecursive";
 
-import { defaultStyles } from "@/config/editor";
 import { cn } from "@/lib/utils";
 import type { EditorBtns, EditorElement } from "@/lib/types/editor";
 import { addVerifyElement } from "@/lib/editor/add-verify-element";
+import { getDraggedElementId, setDraggedElement } from "@/lib/editor/dnd";
 
 interface EditorContainerProps {
   element: EditorElement;
@@ -19,18 +18,62 @@ const EditorContainer: React.FC<EditorContainerProps> = ({ element }) => {
   const { content, id, styles, type } = element;
   const { dispatch, editor: editorState } = useEditor();
   const { editor } = editorState;
+  const isEditor = !editor.liveMode && !editor.previewMode;
+
+  const appliedStyles: React.CSSProperties = {
+    ...(styles || {}),
+  };
+
+  if ((type === "container" || type === "2Col" || type === "3Col" || type === "__body") &&
+    appliedStyles.width === undefined) {
+    appliedStyles.width = "100%";
+  }
 
   const handleOnDrop = (event: React.DragEvent) => {
+    event.preventDefault();
     event.stopPropagation();
+
+    if (editor.liveMode || editor.previewMode) {
+      return;
+    }
+
+    const draggedElementId = getDraggedElementId(event);
+    if (draggedElementId) {
+      if (draggedElementId !== id) {
+        dispatch({
+          type: "MOVE_ELEMENT",
+          payload: {
+            elementId: draggedElementId,
+            targetContainerId: id,
+          },
+        });
+      }
+      return;
+    }
+
     const componentType = event.dataTransfer.getData(
       "componentType"
     ) as EditorBtns;
+
+    if (!componentType) {
+      return;
+    }
 
     addVerifyElement(componentType, id, dispatch, editor.device)
   };
 
   const handleDragOver = (event: React.DragEvent) => {
     event.preventDefault();
+  };
+
+  const handleDragStart = (event: React.DragEvent) => {
+    if (editor.liveMode || editor.previewMode || type === "__body") {
+      event.preventDefault();
+      return;
+    }
+
+    event.stopPropagation();
+    setDraggedElement(event, id);
   };
 
   const handleOnClickBody = (event: React.MouseEvent) => {
@@ -57,31 +100,30 @@ const EditorContainer: React.FC<EditorContainerProps> = ({ element }) => {
 
   return (
     <div
-      style={styles}
+      style={appliedStyles}
+      draggable={!editor.liveMode && !editor.previewMode && type !== "__body"}
       className={cn(
+        isEditor &&
         "relative p-4 transition-all group scrollbar scrollbar-thumb-muted-foreground/20 scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar-medium",
-        element.className,
         {
-          "max-w-full w-full": type === "container" || type === "2Col",
-          "h-fit": type === "container",
-          "h-full w-full overflow-y-auto overflow-x-hidden": type === "__body",
-          "flex flex-col md:!flex-row": type === "2Col",
+          "h-fit": isEditor && type === "container",
+          "min-h-full w-full overflow-x-hidden":
+            isEditor && type === "__body",
           "!border-blue-500":
+            isEditor &&
             editor.selectedElement.id === id &&
-            !editor.liveMode &&
             editor.selectedElement.type !== "__body",
           "!border-yellow-400 border-4":
+            isEditor &&
             editor.selectedElement.id === id &&
-            !editor.liveMode &&
             editor.selectedElement.type === "__body",
-          "!mb-[200px]":
-            !editor.liveMode && !editor.previewMode && type === "__body",
-          "!border-solid": editor.selectedElement.id === id && !editor.liveMode,
-          "!border-dashed !border": !editor.liveMode,
+          "!border-solid": isEditor && editor.selectedElement.id === id,
+          "!border-dashed !border": isEditor,
         }
       )}
       onDragOver={handleDragOver}
       onDrop={handleOnDrop}
+      onDragStart={handleDragStart}
       onClick={handleOnClickBody}
     >
       <Badge

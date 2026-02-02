@@ -54,7 +54,7 @@ const FileUpload = ({ apiEndpoint, onChange, value }: Props) => {
         )}
         <Button onClick={() => onChange("")} variant="ghost" type="button">
           <X className="h-4 w-4" />
-          Remove Logo
+          Remove File
         </Button>
       </div>
     );
@@ -65,10 +65,12 @@ const FileUpload = ({ apiEndpoint, onChange, value }: Props) => {
       <UploadDropzone
         endpoint={apiEndpoint}
         onClientUploadComplete={(res) => {
-          onChange(res?.[0].url);
+          if (res && res.length > 0 && res[0].url) {
+            onChange(res[0].url);
+          }
         }}
         onUploadError={(error: Error) => {
-          console.log(error);
+          console.error("Upload error:", error);
         }}
       />
     </div>

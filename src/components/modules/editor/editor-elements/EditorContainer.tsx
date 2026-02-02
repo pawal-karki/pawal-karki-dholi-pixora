@@ -26,7 +26,13 @@ const EditorContainer: React.FC<EditorContainerProps> = ({ element }) => {
       "componentType"
     ) as EditorBtns;
 
-    addVerifyElement(componentType, id, dispatch, editor.device)
+    // Get extra data for media bucket images
+    const imageUrl = event.dataTransfer.getData("imageUrl");
+    const imageName = event.dataTransfer.getData("imageName");
+
+    const extraData = imageUrl ? { imageUrl, imageName } : undefined;
+
+    addVerifyElement(componentType, id, dispatch, editor.device, extraData);
   };
 
   const handleDragOver = (event: React.DragEvent) => {

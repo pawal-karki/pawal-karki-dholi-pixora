@@ -32,6 +32,7 @@ const MediaTab: React.FC<MediaTabProps> = ({ subAccountId }) => {
         data={data}
         subAccountId={subAccountId}
         headerClassName="flex flex-col gap-2 text-xl"
+        editorMode={true}
       />
     </div>
   );

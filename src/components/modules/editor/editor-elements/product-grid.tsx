@@ -188,16 +188,16 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ element }) => {
                 </div>
 
                 {/* CONTENT */}
-                <div className="p-5 space-y-3">
-                  <h3 className="text-base font-semibold leading-tight">
+                <div className="p-5 space-y-3 bg-white">
+                  <h3 className="text-base font-semibold leading-tight text-slate-900">
                     {product.name}
                   </h3>
 
-                  <p className="text-sm text-muted-foreground line-clamp-2">
+                  <p className="text-sm text-slate-600 line-clamp-2">
                     {product.description || " "}
                   </p>
 
-                  <div className="text-lg font-bold">
+                  <div className="text-lg font-bold text-slate-900">
                     {formatPrice(product.price, product.currency)}
                   </div>
 

@@ -3,7 +3,7 @@
 import React from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Copy, MoreHorizontal, Trash } from "lucide-react";
+import { Copy, MoreHorizontal, Trash, GripVertical } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { type Media } from "@prisma/client";
@@ -31,12 +31,14 @@ import {
   DropdownMenuTrigger,
 } from "../../ui/dropdown-menu";
 import { useModal } from "@/hooks/use-modal";
+import { cn } from "@/lib/utils";
 
 interface MediaCardProps {
   file: Media;
+  draggable?: boolean;
 }
 
-const MediaCard: React.FC<MediaCardProps> = ({ file }) => {
+const MediaCard: React.FC<MediaCardProps> = ({ file, draggable = false }) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const { setClose } = useModal();
@@ -55,16 +57,35 @@ const MediaCard: React.FC<MediaCardProps> = ({ file }) => {
     toast.success("Deleted File", {
       description: "Successfully deleted the file",
     });
-    
+
     setIsLoading(false);
     setClose();
     router.refresh();
   };
 
+  const handleDragStart = (event: React.DragEvent) => {
+    event.dataTransfer.setData("componentType", "image");
+    event.dataTransfer.setData("imageUrl", file.link);
+    event.dataTransfer.setData("imageName", file.name);
+  };
+
   return (
     <AlertDialog>
       <DropdownMenu>
-        <article className="border w-full rounded-md bg-background">
+        <article
+          className={cn(
+            "border w-full rounded-md bg-background",
+            draggable && "cursor-grab active:cursor-grabbing"
+          )}
+          draggable={draggable}
+          onDragStart={draggable ? handleDragStart : undefined}
+        >
+          {/* Drag handle indicator for editor context */}
+          {draggable && (
+            <div className="absolute top-2 left-2 z-10 bg-background/80 rounded p-1">
+              <GripVertical className="w-4 h-4 text-muted-foreground" />
+            </div>
+          )}
           <div className="relative w-full h-40 bg-muted rounded-ss-md rounded-se-md">
             <Image
               src={file.link}

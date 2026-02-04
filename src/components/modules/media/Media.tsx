@@ -19,9 +19,11 @@ interface MediaProps {
   subAccountId: string;
   data: GetMediaFiles | null | undefined;
   headerClassName?: string;
+  /** When true, media cards will be draggable for use in the editor */
+  editorMode?: boolean;
 }
 
-const Media: React.FC<MediaProps> = ({ subAccountId, data, headerClassName }) => {
+const Media: React.FC<MediaProps> = ({ subAccountId, data, headerClassName, editorMode = false }) => {
   return (
     <div className="flex flex-col gap-4 h-full w-full">
       <div className={cn("flex justify-between items-center", headerClassName)}>
@@ -41,7 +43,7 @@ const Media: React.FC<MediaProps> = ({ subAccountId, data, headerClassName }) =>
                   key={file.id}
                   className="p-0 max-w-[300px] w-full bg-transparent rounded-lg font-medium text-white"
                 >
-                  <MediaCard file={file} />
+                  <MediaCard file={file} draggable={editorMode} />
                 </CommandItem>
               ))}
               {!data?.media.length && (

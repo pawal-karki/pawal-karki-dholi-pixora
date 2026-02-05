@@ -7,7 +7,8 @@ export const addVerifyElement = (
   componentType: EditorBtns,
   id: string,
   dispatch: (value: EditorAction) => void,
-  device: "Desktop" | "Mobile" | "Tablet" = "Desktop"
+  device: "Desktop" | "Mobile" | "Tablet" = "Desktop",
+  extraData?: { imageUrl?: string; imageName?: string }
 ) => {
   // Handle template types
   if (typeof componentType === "string" && componentType.startsWith("template__")) {
@@ -54,19 +55,20 @@ export const addVerifyElement = (
           containerId: id,
           elementDetails: {
             content: {
-              src: "https://cdn.pixabay.com/photo/2016/05/05/02/37/sunset-1373171_1280.jpg",
-              alt: "Image description",
+              src: extraData?.imageUrl || "https://cdn.pixabay.com/photo/2016/05/05/02/37/sunset-1373171_1280.jpg",
+              alt: extraData?.imageName || "Image description",
             },
             id: uuidv4(),
-            name: "Image",
+            name: extraData?.imageName || "Image",
             type: "image",
             styles: {
               color: "black",
-              width: "1000px",
-              height: "600px",
-              aspectRatio: "1/1",
+              width: "100%",
+              height: "auto",
+              aspectRatio: "auto",
               marginLeft: "auto",
               marginRight: "auto",
+              objectFit: "contain",
               ...defaultStyles,
             },
           },

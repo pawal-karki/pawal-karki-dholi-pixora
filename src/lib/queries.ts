@@ -1234,6 +1234,11 @@ export const createMedia = async (
 ) => {
   const { link, name } = mediaFiles;
 
+  // Validate required fields
+  if (!link || !name) {
+    throw new Error(`Missing required fields: ${!link ? 'link' : ''} ${!name ? 'name' : ''}`.trim());
+  }
+
   const response = await db.media.create({
     data: {
       subAccountId,

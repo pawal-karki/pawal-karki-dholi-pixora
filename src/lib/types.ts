@@ -70,8 +70,6 @@ export type GetMediaFiles = SubAccount & {
 export type CreateMediaType = {
   name: string;
   link: string;
-  type: string;
-  subAccountId: string;
 };
 
 export type TicketAndTags = Ticket & {

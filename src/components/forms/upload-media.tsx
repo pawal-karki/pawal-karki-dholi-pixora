@@ -63,7 +63,7 @@ const UploadMediaForm: React.FC<UploadMediaFormProps> = ({ subAccountId, onSucce
       await saveActivityLogsNotification({
         agencyId: undefined,
         description: `Uploaded a media file | ${response.name}`,
-        subaccountId: subAccountId,
+        subaccountId: response.subAccountId,
       });
 
       setClose();

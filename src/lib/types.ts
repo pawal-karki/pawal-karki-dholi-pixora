@@ -137,3 +137,13 @@ export type Address = {
   state: string;
 };
 
+export type TicketsWithTags = TicketAndTags[];
+
+export type PipelinesWithLanesAndTickets = (Pipeline & {
+  lanes: (Lane & {
+    tickets: (Ticket & {
+      tags: Tag[];
+    })[];
+  })[];
+})[];
+

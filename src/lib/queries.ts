@@ -198,6 +198,7 @@ export const saveActivityLogsNotification = async ({
   description: string;
   subaccountId?: string;
 }) => {
+  console.log("saveActivityLogsNotification called with:", { agencyId, description, subaccountId });
   const userEmail = await getCurrentUserEmail();
   let userData;
 
@@ -940,6 +941,32 @@ export const getAuthUserGroup = async (agencyId: string) => {
     },
   });
   return teamMembers;
+};
+
+/**
+ * Gets team members with access to a specific subaccount
+ */
+export const getSubAccountTeamMembers = async (subAccountId: string) => {
+  const subAccountWithAccess = await db.user.findMany({
+    where: {
+      agency: {
+        SubAccounts: {
+          some: {
+            id: subAccountId,
+          },
+        },
+      },
+      role: "SUBACCOUNT_USER",
+      Permissions: {
+        some: {
+          subAccountId,
+          access: true,
+        },
+      },
+    },
+  });
+
+  return subAccountWithAccess;
 };
 
 /**

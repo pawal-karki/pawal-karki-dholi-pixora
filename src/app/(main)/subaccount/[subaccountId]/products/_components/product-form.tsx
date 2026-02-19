@@ -104,12 +104,9 @@ export const ProductForm = ({ subaccountId, defaultData }: ProductFormProps) => 
     }, [defaultData, form]);
 
     const handleSubmit = async (formValues: z.infer<typeof formSchema>) => {
-        // Get current form values directly to avoid state issues
-        const values = form.getValues();
-        console.log("Form values from getValues:", values);
-        console.log("Form values from param:", formValues);
-        console.log("SubaccountId:", subaccountId);
-        
+        // Use formValues directly for cleaner code
+        const values = formValues;
+
         try {
             if (isEditing) {
                 // For editing, update local DB only (Stripe products can't be easily updated)
@@ -127,7 +124,7 @@ export const ProductForm = ({ subaccountId, defaultData }: ProductFormProps) => 
                         currency: values.currency,
                     }),
                 });
-                
+
                 if (!res.ok) {
                     const error = await res.json();
                     throw new Error(error.error || "Failed to update product");
@@ -158,10 +155,10 @@ export const ProductForm = ({ subaccountId, defaultData }: ProductFormProps) => 
 
             toast({
                 title: "Success",
-                description: isEditing 
-                    ? "Product updated" 
-                    : stripeConnected 
-                        ? "Product created and synced with Stripe" 
+                description: isEditing
+                    ? "Product updated"
+                    : stripeConnected
+                        ? "Product created and synced with Stripe"
                         : "Product created locally",
             });
 
@@ -187,28 +184,62 @@ export const ProductForm = ({ subaccountId, defaultData }: ProductFormProps) => 
 
     return (
         <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-                    {!stripeConnected && !isEditing && (
-                        <Alert className="border-amber-500 bg-amber-50 dark:bg-amber-950">
-                            <AlertCircle className="h-4 w-4 text-amber-500" />
-                            <AlertDescription className="text-amber-700 dark:text-amber-300 text-sm">
-                                <strong>Stripe not connected.</strong> Product will be created locally.
-                                Connect Stripe in Launchpad to enable customer checkout.
-                            </AlertDescription>
-                        </Alert>
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+                {!stripeConnected && !isEditing && (
+                    <Alert className="border-amber-500 bg-amber-50 dark:bg-amber-950">
+                        <AlertCircle className="h-4 w-4 text-amber-500" />
+                        <AlertDescription className="text-amber-700 dark:text-amber-300 text-sm">
+                            <strong>Stripe not connected.</strong> Product will be created locally.
+                            Connect Stripe in Launchpad to enable customer checkout.
+                        </AlertDescription>
+                    </Alert>
+                )}
+                <FormField
+                    disabled={isLoading}
+                    control={form.control}
+                    name="image"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Product Image</FormLabel>
+                            <FormControl>
+                                <FileUpload
+                                    apiEndpoint="subAccountLogo"
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
                     )}
+                />
+                <FormField
+                    disabled={isLoading}
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Product Name</FormLabel>
+                            <FormControl>
+                                <Input placeholder="e.g. Website Design Package" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <div className="grid grid-cols-2 gap-4">
                     <FormField
                         disabled={isLoading}
                         control={form.control}
-                        name="image"
+                        name="price"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Product Image</FormLabel>
+                                <FormLabel>Price</FormLabel>
                                 <FormControl>
-                                    <FileUpload
-                                        apiEndpoint="subAccountLogo"
-                                        value={field.value}
-                                        onChange={field.onChange}
+                                    <Input
+                                        type="number"
+                                        step="0.01"
+                                        placeholder="999.00"
+                                        {...field}
                                     />
                                 </FormControl>
                                 <FormMessage />
@@ -218,74 +249,10 @@ export const ProductForm = ({ subaccountId, defaultData }: ProductFormProps) => 
                     <FormField
                         disabled={isLoading}
                         control={form.control}
-                        name="name"
+                        name="currency"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Product Name</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="e.g. Website Design Package" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                            disabled={isLoading}
-                            control={form.control}
-                            name="price"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Price</FormLabel>
-                                    <FormControl>
-                                        <Input 
-                                            type="number" 
-                                            step="0.01"
-                                            placeholder="999.00" 
-                                            {...field} 
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            disabled={isLoading}
-                            control={form.control}
-                            name="currency"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Currency</FormLabel>
-                                    <Select
-                                        disabled={isLoading || isEditing}
-                                        onValueChange={field.onChange}
-                                        value={field.value}
-                                    >
-                                        <FormControl>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select currency" />
-                                            </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            <SelectItem value="NPR">NPR (रू)</SelectItem>
-                                            <SelectItem value="USD">USD ($)</SelectItem>
-                                            <SelectItem value="EUR">EUR (€)</SelectItem>
-                                            <SelectItem value="GBP">GBP (£)</SelectItem>
-                                            <SelectItem value="INR">INR (₹)</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    </div>
-                    <FormField
-                        disabled={isLoading || isEditing}
-                        control={form.control}
-                        name="recurring"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Billing Type</FormLabel>
+                                <FormLabel>Currency</FormLabel>
                                 <Select
                                     disabled={isLoading || isEditing}
                                     onValueChange={field.onChange}
@@ -293,45 +260,75 @@ export const ProductForm = ({ subaccountId, defaultData }: ProductFormProps) => 
                                 >
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select billing type" />
+                                            <SelectValue placeholder="Select currency" />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        <SelectItem value="one_time">One-time payment</SelectItem>
-                                        <SelectItem value="month">Monthly subscription</SelectItem>
-                                        <SelectItem value="year">Yearly subscription</SelectItem>
+                                        <SelectItem value="NPR">NPR (रू)</SelectItem>
+                                        <SelectItem value="USD">USD ($)</SelectItem>
+                                        <SelectItem value="EUR">EUR (€)</SelectItem>
+                                        <SelectItem value="GBP">GBP (£)</SelectItem>
+                                        <SelectItem value="INR">INR (₹)</SelectItem>
                                     </SelectContent>
                                 </Select>
-                                <FormDescription>
-                                    Choose how customers will be charged
-                                </FormDescription>
                                 <FormMessage />
                             </FormItem>
                         )}
                     />
-                    <FormField
-                        disabled={isLoading}
-                        control={form.control}
-                        name="description"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Description</FormLabel>
+                </div>
+                <FormField
+                    disabled={isLoading || isEditing}
+                    control={form.control}
+                    name="recurring"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Billing Type</FormLabel>
+                            <Select
+                                disabled={isLoading || isEditing}
+                                onValueChange={field.onChange}
+                                value={field.value}
+                            >
                                 <FormControl>
-                                    <Input placeholder="Brief description of your product" {...field} />
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select billing type" />
+                                    </SelectTrigger>
                                 </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    
-                    {defaultData?.stripePriceId && (
-                        <Alert>
-                            <CreditCard className="h-4 w-4" />
-                            <AlertDescription className="text-xs">
-                                Stripe Price ID: {defaultData.stripePriceId}
-                            </AlertDescription>
-                        </Alert>
+                                <SelectContent>
+                                    <SelectItem value="one_time">One-time payment</SelectItem>
+                                    <SelectItem value="month">Monthly subscription</SelectItem>
+                                    <SelectItem value="year">Yearly subscription</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FormDescription>
+                                Choose how customers will be charged
+                            </FormDescription>
+                            <FormMessage />
+                        </FormItem>
                     )}
+                />
+                <FormField
+                    disabled={isLoading}
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Description</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Brief description of your product" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                {defaultData?.stripePriceId && (
+                    <Alert>
+                        <CreditCard className="h-4 w-4" />
+                        <AlertDescription className="text-xs">
+                            Stripe Price ID: {defaultData.stripePriceId}
+                        </AlertDescription>
+                    </Alert>
+                )}
 
                 <Button className="w-full mt-4" type="submit" disabled={isLoading}>
                     {isLoading ? (
@@ -339,10 +336,10 @@ export const ProductForm = ({ subaccountId, defaultData }: ProductFormProps) => 
                     ) : (
                         <CreditCard className="h-4 w-4 mr-2" />
                     )}
-                    {isLoading 
-                        ? "Creating in Stripe..." 
-                        : isEditing 
-                            ? "Update Product" 
+                    {isLoading
+                        ? "Creating in Stripe..."
+                        : isEditing
+                            ? "Update Product"
                             : "Create Product"}
                 </Button>
             </form>

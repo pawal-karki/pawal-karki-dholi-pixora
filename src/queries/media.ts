@@ -1,6 +1,31 @@
-/**
- * Media query functions
- * Re-exports from the main queries file for better organization
- */
+"use server";
 
-export { createMedia, deleteMedia, getMedia } from "@/lib/queries";
+import { db } from "@/lib/db";
+import { CreateMediaType } from "@/lib/types";
+
+export const getMedia = async (subAccountId: string) => {
+    const mediaFiles = await db.subAccount.findUnique({
+        where: { id: subAccountId },
+        include: { media: true },
+    });
+    return mediaFiles;
+};
+
+export const createMedia = async (
+    subAccountId: string,
+    mediaFiles: CreateMediaType
+) => {
+    const { link, name } = mediaFiles;
+    if (!link || !name) {
+        throw new Error(
+            `Missing required fields: ${!link ? "link" : ""} ${!name ? "name" : ""}`.trim()
+        );
+    }
+    const response = await db.media.create({ data: { subAccountId, link, name } });
+    return response;
+};
+
+export const deleteMedia = async (mediaId: string) => {
+    const response = await db.media.delete({ where: { id: mediaId } });
+    return response;
+};

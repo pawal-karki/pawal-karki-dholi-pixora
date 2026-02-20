@@ -72,7 +72,8 @@ export type CreateMediaType = {
   link: string;
 };
 
-export type TicketAndTags = Ticket & {
+export type TicketAndTags = Omit<Ticket, "value"> & {
+  value: string | null;
   tags: Tag[];
   assigned: User | null;
   customer: Contact | null;
@@ -86,11 +87,13 @@ export type PipelineDetailsWithLanesCardsTagsTickets = Pipeline & {
   lanes: LaneDetail[];
 };
 
-export type TicketWithTags = Ticket & {
+export type TicketWithTags = Omit<Ticket, "value"> & {
+  value: string | null;
   tags: Tag[];
 };
 
-export type TicketDetails = Ticket & {
+export type TicketDetails = Omit<Ticket, "value"> & {
+  value: string | null;
   customer: Contact | null;
   assigned: User | null;
   tags: Tag[];

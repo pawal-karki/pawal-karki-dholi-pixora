@@ -6,72 +6,23 @@ import { Prisma, Tag } from "@prisma/client";
 
 export const getTicketsWithTags = async (pipelineId: string) => {
     const response = await db.ticket.findMany({
-        where: {
-            lane: {
-                pipelineId,
-            },
-        },
-        include: {
-            tags: true,
-            assigned: true,
-            customer: true,
-        },
+        where: { lane: { pipelineId } },
+        include: { tags: true, assigned: true, customer: true },
     });
-
-    return response;
-};
-
-export const getTicketDetails = async (laneId: string) => {
-    const response = await db.ticket.findMany({
-        where: {
-            laneId,
-        },
-        include: {
-            assigned: true,
-            customer: true,
-            lane: true,
-            tags: true,
-        },
-    });
-
-    return response;
+    return response.map((ticket) => ({
+        ...ticket,
+        value: ticket.value ? String(ticket.value) : null,
+    }));
 };
 
 export const upsertTicket = async (
     ticket: Prisma.TicketUncheckedCreateInput,
     tags: Tag[]
 ) => {
-    let order: number;
-
-    if (!ticket.order) {
-        const tickets = await db.ticket.findMany({
-            where: {
-                laneId: ticket.laneId,
-            },
-        });
-
-        order = tickets.length;
-    } else {
-        order = ticket.order;
-    }
-
     const response = await db.ticket.upsert({
-        where: {
-            id: ticket.id || uuidv4(),
-        },
-        update: {
-            ...ticket,
-            tags: {
-                set: tags,
-            },
-        },
-        create: {
-            ...ticket,
-            tags: {
-                connect: tags,
-            },
-            order,
-        },
+        where: { id: ticket.id || uuidv4() },
+        update: { ...ticket, tags: { set: tags.map((tag) => ({ id: tag.id })) } },
+        create: { ...ticket, tags: { connect: tags.map((tag) => ({ id: tag.id })) } },
         include: {
             assigned: true,
             customer: true,
@@ -79,16 +30,10 @@ export const upsertTicket = async (
             lane: true,
         },
     });
-
-    return response;
+    return { ...response, value: response.value ? String(response.value) : null };
 };
 
 export const deleteTicket = async (ticketId: string) => {
-    const response = await db.ticket.delete({
-        where: {
-            id: ticketId,
-        },
-    });
-
+    const response = await db.ticket.delete({ where: { id: ticketId } });
     return response;
 };

@@ -6,7 +6,8 @@ import { toast } from "sonner";
 import { Check, ChevronsUpDownIcon, User2 } from "lucide-react";
 import type { Contact, Tag, User } from "@prisma/client";
 
-import { getSubAccountTeamMembers, searchContacts } from "@/lib/queries";
+import { getSubAccountTeamMembers } from "@/queries/subaccounts";
+import { searchContacts } from "@/queries/contacts";
 import { saveActivityLogsNotification } from "@/queries/notifications";
 import { upsertTicket } from "@/queries/tickets";
 
@@ -71,13 +72,15 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({
         });
     }, [subAccountId]);
 
-    // Load initial contacts for edit mode
+    // Load initial contacts
     React.useEffect(() => {
         const customerName = defaultData?.ticket?.customer?.name;
         if (customerName) {
-            searchContacts(customerName).then(setContactList);
+            searchContacts(customerName, subAccountId).then(setContactList);
+        } else {
+            searchContacts("", subAccountId).then(setContactList);
         }
-    }, [defaultData?.ticket?.customer?.name]);
+    }, [defaultData?.ticket?.customer?.name, subAccountId]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -254,7 +257,7 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({
                                             if (searchTimerRef.current)
                                                 clearTimeout(searchTimerRef.current);
                                             searchTimerRef.current = setTimeout(async () => {
-                                                const res = await searchContacts(val);
+                                                const res = await searchContacts(val, subAccountId);
                                                 setContactList(res);
                                                 setSearch("");
                                             }, 1000);

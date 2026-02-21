@@ -70,7 +70,8 @@ const EditorContact: React.FC<EditorContactForm> = ({ element }) => {
     if (editor.liveMode || editor.previewMode) {
       try {
         const response = await upsertContact({
-          ...values,
+          name: values.name,
+          email: values.email,
           subAccountId,
         });
 

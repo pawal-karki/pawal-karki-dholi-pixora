@@ -1,21 +1,11 @@
 import React from "react";
 import { redirect } from "next/navigation";
-import { Plus } from "lucide-react";
 import { format } from "date-fns";
+import { Decimal } from "@prisma/client/runtime/library";
 
-import { getSubAccountDetails } from "@/lib/queries";
-import { db } from "@/lib/db";
+import { getSubAccountWithContacts } from "@/queries/contacts";
+import { formatPrice } from "@/lib/utils";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Table,
   TableBody,
@@ -24,7 +14,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import CreateContactButton from "./_components/CreateContactButton";
 
 interface ContactsPageProps {
   params: Promise<{
@@ -37,111 +30,98 @@ const ContactsPage: React.FC<ContactsPageProps> = async ({ params }) => {
 
   if (!subaccountId) redirect("/subaccount/unauthorized");
 
-  const subAccountDetails = await getSubAccountDetails(subaccountId);
+  const data = await getSubAccountWithContacts(subaccountId);
 
-  if (!subAccountDetails) redirect("/subaccount/unauthorized");
+  if (!data) redirect("/subaccount/unauthorized");
 
-  // Get contacts for this subaccount
-  const contacts = await db.contact.findMany({
-    where: { subAccountId: subaccountId },
-    include: {
-      tickets: {
-        select: {
-          value: true,
-        },
-      },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+  const allContacts = data.contacts;
 
-  const formatTotal = (tickets: { value: number | null }[]) => {
-    const total = tickets.reduce((acc, ticket) => acc + (ticket.value || 0), 0);
-    return Intl.NumberFormat(undefined, {
-      style: "currency",
-      currency: "USD",
-    }).format(total);
+  const formatTotal = (tickets: { value: Decimal | null }[]) => {
+    if (!tickets || !tickets.length) return null;
+    const total = tickets.reduce(
+      (sum, ticket) => sum + (Number(ticket.value) || 0),
+      0
+    );
+    return formatPrice(total);
   };
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between md:flex-row flex-col gap-2">
         <div>
           <h1 className="text-3xl font-bold">Contacts</h1>
           <p className="text-muted-foreground">
             Manage your contacts and view their activity
           </p>
         </div>
-        <Button className="flex items-center gap-2">
-          <Plus className="w-4 h-4" />
-          Add Contact
-        </Button>
+        <CreateContactButton subAccountId={subaccountId} />
       </div>
+
       <Separator />
 
-      {contacts.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-10">
-            <p className="text-muted-foreground mb-4">No contacts yet</p>
-            <Button className="flex items-center gap-2">
-              <Plus className="w-4 h-4" />
-              Add your first contact
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle>All Contacts</CardTitle>
-            <CardDescription>
-              {contacts.length} contact{contacts.length !== 1 ? "s" : ""} found
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Active</TableHead>
-                  <TableHead>Total Value</TableHead>
-                  <TableHead>Created</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {contacts.map((contact) => (
-                  <TableRow key={contact.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-8 w-8">
-                          <AvatarFallback className="bg-primary text-primary-foreground">
-                            {contact.name.slice(0, 2).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="font-medium">{contact.name}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>{contact.email}</TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={contact.tickets.length > 0 ? "default" : "secondary"}
-                      >
-                        {contact.tickets.length > 0 ? "Active" : "Inactive"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{formatTotal(contact.tickets)}</TableCell>
-                    <TableCell>
-                      {format(new Date(contact.createdAt), "MMM d, yyyy")}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      )}
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Name</TableHead>
+            <TableHead>Email</TableHead>
+            <TableHead>Active</TableHead>
+            <TableHead>Created Date</TableHead>
+            <TableHead>Total Value</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody className="font-medium truncate">
+          {!!allContacts?.length &&
+            allContacts.map((contact) => (
+              <TableRow key={contact.id}>
+                <TableCell>
+                  <div className="flex items-center gap-3">
+                    <Avatar>
+                      <AvatarFallback className="bg-primary text-white">
+                        {contact.name
+                          .slice(0, 2)
+                          .toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="font-medium">
+                      {contact.name}
+                    </span>
+                  </div>
+                </TableCell>
+                <TableCell>{contact.email}</TableCell>
+                <TableCell>
+                  {formatTotal(contact.tickets) === null ? (
+                    <Badge variant="destructive">
+                      Inactive
+                    </Badge>
+                  ) : (
+                    <Badge className="bg-emerald-700">
+                      Active
+                    </Badge>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {format(contact.createdAt, "MM/dd/yyyy")}
+                </TableCell>
+                <TableCell>
+                  {formatTotal(contact.tickets) ?? "—"}
+                </TableCell>
+              </TableRow>
+            ))}
+          {!allContacts?.length && (
+            <TableRow>
+              <TableCell
+                colSpan={5}
+                className="text-center text-muted-foreground py-10"
+              >
+                No contacts yet. Click &ldquo;Create
+                Contact&rdquo; to add your first one.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
     </div>
   );
 };
 
 export default ContactsPage;
-

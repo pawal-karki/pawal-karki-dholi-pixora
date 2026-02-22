@@ -5,51 +5,37 @@ import { Prisma } from "@prisma/client";
 import { v4 } from "uuid";
 
 export const getUserPipelines = async (subAccountId: string) => {
-    const pipelines = await db.pipeline.findMany({
-        where: {
-            subAccountId,
-        },
-    });
-
+    const pipelines = await db.pipeline.findMany({ where: { subAccountId } });
     return pipelines;
 };
 
 export const getPipelines = async (subAccountId: string) => {
     const pipelines = await db.pipeline.findMany({
-        where: {
-            subAccountId,
-        },
-        include: {
-            lanes: {
-                include: {
-                    tickets: true,
-                },
-            },
-        },
+        where: { subAccountId },
+        include: { lanes: { include: { tickets: true } } },
     });
-
-    return pipelines;
+    return pipelines.map((pipeline) => ({
+        ...pipeline,
+        lanes: pipeline.lanes.map((lane) => ({
+            ...lane,
+            tickets: lane.tickets.map((ticket) => ({
+                ...ticket,
+                value: ticket.value ? String(ticket.value) : null,
+            })),
+        })),
+    }));
 };
 
 export const getPipelineDetails = async (pipelineId: string) => {
-    const response = await db.pipeline.findUnique({
-        where: {
-            id: pipelineId,
-        },
-    });
-
+    const response = await db.pipeline.findUnique({ where: { id: pipelineId } });
     return response;
 };
 
 export const createPipeline = async (subAccountId: string) => {
     try {
         const response = await db.pipeline.create({
-            data: {
-                name: "First Pipeline",
-                subAccountId,
-            },
+            data: { name: "First Pipeline", subAccountId },
         });
-
         return response;
     } catch (error) {
         console.log(error);
@@ -60,22 +46,14 @@ export const upsertPipeline = async (
     pipeline: Prisma.PipelineUncheckedCreateWithoutLanesInput
 ) => {
     const response = await db.pipeline.upsert({
-        where: {
-            id: pipeline.id || v4(),
-        },
+        where: { id: pipeline.id || v4() },
         update: pipeline,
         create: pipeline,
     });
-
     return response;
 };
 
 export const deletePipeline = async (pipelineId: string) => {
-    const response = await db.pipeline.delete({
-        where: {
-            id: pipelineId,
-        },
-    });
-
+    const response = await db.pipeline.delete({ where: { id: pipelineId } });
     return response;
 };

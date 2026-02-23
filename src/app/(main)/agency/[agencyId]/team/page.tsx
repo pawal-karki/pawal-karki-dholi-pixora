@@ -21,6 +21,10 @@ const TeamPage: React.FC<TeamPageProps> = async ({ params }) => {
   if (!user) redirect("/agency/sign-in");
   if (!agencyId) redirect("/agency/unauthorized");
 
+  if (user.role !== "AGENCY_OWNER" && user.role !== "AGENCY_ADMIN") {
+    redirect("/agency/unauthorized");
+  }
+
   const teamMembers = await getAuthUserGroup(agencyId);
   if (!teamMembers) redirect("/agency/sign-in");
 
@@ -59,7 +63,7 @@ const TeamPage: React.FC<TeamPageProps> = async ({ params }) => {
           Add
         </>
       }
-      modalChildren={<SendInvitation agencyId={agencyId} />}
+      modalChildren={<SendInvitation agencyId={agencyId} subAccounts={agencyDetails.SubAccounts} />}
       filterValue="name"
       columns={teamTableColumns}
       data={mergedData}

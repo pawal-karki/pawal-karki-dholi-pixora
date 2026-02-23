@@ -13,7 +13,7 @@ import {
   Wallet,
 } from "lucide-react";
 
-import { getAgencyDetails, getSubAccountsByAgency } from "@/lib/queries";
+import { getAgencyDetails, getSubAccountsByAgency, getAuthDetails } from "@/lib/queries";
 import {
   getAgencyDashboardMetrics,
   getStripeTransactions,
@@ -48,12 +48,17 @@ const AgencyIdPage: React.FC<AgencyIdPageProps> = async ({ params }) => {
   if (!agencyId) redirect("/agency/unauthorized");
 
   // Parallelize initial data fetches
-  const [agencyDetails, subAccounts] = await Promise.all([
+  const [agencyDetails, subAccounts, user] = await Promise.all([
     getAgencyDetails(agencyId),
     getSubAccountsByAgency(agencyId),
+    getAuthDetails(),
   ]);
 
-  if (!agencyDetails) redirect("/agency/unauthorized");
+  if (!agencyDetails || !user) redirect("/agency/unauthorized");
+
+  if (user.role !== "AGENCY_OWNER" && user.role !== "AGENCY_ADMIN") {
+    redirect("/subaccount");
+  }
 
   const subAccountIds = subAccounts.map((sub) => sub.id);
 

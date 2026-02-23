@@ -37,18 +37,23 @@ import {
 } from "@/components/ui/select";
 import { UpgradeDialog } from "@/components/global/upgrade-dialog";
 
+import { SubAccount } from "@prisma/client";
+import { Checkbox } from "@/components/ui/checkbox";
+
 const SendInvitationValidator = z.object({
   email: z.string().email({ message: "Invalid email address" }),
   role: z.enum(["AGENCY_ADMIN", "SUBACCOUNT_USER", "SUBACCOUNT_GUEST"]),
+  subAccountIds: z.array(z.string()).optional(),
 });
 
 type SendInvitationSchema = z.infer<typeof SendInvitationValidator>;
 
 interface SendInvitationProps {
   agencyId: string;
+  subAccounts: SubAccount[];
 }
 
-const SendInvitation: React.FC<SendInvitationProps> = ({ agencyId }) => {
+const SendInvitation: React.FC<SendInvitationProps> = ({ agencyId, subAccounts }) => {
   const router = useRouter();
   const { setClose } = useModal();
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
@@ -59,8 +64,11 @@ const SendInvitation: React.FC<SendInvitationProps> = ({ agencyId }) => {
     defaultValues: {
       email: "",
       role: "SUBACCOUNT_USER",
+      subAccountIds: [],
     },
   });
+
+  const selectedRole = form.watch("role");
 
   // Check plan limits on mount
   useEffect(() => {
@@ -71,7 +79,7 @@ const SendInvitation: React.FC<SendInvitationProps> = ({ agencyId }) => {
     try {
       const res = await fetch(`/api/plan-limits?agencyId=${agencyId}&type=team`);
       const data = await res.json();
-      
+
       if (!data.allowed) {
         setPlanInfo({ planName: data.planName, message: data.message });
         setShowUpgradeDialog(true);
@@ -86,7 +94,7 @@ const SendInvitation: React.FC<SendInvitationProps> = ({ agencyId }) => {
     try {
       const res = await fetch(`/api/plan-limits?agencyId=${agencyId}&type=team`);
       const data = await res.json();
-      
+
       if (!data.allowed) {
         setPlanInfo({ planName: data.planName, message: data.message });
         setShowUpgradeDialog(true);
@@ -108,6 +116,10 @@ const SendInvitation: React.FC<SendInvitationProps> = ({ agencyId }) => {
       formData.append("email", formValues.email);
       formData.append("role", formValues.role);
       formData.append("agencyId", agencyId);
+
+      if (formValues.subAccountIds && formValues.subAccountIds.length > 0) {
+        formData.append("subAccountIds", JSON.stringify(formValues.subAccountIds));
+      }
 
       const response = await sendInvitationAction(formData);
 
@@ -206,6 +218,60 @@ const SendInvitation: React.FC<SendInvitationProps> = ({ agencyId }) => {
                   </FormItem>
                 )}
               />
+
+              {(selectedRole === "SUBACCOUNT_USER" || selectedRole === "SUBACCOUNT_GUEST") && subAccounts && subAccounts.length > 0 && (
+                <div className="flex flex-col gap-3 py-2">
+                  <div className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    Assign Subaccounts
+                  </div>
+                  <CardDescription className="mb-2">
+                    Select which subaccounts this team member will have access to.
+                  </CardDescription>
+                  <FormField
+                    control={form.control}
+                    name="subAccountIds"
+                    render={() => (
+                      <FormItem className="space-y-3">
+                        {subAccounts.map((subAccount) => (
+                          <FormField
+                            key={subAccount.id}
+                            control={form.control}
+                            name="subAccountIds"
+                            render={({ field }) => {
+                              return (
+                                <FormItem
+                                  key={subAccount.id}
+                                  className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3"
+                                >
+                                  <FormControl>
+                                    <Checkbox
+                                      checked={field.value?.includes(subAccount.id)}
+                                      onCheckedChange={(checked) => {
+                                        return checked
+                                          ? field.onChange([...(field.value || []), subAccount.id])
+                                          : field.onChange(
+                                            field.value?.filter(
+                                              (value) => value !== subAccount.id
+                                            )
+                                          )
+                                      }}
+                                    />
+                                  </FormControl>
+                                  <FormLabel className="font-normal cursor-pointer flex-1">
+                                    {subAccount.name}
+                                  </FormLabel>
+                                </FormItem>
+                              )
+                            }}
+                          />
+                        ))}
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              )}
+
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? "Sending..." : "Send Invitation"}
               </Button>

@@ -10,26 +10,26 @@ export async function sendInvitationAction(formData: FormData) {
     const email = (formData.get("email") as string).toLowerCase();
     const role = formData.get("role") as Role;
     const agencyId = formData.get("agencyId") as string;
+    const subAccountIds = formData.get("subAccountIds") as string | null;
 
     if (!email || !agencyId || !role) {
         throw new Error("Missing required fields: email, agencyId, or role");
     }
-
     // Check plan limits before creating invitation
     const planCheck = await canInviteTeamMember(agencyId);
     if (!planCheck.allowed) {
-        return { 
+        return {
             error: `Team member limit reached. ${planCheck.message}`,
             limitReached: true,
             planName: planCheck.planName
         };
     }
-
     const invitation = await db.invitation.create({
         data: {
             email,
             agencyId,
             role,
+            ...(subAccountIds && { subAccountIds }),
         },
     });
 

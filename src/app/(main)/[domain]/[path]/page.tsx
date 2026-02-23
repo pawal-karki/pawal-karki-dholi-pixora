@@ -26,6 +26,28 @@ const DomainPathPage: React.FC<DomainPathPageProps> = async ({ params }) => {
 
     if (!domainData) notFound();
 
+    // Check if beta editor is enabled, and try to render grapesjs export
+    if (process.env.BETA_EDITOR_ENABLED === "true" && domainData.grapesExport) {
+        try {
+            const exportedPages = JSON.parse(domainData.grapesExport);
+            if (Array.isArray(exportedPages)) {
+                // Determine if there is a matching page (e.g path === "about")
+                // GrapesJS pages might have path or name, we'll match by name standardized to kebab-case
+                const matchingPage = exportedPages.find((p: any) => p.name?.toLowerCase().replace(/\s+/g, '-') === path.toLowerCase());
+                if (matchingPage) {
+                    return (
+                        <>
+                            <style dangerouslySetInnerHTML={{ __html: matchingPage.css }} />
+                            <div dangerouslySetInnerHTML={{ __html: matchingPage.html }} />
+                        </>
+                    );
+                }
+            }
+        } catch (err) {
+            console.error("Error parsing grapesExport:", err);
+        }
+    }
+
     // Find the page matching the path
     const pageData = domainData.funnelPages.find((page) => page.pathName === path);
 

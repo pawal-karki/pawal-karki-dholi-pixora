@@ -310,6 +310,10 @@ model Funnel {
   funnelPages FunnelPage[]
   className   ClassName[]
 
+  grapesProjectJson String? @db.Text
+  grapesExport      String? @db.Text
+  editorVersion     String?
+
   @@index([subAccountId])
 }
 

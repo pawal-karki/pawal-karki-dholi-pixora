@@ -40,6 +40,28 @@ const DomainPage: React.FC<DomainPageProps> = async ({ params }) => {
       return;
     }
 
+    // Check if beta editor is enabled, and try to render grapesjs export
+    if (process.env.BETA_EDITOR_ENABLED === "true" && domainData.grapesExport) {
+      try {
+        const exportedPages = JSON.parse(domainData.grapesExport);
+        if (Array.isArray(exportedPages) && exportedPages.length > 0) {
+          // Find "Home" page or default to the first page
+          const homePageParams = exportedPages.find((p: any) => p.name?.toLowerCase() === "home") || exportedPages[0];
+          if (homePageParams) {
+            return (
+              <>
+                <style dangerouslySetInnerHTML={{ __html: homePageParams.css }} />
+                <div dangerouslySetInnerHTML={{ __html: homePageParams.html }} />
+              </>
+            );
+          }
+        }
+      } catch (err) {
+        console.error("Error parsing grapesExport:", err);
+        // Fallback to legacy editor
+      }
+    }
+
     // For the root page, we find the page with no pathName (empty string or null)
     const pageData = domainData.funnelPages.find((page) => !page.pathName || page.pathName === "");
 

@@ -161,10 +161,15 @@ const FunnelSteps: React.FC<FunnelStepsProps> = ({
                                                 <span>{url}</span>
                                             </a>
                                         </div>
-                                        <div className="mt-4">
+                                        <div className="mt-4 flex flex-col gap-2">
                                             <Link href={`/editor/${subaccountId}/${funnelId}/${clickedPage.id}`}>
+                                                <Button size="sm" variant="outline" className="w-full">
+                                                    Edit Page Content (Old Editor)
+                                                </Button>
+                                            </Link>
+                                            <Link href={`/builder/${funnelId}/editor-beta`}>
                                                 <Button size="sm" className="w-full">
-                                                    Edit Page Content
+                                                    Edit with GrapesJS (Beta)
                                                 </Button>
                                             </Link>
                                         </div>

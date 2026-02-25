@@ -16,16 +16,17 @@ const Page = async ({ searchParams }: PageProps) => {
 
   const params = await searchParams;
 
-  // Parallelize data fetches for better performance
-  const [agencyId, user] = await Promise.all([
-    verifyAndAccpetInvitations(),
-    getAuthDetails(),
-  ]);
+  // Verify and accept invitations first, as this might create the user
+  const agencyId = await verifyAndAccpetInvitations();
+
+  // Then get auth details after the user might have been created
+  const user = await getAuthDetails();
+
   console.log("Agency ID:", agencyId);
 
   if (agencyId) {
     if (user?.role === "SUBACCOUNT_USER" || user?.role === "SUBACCOUNT_GUEST") {
-      return redirect("/agency");
+      return redirect("/subaccount");
     } else if (["AGENCY_OWNER", "AGENCY_ADMIN"].includes(user?.role ?? "")) {
       if (params?.plans) {
         return redirect(

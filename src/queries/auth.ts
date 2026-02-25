@@ -11,11 +11,11 @@ import { db } from "@/lib/db";
 import { verifyToken } from "@/lib/auth";
 import { isClerkError } from "@/queries/_helpers";
 
-// ─── Cached Clerk user ───────────────────────────────────────────────────────
-
+// ─── Cached Clerk user ───   
 /**
  * Cached Clerk user fetch to prevent duplicate API calls within a request.
  */
+
 const getClerkUserCached = cache(async () => {
     try {
         return await currentUser();
@@ -190,78 +190,131 @@ export const initUser = async (newUser?: Partial<User>) => {
 };
 
 // ─── verifyAndAccpetInvitations ───────────────────────────────────────────────
-// Import deferred to break potential circular dep with notifications
 
 export const verifyAndAccpetInvitations = async () => {
-    const userEmail = await getCurrentUserEmail();
+    const userEmailRaw = await getCurrentUserEmail();
     const clerkUser = await getClerkUserCached();
 
-    if (!userEmail) return redirect("/agency/sign-in");
+    if (!userEmailRaw) return redirect("/agency/sign-in");
 
-    if (!clerkUser) {
-        const existingUser = await db.user.findUnique({
-            where: { email: userEmail },
-            include: { agency: true },
-        });
-        return existingUser?.agencyId || null;
-    }
+    // Standardize email to lowercase for exact database matching
+    const userEmail = userEmailRaw.toLowerCase();
 
-    const clerkEmail = clerkUser.emailAddresses[0].emailAddress;
+    // Check for an invitation strictly using the userEmail since clerkUser may be null due to JWT fallback
     const invitationsExist = await db.invitation.findUnique({
-        where: { email: clerkEmail, status: "PENDING" },
+        where: { email: userEmail, status: "PENDING" },
     });
 
     if (invitationsExist) {
         let userDetails;
-        if (invitationsExist.role === "AGENCY_OWNER") {
-            userDetails = await db.user.create({
+
+        // Fallback user details if clerkUser is null
+        const authId = clerkUser?.id || `user_${Date.now()}`;
+        const avatarUrl = clerkUser?.imageUrl || "";
+        const name = clerkUser ? `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim() : "User";
+
+        // Check if the user already exists in the database to prevent unique constraint errors
+        const existingUserRecord = await db.user.findUnique({
+            where: { email: invitationsExist.email },
+        });
+
+        if (existingUserRecord) {
+            // Update the existing user's agencyId and role
+            userDetails = await db.user.update({
+                where: { email: invitationsExist.email },
                 data: {
+                    agencyId: invitationsExist.agencyId,
+                    role: invitationsExist.role,
+                },
+            });
+        } else {
+            if (invitationsExist.role === "AGENCY_OWNER") {
+                userDetails = await db.user.create({
+                    data: {
+                        email: invitationsExist.email,
+                        agencyId: invitationsExist.agencyId,
+                        avatarUrl,
+                        id: authId,
+                        name,
+                        role: invitationsExist.role,
+                        createdAt: new Date(),
+                        updatedAt: new Date(),
+                        password: null,
+                    },
+                });
+            } else {
+                userDetails = await createTeamUser(invitationsExist.agencyId, {
                     email: invitationsExist.email,
                     agencyId: invitationsExist.agencyId,
-                    avatarUrl: clerkUser.imageUrl,
-                    id: clerkUser.id,
-                    name: `${clerkUser.firstName} ${clerkUser.lastName}`,
+                    avatarUrl,
+                    id: authId,
+                    name,
                     role: invitationsExist.role,
                     createdAt: new Date(),
                     updatedAt: new Date(),
                     password: null,
-                },
-            });
-        } else {
-            userDetails = await createTeamUser(invitationsExist.agencyId, {
-                email: invitationsExist.email,
-                agencyId: invitationsExist.agencyId,
-                avatarUrl: clerkUser.imageUrl,
-                id: clerkUser.id,
-                name: `${clerkUser.firstName} ${clerkUser.lastName}`,
-                role: invitationsExist.role,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-                password: null,
-            });
+                });
+            }
         }
 
         if (userDetails) {
+            // Auto-grant access to existing subaccounts for non-owner admin team members
+            if (userDetails.role === "AGENCY_ADMIN") {
+                const agencySubAccounts = await db.subAccount.findMany({
+                    where: { agencyId: invitationsExist.agencyId }
+                });
+
+                if (agencySubAccounts.length > 0) {
+                    await db.permissions.createMany({
+                        data: agencySubAccounts.map((sub) => ({
+                            email: userDetails.email,
+                            subAccountId: sub.id,
+                            access: true
+                        })),
+                        // Avoid crashing if they already have some permissions mapped manually previously
+                        skipDuplicates: true
+                    });
+                }
+            } else if (invitationsExist.subAccountIds) {
+                try {
+                    const parsedSubAccountIds: string[] = JSON.parse(invitationsExist.subAccountIds);
+                    if (parsedSubAccountIds.length > 0) {
+                        await db.permissions.createMany({
+                            data: parsedSubAccountIds.map((subId) => ({
+                                email: userDetails.email,
+                                subAccountId: subId,
+                                access: true
+                            })),
+                            skipDuplicates: true
+                        });
+                    }
+                } catch (err) {
+                    console.error("Failed to parse subAccountIds on invitation payload", err);
+                }
+            }
+
             // Dynamic import to avoid circular dep with notifications
             const { saveActivityLogsNotification } = await import(
                 "@/queries/notifications"
             );
             await saveActivityLogsNotification({
                 agencyId: invitationsExist.agencyId,
-                description: `${clerkUser.firstName} ${clerkUser.lastName} has joined the agency`,
+                description: `${name} has joined the agency`,
                 subaccountId: undefined,
             });
 
-            try {
-                const client = await clerkClient();
-                await client.users.updateUserMetadata(userDetails.id, {
-                    publicMetadata: { role: userDetails.role || "SUBACCOUNT_USER" },
-                });
-            } catch (error: unknown) {
-                if (isClerkError(error) && (error.status === 429 || error.clerkError)) {
-                    console.warn("Clerk rate limit hit when updating metadata:", error.status);
-                } else {
-                    console.log("Could not update Clerk metadata:", error);
+            if (clerkUser) {
+                try {
+                    const client = await clerkClient();
+                    await client.users.updateUserMetadata(userDetails.id, {
+                        publicMetadata: { role: userDetails.role || "SUBACCOUNT_USER" },
+                    });
+                } catch (error: unknown) {
+                    if (isClerkError(error) && (error.status === 429 || error.clerkError)) {
+                        console.warn("Clerk rate limit hit when updating metadata:", error.status);
+                    } else {
+                        console.log("Could not update Clerk metadata:", error);
+                    }
                 }
             }
 
@@ -272,10 +325,13 @@ export const verifyAndAccpetInvitations = async () => {
         } else {
             return null;
         }
-    } else {
-        const existingUser = await db.user.findUnique({
-            where: { email: clerkUser.emailAddresses[0].emailAddress },
-        });
-        return existingUser?.agencyId || null;
     }
+
+    // No pending invitation exists. If they are already in the DB, return their agency ID.
+    const existingUser = await db.user.findUnique({
+        where: { email: userEmail },
+        include: { agency: true },
+    });
+
+    return existingUser?.agencyId || null;
 };

@@ -19,12 +19,16 @@ const SubAccountIdLayout: React.FC<SubAccountIdLayoutProps> = async ({
   children,
 }) => {
   const { subaccountId } = await params;
-  
+
   if (!subaccountId) redirect("/subaccount/unauthorized");
 
   const user = await getAuthDetails();
 
   if (!user) redirect("/agency/sign-in");
+
+  if (user.role === Role.SUBACCOUNT_GUEST) {
+    redirect("/subaccount/unauthorized");
+  }
 
   // Check if user has access to this subaccount
   const hasAccess = user.Permissions?.find(

@@ -202,7 +202,7 @@ const CellActions: React.FC<CellActionsProps> = ({ rowData }) => {
               setOpen(
                 <CustomModal
                   title="Edit User Details"
-                  subTitle="You can change permissions only when the user has an owned subaccount"
+                  subTitle="Assign or remove subaccount access for this team member."
                 >
                   <UserDetails
                     type="agency"

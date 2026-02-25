@@ -139,7 +139,13 @@ const UserDetailsForm: React.FC<UserDetailsProps> = ({
     if (userData?.role === "AGENCY_OWNER") return;
 
     try {
-      await updateUser(values);
+      const targetUserId = userData?.id || authUserData?.id;
+      if (!targetUserId) {
+        toast.error("Oops!", { description: "User ID missing for update." });
+        return;
+      }
+
+      await updateUser({ ...values, id: targetUserId });
 
       await saveActivityLogsNotification({
         agencyId: type === "agency" ? id : undefined,
@@ -309,10 +315,10 @@ const UserDetailsForm: React.FC<UserDetailsProps> = ({
                       <SelectItem value="AGENCY_ADMIN">Agency Admin</SelectItem>
                       {(userData?.role === "AGENCY_OWNER" ||
                         authUserData?.role === "AGENCY_OWNER") && (
-                        <SelectItem value="AGENCY_OWNER">
-                          Agency Owner
-                        </SelectItem>
-                      )}
+                          <SelectItem value="AGENCY_OWNER">
+                            Agency Owner
+                          </SelectItem>
+                        )}
                       <SelectItem value="SUBACCOUNT_USER">
                         Sub Account User
                       </SelectItem>
@@ -330,7 +336,7 @@ const UserDetailsForm: React.FC<UserDetailsProps> = ({
               {isSubmitting ? "Saving..." : "Save User Information"}
             </Button>
 
-            {authUserData?.role === "AGENCY_OWNER" && (
+            {(authUserData?.role === "AGENCY_OWNER" || authUserData?.role === "AGENCY_ADMIN") && (
               <div>
                 <Separator className="my-4" />
                 <Label className="text-base font-semibold">
@@ -338,8 +344,8 @@ const UserDetailsForm: React.FC<UserDetailsProps> = ({
                 </Label>
                 <p className="text-sm text-muted-foreground mb-4 mt-1">
                   You can give Sub Account access to team members by toggling
-                  access control for each Sub Account. This is only visible to
-                  agency owners.
+                  access control for each Sub Account. This is visible to
+                  agency owners and admins.
                 </p>
                 <div className="flex flex-col gap-4">
                   {subAccounts?.map((subAccount) => {

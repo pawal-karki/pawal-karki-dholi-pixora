@@ -46,9 +46,12 @@ const FunnelEditorNavigation: React.FC<FunnelEditorNavigationProps> = ({
   funnelPageDetails,
   subAccountId,
 }) => {
+  const MOBILE_BREAKPOINT = 768;
   const router = useRouter();
   const { editor, dispatch } = useEditor();
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const lastNonMobileDeviceRef = React.useRef<DeviceTypes>("Desktop");
+  const currentDeviceRef = React.useRef<DeviceTypes>("Desktop");
 
   React.useEffect(() => {
     dispatch({
@@ -58,6 +61,54 @@ const FunnelEditorNavigation: React.FC<FunnelEditorNavigationProps> = ({
       },
     });
   }, [funnelPageDetails]);
+
+  React.useEffect(() => {
+    currentDeviceRef.current = editor.editor.device;
+    if (editor.editor.device !== "Mobile") {
+      lastNonMobileDeviceRef.current = editor.editor.device;
+    }
+  }, [editor.editor.device]);
+
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
+
+    const syncDeviceWithViewport = () => {
+      const currentDevice = currentDeviceRef.current;
+
+      if (window.innerWidth < MOBILE_BREAKPOINT) {
+        if (currentDevice !== "Mobile") {
+          lastNonMobileDeviceRef.current = currentDevice;
+          dispatch({
+            type: "CHANGE_DEVICE",
+            payload: {
+              device: "Mobile",
+            },
+          });
+        }
+        return;
+      }
+
+      if (currentDevice === "Mobile") {
+        dispatch({
+          type: "CHANGE_DEVICE",
+          payload: {
+            device: lastNonMobileDeviceRef.current || "Desktop",
+          },
+        });
+      }
+    };
+
+    syncDeviceWithViewport();
+    mql.addEventListener("change", syncDeviceWithViewport);
+    window.addEventListener("resize", syncDeviceWithViewport);
+
+    return () => {
+      mql.removeEventListener("change", syncDeviceWithViewport);
+      window.removeEventListener("resize", syncDeviceWithViewport);
+    };
+  }, [dispatch]);
 
   const handleBlurTitleChange = async (
     event: React.FocusEvent<HTMLInputElement, Element>
@@ -211,6 +262,9 @@ const FunnelEditorNavigation: React.FC<FunnelEditorNavigationProps> = ({
             className="w-fit"
             value={editor.editor.device}
             onValueChange={(value) => {
+              if ((value as DeviceTypes) !== "Mobile") {
+                lastNonMobileDeviceRef.current = value as DeviceTypes;
+              }
               dispatch({
                 type: "CHANGE_DEVICE",
                 payload: {

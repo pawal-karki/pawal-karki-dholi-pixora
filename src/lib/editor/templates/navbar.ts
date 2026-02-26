@@ -8,123 +8,184 @@ export const createSaasNavbar = (
     section(
         "Modern Navbar",
         {
-            background: "rgba(255, 255, 255, 0.8)",
-            backdropFilter: "blur(20px) saturate(180%)",
-            WebkitBackdropFilter: "blur(20px) saturate(180%)",
-            borderBottom: "1px solid rgba(0, 0, 0, 0.05)",
+            background: TOKENS.glass,
+            backdropFilter: TOKENS.backdrop,
+            WebkitBackdropFilter: TOKENS.backdrop,
+            borderBottom: TOKENS.border,
             boxShadow: TOKENS.shadowSoft,
         },
-        "sticky top-0 z-[100] w-full flex justify-center items-center px-5 py-4 md:px-8 md:py-5",
+        "sticky top-0 z-[100] w-full flex justify-center items-center px-4 py-3 md:px-8 md:py-4",
         [
             container(
                 "Nav Container",
                 {},
-                "w-full max-w-7xl flex flex-col md:flex-row justify-between items-center gap-4",
+                "w-full max-w-7xl flex flex-col gap-3 md:gap-4",
                 [
-                    // Brand Container
                     container(
-                        "Brand Container",
-                        {
-                            cursor: "pointer",
-                        },
-                        "flex items-center gap-2.5",
+                        "Top Nav Row",
+                        {},
+                        "w-full flex items-center justify-between gap-3",
                         [
-                            icon(
-                                "Brand Icon",
+                            container(
+                                "Brand Container",
                                 {
-                                    color: TOKENS.accent,
-                                    fontWeight: "600",
-                                    filter: "drop-shadow(0 2px 4px rgba(99, 102, 241, 0.3))",
+                                    cursor: "pointer",
                                 },
-                                "text-2xl",
-                                "◆"
+                                "flex items-center gap-2.5",
+                                [
+                                    icon(
+                                        "Brand Icon",
+                                        {
+                                            color: TOKENS.accent,
+                                            fontWeight: "700",
+                                        },
+                                        "text-xl md:text-2xl",
+                                        "◆"
+                                    ),
+                                    text(
+                                        "Brand Logo",
+                                        {
+                                            fontWeight: "800",
+                                            color: TOKENS.text,
+                                            letterSpacing: "-0.5px",
+                                            background: TOKENS.textGradient,
+                                            WebkitBackgroundClip: "text",
+                                            WebkitTextFillColor: "transparent",
+                                        },
+                                        "text-lg md:text-2xl leading-none",
+                                        "Pixora"
+                                    ),
+                                ]
                             ),
-                            text(
-                                "Brand Logo",
+                            container(
+                                "Desktop Navigation Links",
                                 {
-                                    fontWeight: "800",
-                                    color: TOKENS.text,
-                                    letterSpacing: "-0.5px",
-                                    background: TOKENS.textGradient,
-                                    WebkitBackgroundClip: "text",
-                                    WebkitTextFillColor: "transparent",
+                                    background: "rgba(15, 23, 42, 0.04)",
+                                    border: "1px solid rgba(148, 163, 184, 0.16)",
                                 },
-                                "text-xl md:text-2xl leading-none",
-                                "Pixora"
+                                "hidden md:flex items-center gap-1.5 px-2 py-1.5 rounded-full",
+                                [
+                                    link(
+                                        "Home",
+                                        {
+                                            color: TOKENS.text,
+                                            textDecoration: "none",
+                                            fontWeight: "600",
+                                            transition: TOKENS.transition,
+                                            background: "#ffffff",
+                                            boxShadow: TOKENS.shadowSoft,
+                                        },
+                                        "text-sm px-4 py-2 rounded-full",
+                                        "/",
+                                        "Home"
+                                    ),
+                                    link(
+                                        "Features",
+                                        {
+                                            color: TOKENS.muted,
+                                            textDecoration: "none",
+                                            fontWeight: "500",
+                                            transition: TOKENS.transition,
+                                        },
+                                        "text-sm px-4 py-2 rounded-full hover:bg-black/5",
+                                        "#features",
+                                        "Features"
+                                    ),
+                                    link(
+                                        "Pricing",
+                                        {
+                                            color: TOKENS.muted,
+                                            textDecoration: "none",
+                                            fontWeight: "500",
+                                            transition: TOKENS.transition,
+                                        },
+                                        "text-sm px-4 py-2 rounded-full hover:bg-black/5",
+                                        "#pricing",
+                                        "Pricing"
+                                    ),
+                                ]
                             ),
-                        ]
-                    ),
-
-                    // Desktop Navigation Links (Hidden on mobile)
-                    container(
-                        "Desktop Nav Links",
-                        {
-                            background: "rgba(0,0,0,0.03)",
-                            border: "1px solid rgba(0,0,0,0.02)",
-                        },
-                        "hidden md:flex items-center gap-3 px-1.5 py-1.5 rounded-full",
-                        [
-                            link(
-                                "Home",
+                            container(
+                                "Nav Actions",
+                                {},
+                                "hidden md:flex items-center gap-2.5",
+                                [
+                                    link(
+                                        "Login",
+                                        {
+                                            color: TOKENS.accent,
+                                            textDecoration: "none",
+                                            fontWeight: "600",
+                                            transition: TOKENS.transition,
+                                            background: TOKENS.accentLight,
+                                            border: "1px solid rgba(79, 70, 229, 0.22)",
+                                        },
+                                        "text-sm px-4 py-2.5 rounded-full whitespace-nowrap",
+                                        "/sign-in",
+                                        "Log in"
+                                    ),
+                                    link(
+                                        "Get Started",
+                                        {
+                                            background: TOKENS.accent,
+                                            color: "#ffffff",
+                                            textDecoration: "none",
+                                            fontWeight: "600",
+                                            transition: TOKENS.transition,
+                                            boxShadow: TOKENS.shadowCard,
+                                        },
+                                        "text-sm px-6 py-2.5 rounded-full whitespace-nowrap",
+                                        "/sign-up",
+                                        "Get Started"
+                                    ),
+                                ]
+                            ),
+                            container(
+                                "Mobile Menu Trigger",
                                 {
-                                    color: TOKENS.text,
-                                    textDecoration: "none",
-                                    fontWeight: "600",
-                                    transition: TOKENS.transition,
                                     background: "#ffffff",
-                                    boxShadow: "0 2px 8px -2px rgba(0,0,0,0.1)",
+                                    border: TOKENS.border,
+                                    boxShadow: TOKENS.shadowSoft,
                                 },
-                                "text-sm px-5 py-2 rounded-full",
-                                "/",
-                                "Home"
-                            ),
-                            link(
-                                "Features",
-                                {
-                                    color: TOKENS.muted,
-                                    textDecoration: "none",
-                                    fontWeight: "500",
-                                    transition: TOKENS.transition,
-                                },
-                                "text-sm px-5 py-2 rounded-full hover:bg-black/5",
-                                "#features",
-                                "Features"
-                            ),
-                            link(
-                                "Pricing",
-                                {
-                                    color: TOKENS.muted,
-                                    textDecoration: "none",
-                                    fontWeight: "500",
-                                    transition: TOKENS.transition,
-                                },
-                                "text-sm px-5 py-2 rounded-full hover:bg-black/5",
-                                "#pricing",
-                                "Pricing"
+                                "flex md:hidden items-center justify-center px-3 py-2 rounded-xl",
+                                [
+                                    text(
+                                        "Menu Label",
+                                        {
+                                            fontSize: "12px",
+                                            fontWeight: "700",
+                                            letterSpacing: "0.04em",
+                                            color: TOKENS.text,
+                                            textTransform: "uppercase",
+                                        },
+                                        "",
+                                        "Menu"
+                                    ),
+                                ]
                             ),
                         ]
                     ),
-
-                    // Mobile Navigation Links (Shown on mobile only)
                     container(
-                        "Mobile Nav Links",
+                        "Mobile Navigation Panel",
                         {
-                            background: "rgba(248, 248, 248, 0.95)",
-                            borderTop: "1px solid rgba(0, 0, 0, 0.08)",
+                            background: "rgba(248, 250, 252, 0.92)",
+                            border: TOKENS.border,
+                            boxShadow: TOKENS.shadowSoft,
+                            borderRadius: TOKENS.radiusLg,
+                            padding: r(device, "12px", "12px", "14px"),
                         },
-                        "flex md:hidden flex-col gap-3 w-full p-5",
+                        "flex md:hidden flex-col gap-2 w-full",
                         [
                             link(
                                 "Home Mobile",
                                 {
-                                    color: "#ffffff",
+                                    color: TOKENS.text,
                                     textDecoration: "none",
                                     fontWeight: "600",
-                                    background: TOKENS.accent,
-                                    transition: TOKENS.transition,
-                                    boxShadow: "0 2px 8px rgba(99, 102, 241, 0.25)",
+                                    background: "#ffffff",
+                                    border: TOKENS.border,
                                 },
-                                "text-sm px-5 py-3.5 rounded-lg text-center",
+                                "text-sm px-4 py-3 rounded-xl text-center",
                                 "/",
                                 "Home"
                             ),
@@ -134,10 +195,10 @@ export const createSaasNavbar = (
                                     color: TOKENS.text,
                                     textDecoration: "none",
                                     fontWeight: "500",
-                                    background: "rgba(0, 0, 0, 0.04)",
-                                    transition: TOKENS.transition,
+                                    background: "rgba(255, 255, 255, 0.78)",
+                                    border: TOKENS.border,
                                 },
-                                "text-sm px-5 py-3.5 rounded-lg text-center",
+                                "text-sm px-4 py-3 rounded-xl text-center",
                                 "#features",
                                 "Features"
                             ),
@@ -147,78 +208,45 @@ export const createSaasNavbar = (
                                     color: TOKENS.text,
                                     textDecoration: "none",
                                     fontWeight: "500",
-                                    background: "rgba(0, 0, 0, 0.04)",
-                                    transition: TOKENS.transition,
+                                    background: "rgba(255, 255, 255, 0.78)",
+                                    border: TOKENS.border,
                                 },
-                                "text-sm px-5 py-3.5 rounded-lg text-center",
+                                "text-sm px-4 py-3 rounded-xl text-center",
                                 "#pricing",
                                 "Pricing"
                             ),
-                            link(
-                                "Login Mobile",
-                                {
-                                    color: TOKENS.accent,
-                                    textDecoration: "none",
-                                    fontWeight: "600",
-                                    background: "rgba(99, 102, 241, 0.08)",
-                                    border: "1.5px solid rgba(99, 102, 241, 0.25)",
-                                    transition: TOKENS.transition,
-                                },
-                                "text-sm px-5 py-3.5 rounded-lg text-center",
-                                "/sign-in",
-                                "Log in"
-                            ),
-                            link(
-                                "Get Started Mobile",
-                                {
-                                    color: "#ffffff",
-                                    textDecoration: "none",
-                                    fontWeight: "600",
-                                    background: TOKENS.accent,
-                                    transition: TOKENS.transition,
-                                    boxShadow: "0 4px 14px rgba(99, 102, 241, 0.35)",
-                                },
-                                "text-sm px-5 py-4 rounded-lg text-center",
-                                "/sign-up",
-                                "Get Started"
-                            ),
-                        ]
-                    ),
-
-                    // Action Buttons (Desktop)
-                    container(
-                        "Nav Actions",
-                        {},
-                        "hidden md:flex items-center gap-3",
-                        [
-                            link(
-                                "Login",
-                                {
-                                    color: TOKENS.accent,
-                                    textDecoration: "none",
-                                    fontWeight: "600",
-                                    transition: TOKENS.transition,
-                                    background: "rgba(99, 102, 241, 0.1)",
-                                    border: "1px solid rgba(99, 102, 241, 0.3)",
-                                },
-                                "text-sm px-5 py-2.5 rounded-full whitespace-nowrap",
-                                "/sign-in",
-                                "Log in"
-                            ),
-                            link(
-                                "Get Started",
-                                {
-                                    background: TOKENS.accent,
-                                    color: "#ffffff",
-                                    textDecoration: "none",
-                                    fontWeight: "600",
-                                    transition: TOKENS.transition,
-                                    boxShadow: "0 4px 12px -2px rgba(99, 102, 241, 0.5)",
-                                    border: "1px solid rgba(255,255,255,0.2)",
-                                },
-                                "text-sm px-7 py-3 rounded-full whitespace-nowrap",
-                                "/sign-up",
-                                "Get Started"
+                            container(
+                                "Mobile CTA Row",
+                                {},
+                                "grid grid-cols-2 gap-2 w-full mt-1",
+                                [
+                                    link(
+                                        "Login Mobile",
+                                        {
+                                            color: TOKENS.accent,
+                                            textDecoration: "none",
+                                            fontWeight: "600",
+                                            background: TOKENS.accentLight,
+                                            border: "1px solid rgba(79, 70, 229, 0.22)",
+                                        },
+                                        "text-sm px-4 py-3 rounded-xl text-center",
+                                        "/sign-in",
+                                        "Log in"
+                                    ),
+                                    link(
+                                        "Get Started Mobile",
+                                        {
+                                            color: "#ffffff",
+                                            textDecoration: "none",
+                                            fontWeight: "600",
+                                            background: TOKENS.accent,
+                                            boxShadow: TOKENS.shadowCard,
+                                        },
+                                        "text-sm px-4 py-3 rounded-xl text-center",
+                                        "/sign-up",
+                                        "Get Started"
+                                    ),
+                                ]
                             ),
                         ]
                     ),

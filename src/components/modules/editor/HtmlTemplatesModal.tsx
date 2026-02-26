@@ -31,7 +31,7 @@ export type TemplateMeta = {
     previewHtml: string;
 };
 
-const TEMPLATES: TemplateMeta[] = [
+export const TEMPLATES: TemplateMeta[] = [
     {
         id: "template__hero_gradient",
         name: "Hero – Gradient",
@@ -143,6 +143,7 @@ const TEMPLATES: TemplateMeta[] = [
 ];
 
 const CATEGORIES: TemplateCategory[] = ["All", "Hero", "Features", "Pricing", "Testimonials", "CTA", "Team", "FAQ", "Stats", "E-commerce", "Layout"];
+export const TEMPLATE_GALLERY_COUNT = TEMPLATES.length;
 
 const CATEGORY_ICONS: Record<TemplateCategory, React.ReactNode> = {
     All: <Sparkles className="w-3.5 h-3.5" />,
@@ -192,7 +193,10 @@ const HtmlTemplatesModal: React.FC<HtmlTemplatesModalProps> = ({ onClose }) => {
         setInserting(template.id);
 
         const bodyElement = editor.elements[0];
-        if (!bodyElement) return;
+        if (!bodyElement) {
+            setInserting(null);
+            return;
+        }
 
         dispatch({
             type: "ADD_ELEMENT",
@@ -214,7 +218,7 @@ const HtmlTemplatesModal: React.FC<HtmlTemplatesModalProps> = ({ onClose }) => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 z-[9999] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+                className="fixed inset-0 z-[9999] bg-black/70 backdrop-blur-sm flex items-center justify-center p-3 md:p-6"
                 onClick={onClose}
             >
                 <motion.div
@@ -222,36 +226,42 @@ const HtmlTemplatesModal: React.FC<HtmlTemplatesModalProps> = ({ onClose }) => {
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: 10 }}
                     transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                    className="bg-background border rounded-2xl shadow-2xl w-full max-w-5xl max-h-[88vh] flex flex-col overflow-hidden"
+                    className="bg-background border rounded-2xl shadow-2xl w-full max-w-6xl max-h-[92vh] flex flex-col overflow-hidden"
                     onClick={(e) => e.stopPropagation()}
                 >
-                    {/* Header */}
-                    <div className="flex items-center justify-between px-6 py-4 border-b bg-muted/30">
-                        <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center">
-                                <Sparkles className="w-4 h-4 text-violet-500" />
+                    <div className="flex items-center justify-between px-4 md:px-6 py-4 border-b bg-gradient-to-r from-violet-500/5 via-transparent to-transparent">
+                        <div className="flex items-start gap-3">
+                            <div className="w-9 h-9 rounded-xl bg-violet-500/10 flex items-center justify-center mt-0.5">
+                                <Sparkles className="w-4 h-4 text-violet-600" />
                             </div>
                             <div>
-                                <h2 className="text-base font-semibold">Template Gallery</h2>
-                                <p className="text-xs text-muted-foreground">
-                                    All templates insert as <span className="font-medium text-violet-500">fully editable elements</span> — select any part to change text, colors, padding, and more
+                                <h2 className="text-base md:text-lg font-semibold">Template Gallery</h2>
+                                <p className="text-xs md:text-sm text-muted-foreground">
+                                    Clean SaaS sections that insert as fully editable elements.
                                 </p>
+                                <div className="mt-2">
+                                    <Badge
+                                        variant="secondary"
+                                        className="text-[10px] md:text-xs font-medium"
+                                    >
+                                        {filtered.length} result{filtered.length === 1 ? "" : "s"}
+                                    </Badge>
+                                </div>
                             </div>
                         </div>
-                        <Button variant="ghost" size="icon" onClick={onClose}>
+                        <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close template gallery">
                             <X className="w-4 h-4" />
                         </Button>
                     </div>
 
-                    {/* Search + Filters */}
-                    <div className="px-6 py-3 border-b bg-muted/10 space-y-3">
+                    <div className="px-4 md:px-6 py-4 border-b bg-muted/10 space-y-3">
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                             <Input
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                placeholder="Search templates..."
-                                className="pl-9 h-9 text-sm"
+                                placeholder="Search templates by name or use case..."
+                                className="pl-9 h-10 text-sm rounded-xl bg-background"
                             />
                         </div>
                         <div className="flex gap-2 flex-wrap">
@@ -260,10 +270,10 @@ const HtmlTemplatesModal: React.FC<HtmlTemplatesModalProps> = ({ onClose }) => {
                                     key={cat}
                                     onClick={() => setCategory(cat)}
                                     className={cn(
-                                        "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all",
+                                        "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all border",
                                         category === cat
-                                            ? "bg-violet-500 text-white shadow-sm"
-                                            : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+                                            ? "bg-violet-600 text-white border-violet-600 shadow-sm"
+                                            : "bg-background text-muted-foreground border-border hover:bg-muted/70 hover:text-foreground"
                                     )}
                                 >
                                     {CATEGORY_ICONS[cat]}
@@ -273,52 +283,84 @@ const HtmlTemplatesModal: React.FC<HtmlTemplatesModalProps> = ({ onClose }) => {
                         </div>
                     </div>
 
-                    {/* Grid + Preview */}
                     <div className="flex flex-1 overflow-hidden">
-                        <div className="flex-1 overflow-y-auto p-5">
+                        <div className="flex-1 overflow-y-auto p-4 md:p-6">
+                            {preview && (
+                                <div className="lg:hidden mb-4 border rounded-xl overflow-hidden bg-muted/10">
+                                    <div className="flex items-center justify-between px-3 py-2 border-b bg-background">
+                                        <div>
+                                            <p className="text-sm font-semibold">{preview.name}</p>
+                                            <p className="text-xs text-muted-foreground">Preview</p>
+                                        </div>
+                                        <Button
+                                            size="sm"
+                                            className="gap-1.5 text-xs"
+                                            onClick={() => handleInsert(preview)}
+                                            disabled={inserting === preview.id}
+                                        >
+                                            <Plus className="w-3.5 h-3.5" />
+                                            {inserting === preview.id ? "Inserted!" : "Insert"}
+                                        </Button>
+                                    </div>
+                                    <div className="h-[240px] bg-white">
+                                        <iframe
+                                            key={`${preview.id}-mobile`}
+                                            srcDoc={`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>*{box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}</style></head><body>${preview.previewHtml}</body></html>`}
+                                            className="w-full h-full border-0"
+                                            sandbox="allow-scripts"
+                                            title={`Preview of ${preview.name}`}
+                                        />
+                                    </div>
+                                </div>
+                            )}
                             {filtered.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center h-48 text-muted-foreground">
+                                <div className="flex flex-col items-center justify-center h-56 text-muted-foreground border rounded-2xl bg-muted/10">
                                     <Search className="w-8 h-8 mb-3 opacity-40" />
-                                    <p className="text-sm">No templates match "{search}"</p>
+                                    <p className="text-sm font-medium">No matching templates</p>
+                                    <p className="text-xs mt-1">Try a different keyword or category.</p>
                                 </div>
                             ) : (
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                                     {filtered.map((template) => (
                                         <motion.div
                                             key={template.id}
                                             initial={{ opacity: 0, y: 8 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             className={cn(
-                                                "group relative border rounded-xl overflow-hidden cursor-pointer transition-all hover:border-violet-400 hover:shadow-lg hover:shadow-violet-500/10",
+                                                "group relative border rounded-2xl overflow-hidden cursor-pointer transition-all bg-background hover:border-violet-300 hover:shadow-lg hover:shadow-violet-500/10",
                                                 preview?.id === template.id && "border-violet-500 ring-2 ring-violet-500/30"
                                             )}
                                             onClick={() => setPreview(preview?.id === template.id ? null : template)}
                                         >
-                                            {/* Thumbnail */}
                                             <div className={cn("h-28 flex flex-col items-center justify-center gap-2 border-b bg-gradient-to-br", template.gradient)}>
                                                 <span className="text-3xl drop-shadow-sm">{template.thumbnail}</span>
-                                                <Badge variant="secondary" className="text-[10px] bg-white/20 text-white border-0">
+                                                <Badge variant="secondary" className="text-[10px] bg-white/25 text-white border-0">
                                                     {template.category}
                                                 </Badge>
                                             </div>
-                                            <div className="p-3 bg-background">
-                                                <p className="text-sm font-semibold leading-none mb-1">{template.name}</p>
-                                                <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-2">{template.description}</p>
+                                            <div className="p-4 bg-background">
+                                                <p className="text-sm font-semibold leading-none mb-1.5">{template.name}</p>
+                                                <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">{template.description}</p>
                                             </div>
-                                            {/* Hover actions */}
-                                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                            <div className="px-4 pb-4 flex gap-2">
                                                 <Button
                                                     size="sm"
-                                                    variant="secondary"
-                                                    className="h-8 text-xs gap-1"
-                                                    onClick={(e) => { e.stopPropagation(); setPreview(template); }}
+                                                    variant="outline"
+                                                    className="h-8 text-xs gap-1 flex-1"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setPreview(template);
+                                                    }}
                                                 >
                                                     <Eye className="w-3.5 h-3.5" /> Preview
                                                 </Button>
                                                 <Button
                                                     size="sm"
-                                                    className="h-8 text-xs gap-1 bg-violet-500 hover:bg-violet-600"
-                                                    onClick={(e) => { e.stopPropagation(); handleInsert(template); }}
+                                                    className="h-8 text-xs gap-1 flex-1 bg-violet-600 hover:bg-violet-700"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleInsert(template);
+                                                    }}
                                                     disabled={inserting === template.id}
                                                 >
                                                     <Plus className="w-3.5 h-3.5" />
@@ -331,24 +373,23 @@ const HtmlTemplatesModal: React.FC<HtmlTemplatesModalProps> = ({ onClose }) => {
                             )}
                         </div>
 
-                        {/* Preview Panel */}
                         <AnimatePresence>
                             {preview && (
                                 <motion.div
                                     initial={{ width: 0, opacity: 0 }}
-                                    animate={{ width: 380, opacity: 1 }}
+                                    animate={{ width: 400, opacity: 1 }}
                                     exit={{ width: 0, opacity: 0 }}
                                     transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                                    className="border-l bg-background overflow-hidden flex flex-col flex-shrink-0"
+                                    className="hidden lg:flex border-l bg-background overflow-hidden flex-col flex-shrink-0"
                                 >
-                                    <div className="flex items-center justify-between px-4 py-3 border-b">
+                                    <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/10">
                                         <div>
                                             <p className="text-sm font-semibold">{preview.name}</p>
                                             <p className="text-xs text-muted-foreground">Editable after insertion</p>
                                         </div>
                                         <Button
                                             size="sm"
-                                            className="gap-1.5 bg-violet-500 hover:bg-violet-600 text-white text-xs"
+                                            className="gap-1.5 bg-violet-600 hover:bg-violet-700 text-white text-xs"
                                             onClick={() => handleInsert(preview)}
                                             disabled={inserting === preview.id}
                                         >
@@ -356,7 +397,6 @@ const HtmlTemplatesModal: React.FC<HtmlTemplatesModalProps> = ({ onClose }) => {
                                             {inserting === preview.id ? "Inserted!" : "Insert Template"}
                                         </Button>
                                     </div>
-                                    {/* Live HTML preview (for visual reference only) */}
                                     <div className="flex-1 overflow-hidden bg-white">
                                         <iframe
                                             key={preview.id}
@@ -367,9 +407,9 @@ const HtmlTemplatesModal: React.FC<HtmlTemplatesModalProps> = ({ onClose }) => {
                                         />
                                     </div>
                                     <div className="p-3 border-t bg-muted/10">
-                                        <p className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+                                        <p className="text-[11px] text-muted-foreground flex items-center gap-1.5 leading-relaxed">
                                             <Code className="w-3 h-3" />
-                                            Inserts as editable component — click any element to style it
+                                            Inserts as editable components. Click any element to style it.
                                         </p>
                                     </div>
                                 </motion.div>

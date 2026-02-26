@@ -15,7 +15,9 @@ import {
     ECOMMERCE_PLACEHOLDERS,
 } from "@/lib/editor/element-placeholders";
 
-import HtmlTemplatesModal from "@/components/modules/editor/HtmlTemplatesModal";
+import HtmlTemplatesModal, {
+    TEMPLATE_GALLERY_COUNT,
+} from "@/components/modules/editor/HtmlTemplatesModal";
 
 interface ComponentsTabProps { }
 
@@ -39,12 +41,14 @@ const ComponentsTab: React.FC<ComponentsTabProps> = ({ }) => {
             {/* HTML Templates Button */}
             <Button
                 variant="outline"
-                className="w-full mb-4 gap-2 border-violet-200 dark:border-violet-800 text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-950/30 hover:border-violet-400"
+                className="w-full mb-4 gap-2 border-violet-200 dark:border-violet-800 text-violet-700 dark:text-violet-300 hover:bg-violet-50 dark:hover:bg-violet-950/30 hover:border-violet-400 rounded-xl h-10"
                 onClick={() => setShowHtmlTemplates(true)}
             >
                 <Code className="w-4 h-4" />
-                Browse HTML Templates
-                <span className="ml-auto bg-violet-100 dark:bg-violet-900/50 text-violet-600 dark:text-violet-300 text-[10px] font-bold px-1.5 py-0.5 rounded-full">9</span>
+                Browse Template Gallery
+                <span className="ml-auto bg-violet-100 dark:bg-violet-900/50 text-violet-700 dark:text-violet-300 text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                    {TEMPLATE_GALLERY_COUNT}
+                </span>
             </Button>
 
             <Accordion

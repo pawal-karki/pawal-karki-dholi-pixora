@@ -54,6 +54,26 @@ const PROVIDERS = {
             { value: "gpt-3.5-turbo", label: "GPT-3.5 Turbo", tag: "Cheapest" },
         ],
     },
+    anthropic: {
+        name: "Anthropic",
+        placeholder: "sk-ant-...",
+        url: "https://console.anthropic.com/settings/keys",
+        models: [
+            { value: "claude-3-5-sonnet-latest", label: "Claude 3.5 Sonnet", tag: "Recommended" },
+            { value: "claude-3-opus-latest", label: "Claude 3 Opus", tag: "Most Capable" },
+            { value: "claude-3-5-haiku-latest", label: "Claude 3.5 Haiku", tag: "Fastest" },
+        ],
+    },
+    groq: {
+        name: "Groq",
+        placeholder: "gsk_...",
+        url: "https://console.groq.com/keys",
+        models: [
+            { value: "llama-3.3-70b-versatile", label: "Llama 3.3 70B", tag: "Fastest" },
+            { value: "mixtral-8x7b-32768", label: "Mixtral 8x7B", tag: "Free" },
+            { value: "gemma2-9b-it", label: "Gemma 2 9B", tag: "Free" },
+        ],
+    },
 };
 
 type ProviderKey = keyof typeof PROVIDERS;
@@ -121,6 +141,13 @@ export function AIKeySetup({ agencyId, onSuccess, compact = false }: Props) {
                             </span>
                         </SelectItem>
                         <SelectItem value="openai">OpenAI</SelectItem>
+                        <SelectItem value="anthropic">Anthropic</SelectItem>
+                        <SelectItem value="groq">
+                            <span className="flex items-center gap-2">
+                                Groq
+                                <Badge variant="secondary" className="text-[9px] h-3.5 px-1 text-green-600">Free</Badge>
+                            </span>
+                        </SelectItem>
                     </SelectContent>
                 </Select>
 
@@ -203,6 +230,13 @@ export function AIKeySetup({ agencyId, onSuccess, compact = false }: Props) {
                                 </span>
                             </SelectItem>
                             <SelectItem value="openai">OpenAI</SelectItem>
+                            <SelectItem value="anthropic">Anthropic</SelectItem>
+                            <SelectItem value="groq">
+                                <span className="flex items-center gap-2">
+                                    Groq
+                                    <Badge variant="secondary" className="text-[9px] h-3.5 px-1 text-green-600">Free tier</Badge>
+                                </span>
+                            </SelectItem>
                         </SelectContent>
                     </Select>
                 </div>

@@ -45,25 +45,49 @@ import { upsertAISettings } from "@/queries/chat";
 const PROVIDERS = {
   gemini: {
     name: "Google Gemini",
-    description: "Free tier available",
+    description: "Natively agentic reasoning",
     keyUrl: "https://aistudio.google.com/apikey",
     keyPlaceholder: "AIzaSy...",
     models: [
-      { value: "gemini-2.0-flash", label: "Gemini 2.0 Flash", badge: "Free" },
-      { value: "gemini-1.5-flash", label: "Gemini 1.5 Flash", badge: "Free" },
-      { value: "gemini-1.5-pro", label: "Gemini 1.5 Pro", badge: "Free tier" },
+      { value: "gemini-3.1-pro-preview", label: "Gemini 3.1 Pro", badge: "Newest Flagship" },
+      { value: "gemini-3-flash", label: "Gemini 3 Flash", badge: "Fastest" },
+      { value: "gemini-3-deep-think", label: "Gemini 3 Deep Think", badge: "Reasoning" },
+      { value: "gemini-2.5-flash-lite", label: "Gemini 2.5 Flash-Lite", badge: "Cost Efficient" },
     ],
   },
   openai: {
     name: "OpenAI",
-    description: "Most capable models",
+    description: "GPT-5 Era performance",
     keyUrl: "https://platform.openai.com/api-keys",
-    keyPlaceholder: "sk-...",
+    keyPlaceholder: "sk-proj-...",
     models: [
-      { value: "gpt-4o", label: "GPT-4o (Recommended)", badge: undefined },
-      { value: "gpt-4o-mini", label: "GPT-4o Mini (Faster)", badge: undefined },
-      { value: "gpt-4-turbo", label: "GPT-4 Turbo", badge: undefined },
-      { value: "gpt-3.5-turbo", label: "GPT-3.5 Turbo (Cheapest)", badge: undefined },
+      { value: "gpt-5.2-chat-latest", label: "GPT-5.2 Instant", badge: "Flagship" },
+      { value: "gpt-5.3-codex", label: "GPT-5.3 Codex", badge: "Agentic Coding" },
+      { value: "o3-deep-research", label: "o3 Deep Research", badge: "Scientific" },
+      { value: "gpt-4o", label: "GPT-4o", badge: "Legacy" },
+    ],
+  },
+  anthropic: {
+    name: "Anthropic",
+    description: "Million-token context windows",
+    keyUrl: "https://console.anthropic.com/settings/keys",
+    keyPlaceholder: "sk-ant-...",
+    models: [
+      { value: "claude-4-6-sonnet-latest", label: "Claude 4.6 Sonnet", badge: "Recommended" },
+      { value: "claude-4-6-opus-latest", label: "Claude 4.6 Opus", badge: "Powerhouse" },
+      { value: "claude-4-5-haiku-latest", label: "Claude 4.5 Haiku", badge: "Instant" },
+    ],
+  },
+  groq: {
+    name: "Groq",
+    description: "Ultra-fast OSS inference",
+    keyUrl: "https://console.groq.com/keys",
+    keyPlaceholder: "gsk_...",
+    models: [
+      { value: "openai/gpt-oss-120b", label: "GPT-OSS 120B", badge: "Top Speed" },
+      { value: "llama-3.3-70b-versatile", label: "Llama 3.3 70B", badge: "Production" },
+      { value: "deepseek-v3.2", label: "DeepSeek V3.2", badge: "Efficient" },
+      { value: "qwen3-32b", label: "Qwen 3 32B", badge: "Fast" },
     ],
   },
 } as const;
@@ -92,7 +116,7 @@ export function AISettingsForm({ agencyId, currentSettings }: Props) {
   );
   const [apiKey, setApiKey] = useState("");
   const [model, setModel] = useState(
-    currentSettings?.model || "gemini-2.0-flash"
+    currentSettings?.model || "gemini-3.1-pro-preview"
   );
   const [temperature, setTemperature] = useState(
     currentSettings?.temperature ?? 0.7
@@ -152,9 +176,15 @@ export function AISettingsForm({ agencyId, currentSettings }: Props) {
               <Bot className="h-6 w-6 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">AI Chat Configuration</h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl font-bold">AI Chat Configuration</h1>
+                <Badge variant="outline" className="animate-pulse bg-primary/10 text-primary border-primary/20">
+                  <Sparkles className="mr-1 h-3 w-3" />
+                  2026 Fleet
+                </Badge>
+              </div>
               <p className="text-sm text-muted-foreground">
-                Connect your AI provider to enable AI-powered chat
+                Connect your AI provider to enable next-gen agentic capabilities
               </p>
             </div>
           </div>
@@ -169,12 +199,12 @@ export function AISettingsForm({ agencyId, currentSettings }: Props) {
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2">
               <Bot className="h-5 w-5 text-primary" />
-              <CardTitle className="text-sm">AI Assistant</CardTitle>
+              <CardTitle className="text-sm">Agentic Reasoning</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
             <p className="text-xs text-muted-foreground">
-              Get instant answers to questions about your business operations
+              Gemini 3.1 and GPT-5.3 support native tool-calling for autonomous business tasks.
             </p>
           </CardContent>
         </Card>
@@ -183,12 +213,12 @@ export function AISettingsForm({ agencyId, currentSettings }: Props) {
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2">
               <Zap className="h-5 w-5 text-primary" />
-              <CardTitle className="text-sm">Multiple Providers</CardTitle>
+              <CardTitle className="text-sm">Flash Inference</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
             <p className="text-xs text-muted-foreground">
-              Choose between Google Gemini (free) or OpenAI models
+              Groq OSS models and Gemini Flash offer sub-100ms response times for real-time chat.
             </p>
           </CardContent>
         </Card>
@@ -197,12 +227,12 @@ export function AISettingsForm({ agencyId, currentSettings }: Props) {
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2">
               <Key className="h-5 w-5 text-primary" />
-              <CardTitle className="text-sm">Your Own Key</CardTitle>
+              <CardTitle className="text-sm">Long Context</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
             <p className="text-xs text-muted-foreground">
-              Use your own OpenAI API key — you control usage and costs
+              Claude 4.6 and Gemini 3 support up to 2M tokens—perfect for analyzing huge datasets.
             </p>
           </CardContent>
         </Card>
@@ -218,7 +248,7 @@ export function AISettingsForm({ agencyId, currentSettings }: Props) {
                 Settings
               </CardTitle>
               <CardDescription className="mt-1">
-                Configure your AI integration
+                Configure your AI integration with the latest 2026 models
               </CardDescription>
             </div>
             <div className="flex items-center gap-2">
@@ -246,16 +276,27 @@ export function AISettingsForm({ agencyId, currentSettings }: Props) {
                 <SelectItem value="gemini">
                   <span className="flex items-center gap-2">
                     Google Gemini
-                    <Badge variant="secondary" className="text-[10px] h-4 px-1 text-green-600">Free tier</Badge>
+                    <Badge variant="secondary" className="text-[10px] h-4 px-1 text-green-600">v3.1 Ready</Badge>
                   </span>
                 </SelectItem>
-                <SelectItem value="openai">OpenAI</SelectItem>
+                <SelectItem value="openai">OpenAI (GPT-5)</SelectItem>
+                <SelectItem value="anthropic">Anthropic (Claude 4.6)</SelectItem>
+                <SelectItem value="groq">
+                  <span className="flex items-center gap-2">
+                    Groq
+                    <Badge variant="secondary" className="text-[10px] h-4 px-1 text-green-600">LPU Speed</Badge>
+                  </span>
+                </SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
               {provider === "gemini"
-                ? "Gemini offers a generous free tier — great for getting started"
-                : "OpenAI provides the most capable models for complex tasks"}
+                ? "Gemini 3.1 Pro is currently the top-performing model for ARC-AGI reasoning tasks."
+                : provider === "anthropic"
+                  ? "Claude 4.6 leads in professional preference (GDPval-AA) and large-scale context."
+                  : provider === "groq"
+                    ? "Groq features OpenAI's GPT-OSS 120B at nearly 500 tokens per second."
+                    : "OpenAI GPT-5.2 is the industry standard for general intelligence and UI creation."}
             </p>
           </div>
 
@@ -313,7 +354,7 @@ export function AISettingsForm({ agencyId, currentSettings }: Props) {
                       <span className="flex items-center gap-2">
                         {m.label}
                         {m.badge && (
-                          <Badge variant="secondary" className="text-[10px] h-4 px-1 text-green-600">
+                          <Badge variant="secondary" className="text-[10px] h-4 px-1 text-blue-600">
                             {m.badge}
                           </Badge>
                         )}
@@ -357,15 +398,15 @@ export function AISettingsForm({ agencyId, currentSettings }: Props) {
             </div>
             <Slider
               min={256}
-              max={4096}
+              max={16384} // Increased for 2026 models
               step={256}
               value={[maxTokens]}
               onValueChange={([v]) => setMaxTokens(v)}
             />
             <div className="flex justify-between text-[10px] text-muted-foreground">
               <span>Short</span>
-              <span>Medium</span>
-              <span>Long</span>
+              <span>Balanced</span>
+              <span>Extended (Agentic)</span>
             </div>
           </div>
 
@@ -375,13 +416,13 @@ export function AISettingsForm({ agencyId, currentSettings }: Props) {
           <div className="space-y-2">
             <Label>System Prompt (Optional)</Label>
             <Textarea
-              placeholder="E.g., You are a helpful assistant for a digital marketing agency. Answer questions about funnels, pipelines, and client management..."
+              placeholder="E.g., You are an agentic assistant. Use tools for research and execution when necessary..."
               value={systemPrompt}
               onChange={(e) => setSystemPrompt(e.target.value)}
               rows={4}
             />
             <p className="text-xs text-muted-foreground">
-              Customize how the AI behaves and responds to your team
+              Modern models respond best to "Chain of Thought" or "Persona-based" prompts.
             </p>
           </div>
 
@@ -398,7 +439,7 @@ export function AISettingsForm({ agencyId, currentSettings }: Props) {
             ) : (
               <Save className="mr-2 h-4 w-4" />
             )}
-            {isLoading ? "Saving..." : saved ? "Saved!" : "Save Settings"}
+            {isLoading ? "Saving..." : saved ? "Settings Updated!" : "Save Configuration"}
           </Button>
         </CardContent>
       </Card>

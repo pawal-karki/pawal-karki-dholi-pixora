@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import Anthropic from "@anthropic-ai/sdk";
+import Groq from "groq-sdk";
 import { db } from "@/lib/db";
 import { pusherServer } from "@/lib/pusher-server";
 import { getCurrentUserEmail } from "@/queries/auth";
@@ -55,6 +57,69 @@ async function callOpenAI(
 
   const completion = await openai.chat.completions.create({
     model: model || "gpt-4o",
+    messages,
+    temperature,
+    max_tokens: maxTokens,
+  });
+
+  return completion.choices[0]?.message?.content || "Sorry, I couldn't generate a response.";
+}
+
+// ─── Anthropic call ──────────────────────────────────────────────────────────
+async function callAnthropic(
+  apiKey: string,
+  model: string,
+  systemPrompt: string,
+  history: { role: string; content: string }[],
+  temperature: number,
+  maxTokens: number
+) {
+  const anthropic = new Anthropic({ apiKey });
+  const messages: { role: "user" | "assistant"; content: string }[] = [];
+
+  for (const msg of history) {
+    messages.push({
+      role: msg.role === "assistant" ? "assistant" : "user",
+      content: msg.content,
+    });
+  }
+
+  const msg = await anthropic.messages.create({
+    model: model || "claude-3-5-sonnet-latest",
+    system: systemPrompt,
+    messages,
+    temperature,
+    max_tokens: maxTokens,
+  });
+
+  if (msg.content[0].type === "text") {
+    return msg.content[0].text;
+  }
+  return "Sorry, I couldn't generate a text response.";
+}
+
+// ─── Groq call ──────────────────────────────────────────────────────────────
+async function callGroq(
+  apiKey: string,
+  model: string,
+  systemPrompt: string,
+  history: { role: string; content: string }[],
+  temperature: number,
+  maxTokens: number
+) {
+  const groq = new Groq({ apiKey });
+  const messages: { role: "system" | "user" | "assistant"; content: string }[] =
+    [{ role: "system", content: systemPrompt }];
+
+  for (const msg of history) {
+    messages.push({
+      role: msg.role === "assistant" ? "assistant" : "user",
+      content: msg.content,
+    });
+  }
+
+  const completion = await groq.chat.completions.create({
+    model: model || "llama-3.3-70b-versatile",
     messages,
     temperature,
     max_tokens: maxTokens,
@@ -162,6 +227,24 @@ export async function POST(req: NextRequest) {
 
     if (provider === "gemini") {
       aiContent = await callGemini(
+        aiSettings.apiKey,
+        aiSettings.model,
+        systemPrompt,
+        chatHistory,
+        aiSettings.temperature || 0.7,
+        aiSettings.maxTokens || 2000
+      );
+    } else if (provider === "anthropic") {
+      aiContent = await callAnthropic(
+        aiSettings.apiKey,
+        aiSettings.model,
+        systemPrompt,
+        chatHistory,
+        aiSettings.temperature || 0.7,
+        aiSettings.maxTokens || 2000
+      );
+    } else if (provider === "groq") {
+      aiContent = await callGroq(
         aiSettings.apiKey,
         aiSettings.model,
         systemPrompt,

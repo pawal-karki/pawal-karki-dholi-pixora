@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 
 import SubAccountDetails from "@/components/forms/subaccount-details";
 import UserDetailsForm from "@/components/forms/user-details";
+import { AISettingsForm } from "@/components/chat/ai-settings-form";
 
 interface SubAccountSettingsPageProps {
   params: Promise<{
@@ -33,6 +34,19 @@ const SubAccountSettingsPage: React.FC<SubAccountSettingsPageProps> = async ({
 
   if (!agencyDetails) redirect("/subaccount/unauthorized");
 
+  // Get existing AI settings
+  const aiSettings = await db.aISettings.findUnique({
+    where: { agencyId: subAccountDetails.agencyId },
+    select: {
+      aiProvider: true,
+      model: true,
+      temperature: true,
+      maxTokens: true,
+      enabled: true,
+      systemPrompt: true,
+    },
+  });
+
   return (
     <div className="flex flex-col gap-4 max-w-4xl w-full mx-auto">
       <SubAccountDetails
@@ -45,6 +59,10 @@ const SubAccountSettingsPage: React.FC<SubAccountSettingsPageProps> = async ({
         type="subaccount"
         id={subaccountId}
         userData={user}
+      />
+      <AISettingsForm
+        agencyId={subAccountDetails.agencyId}
+        currentSettings={aiSettings}
       />
     </div>
   );

@@ -10,6 +10,10 @@ const SubAccountMainPage = async () => {
 
   if (!user) redirect("/agency/sign-in");
 
+  if (user.role === "SUBACCOUNT_GUEST") {
+    redirect("/subaccount/unauthorized");
+  }
+
   // Find the first subaccount the user has access to
   const getFirstSubAccountWithAccess = user.Permissions?.find(
     (permission) => permission.access === true

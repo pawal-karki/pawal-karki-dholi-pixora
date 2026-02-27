@@ -2,7 +2,9 @@
 node_modules/
 
 # Bun
-# Bun
+~/.bun/
+.bun/
+bun.lockb
 
 # Next.js
 .next/

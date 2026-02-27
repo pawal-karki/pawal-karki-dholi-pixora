@@ -104,6 +104,15 @@ export const ourFileRouter = {
       console.log("Media uploaded by:", metadata.userId);
       return { uploadedBy: metadata.userId };
     }),
+
+  chatMedia: f({
+    image: { maxFileSize: "8MB", maxFileCount: 1 },
+    pdf: { maxFileSize: "8MB", maxFileCount: 1 },
+  })
+    .middleware(authenticateUser)
+    .onUploadComplete(async ({ metadata, file }) => {
+      return { uploadedBy: metadata.userId, url: file.url };
+    }),
 } satisfies UploadthingFileRouter;
 
 export type OurFileRouter = typeof ourFileRouter;

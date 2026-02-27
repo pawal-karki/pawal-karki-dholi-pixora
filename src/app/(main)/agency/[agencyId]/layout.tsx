@@ -7,6 +7,7 @@ import { getAuthDetails, getNotifications } from "@/lib/queries";
 import Sidebar from "@/components/navigation/sidebar";
 import BlurPage from "@/components/global/blur-page";
 import InfoBar from "@/components/global/info-bar";
+import { FloatingChat } from "@/components/chat/floating-chat";
 
 interface AgencyIdLayoutProps extends React.PropsWithChildren {
   params: Promise<{
@@ -52,6 +53,7 @@ const AgencyIdLayout: React.FC<AgencyIdLayoutProps> = async ({
           <BlurPage>{children}</BlurPage>
         </div>
       </div>
+      <FloatingChat agencyId={agencyId} />
     </div>
   );
 };

@@ -62,8 +62,61 @@ const Sidebar: React.FC<SidebarProps> = async ({ id, type }) => {
         } as AgencySidebarOption
       ];
     }
+
+    // Add Chat option if not present
+    const hasChat = sidebarOptions.some(opt => opt.name === "Chat");
+    if (!hasChat) {
+      sidebarOptions = [
+        ...sidebarOptions,
+        {
+          id: "virtual-chat",
+          name: "Chat",
+          link: `/agency/${user.agency.id}/chat`,
+          icon: "messages",
+          agencyId: user.agency.id,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        } as AgencySidebarOption
+      ];
+    }
+
+    // Add AI Settings option if not present
+    const hasAISettings = sidebarOptions.some(opt => opt.name === "AI Settings");
+    if (!hasAISettings) {
+      sidebarOptions = [
+        ...sidebarOptions,
+        {
+          id: "virtual-ai-settings",
+          name: "AI Settings",
+          link: `/agency/${user.agency.id}/ai-settings`,
+          icon: "chip",
+          agencyId: user.agency.id,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        } as AgencySidebarOption
+      ];
+    }
   } else {
     sidebarOptions = subAccount?.sidebarOptions || [];
+
+    // Add Chat option for subaccount if not present
+    if (subAccount) {
+      const hasChat = sidebarOptions.some(opt => opt.name === "Chat");
+      if (!hasChat) {
+        sidebarOptions = [
+          ...sidebarOptions,
+          {
+            id: "virtual-subaccount-chat",
+            name: "Chat",
+            link: `/subaccount/${subAccount.id}/chat`,
+            icon: "messages",
+            subAccountId: subAccount.id,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          } as SubAccountSidebarOption
+        ];
+      }
+    }
   }
 
   // Optimize subaccounts filtering - create a Set for O(1) lookup

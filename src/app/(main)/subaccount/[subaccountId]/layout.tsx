@@ -7,6 +7,7 @@ import { getAuthDetails, getNotifications, getSubAccountDetails } from "@/lib/qu
 import Sidebar from "@/components/navigation/sidebar";
 import BlurPage from "@/components/global/blur-page";
 import InfoBar from "@/components/global/info-bar";
+import { FloatingChat } from "@/components/chat/floating-chat";
 
 interface SubAccountIdLayoutProps extends React.PropsWithChildren {
   params: Promise<{
@@ -61,6 +62,7 @@ const SubAccountIdLayout: React.FC<SubAccountIdLayoutProps> = async ({
           <BlurPage>{children}</BlurPage>
         </div>
       </div>
+      <FloatingChat agencyId={subAccountDetails.agencyId} subAccountId={subaccountId} />
     </div>
   );
 };

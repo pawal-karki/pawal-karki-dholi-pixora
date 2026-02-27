@@ -144,6 +144,8 @@ export const upsertAgency = async (agency: UpsertAgencyInput) => {
                         { name: "Settings", icon: "settings", link: `/agency/${agency.id}/settings` },
                         { name: "Sub Accounts", icon: "person", link: `/agency/${agency.id}/all-subaccounts` },
                         { name: "Team", icon: "shield", link: `/agency/${agency.id}/team` },
+                        { name: "Chat", icon: "messages", link: `/agency/${agency.id}/chat` },
+                        { name: "AI Settings", icon: "chip", link: `/agency/${agency.id}/ai-settings` },
                     ],
                 },
             },

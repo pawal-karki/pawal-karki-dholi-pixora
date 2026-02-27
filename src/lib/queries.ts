@@ -21,6 +21,7 @@ export * from "@/queries/pipelines";
 export * from "@/queries/lanes";
 export * from "@/queries/tickets";
 export * from "@/queries/tags";
+export * from "@/queries/chat";
 
 // ─── Validators (not server actions — safe to re-export here) ─────────────────
 export * from "@/queries/validators";

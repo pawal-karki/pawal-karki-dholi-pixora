@@ -44,14 +44,13 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Update conversation's lastMessage
-    await db.chatConversation.update({
+    // Update conversation + trigger Pusher in background (don't block response)
+    db.chatConversation.update({
       where: { id: conversationId },
       data: { lastMessage: content, updatedAt: new Date() },
-    });
+    }).catch(() => { });
 
-    // Trigger real-time notification via Pusher
-    await pusherServer.trigger(
+    pusherServer.trigger(
       `chat-${conversationId}`,
       "new-message",
       {
@@ -62,7 +61,7 @@ export async function POST(req: NextRequest) {
         isAiMessage: false,
         createdAt: message.createdAt,
       }
-    );
+    ).catch(() => { });
 
     return NextResponse.json(message);
   } catch (error) {

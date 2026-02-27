@@ -211,15 +211,25 @@ export function ChatContainer({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content, conversationId: selectedId }),
       });
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.error || "Failed to send");
-      }
-      if (!isAI) {
-        const msg = await res.json();
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to send");
+      if (isAI) {
+        const addMsg = (m: any) => ({
+          id: m.id, content: m.content, senderUserId: m.senderUserId,
+          senderUser: m.senderUser || { id: "ai-assistant", name: "AI Assistant", email: "", avatarUrl: "" },
+          isAiMessage: m.isAiMessage, createdAt: m.createdAt,
+        });
         setMessages((prev) => {
-          if (prev.some((m) => m.id === msg.id)) return prev;
-          return [...prev, { id: msg.id, content: msg.content, senderUserId: msg.senderUserId, senderUser: msg.senderUser, isAiMessage: false, createdAt: msg.createdAt }];
+          const ids = new Set(prev.map((m) => m.id));
+          const newMsgs = [...prev];
+          if (data.userMessage && !ids.has(data.userMessage.id)) newMsgs.push(addMsg(data.userMessage));
+          if (data.aiMessage && !ids.has(data.aiMessage.id)) newMsgs.push(addMsg(data.aiMessage));
+          return newMsgs;
+        });
+      } else {
+        setMessages((prev) => {
+          if (prev.some((m) => m.id === data.id)) return prev;
+          return [...prev, { id: data.id, content: data.content, senderUserId: data.senderUserId, senderUser: data.senderUser, isAiMessage: false, createdAt: data.createdAt }];
         });
       }
     } catch (err: any) {

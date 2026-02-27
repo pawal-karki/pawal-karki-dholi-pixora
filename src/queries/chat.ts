@@ -61,6 +61,25 @@ export async function createConversation(data: {
   const user = await getChatUser();
   if (!user) throw new Error("Unauthorized");
 
+  // For DIRECT chats, check if a conversation already exists with this participant
+  if (data.type === "DIRECT" && data.participantUserId) {
+    const existing = await db.chatConversation.findFirst({
+      where: {
+        agencyId: data.agencyId,
+        type: "DIRECT",
+        OR: [
+          { userId: user.id, participantUserId: data.participantUserId },
+          { userId: data.participantUserId, participantUserId: user.id },
+        ],
+      },
+      include: {
+        user: { select: { id: true, name: true, email: true, avatarUrl: true } },
+        participantUser: { select: { id: true, name: true, email: true, avatarUrl: true } },
+      },
+    });
+    if (existing) return existing;
+  }
+
   return db.chatConversation.create({
     data: {
       title: data.title,

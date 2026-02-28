@@ -75,7 +75,7 @@ const PROVIDERS = {
             { value: "llama-3.3-70b-instruct", label: "Llama 3.3 70B", tag: "Reliable" },
             { value: "deepseek-v3", label: "DeepSeek V3", tag: "Chat/Reasoning" },
             { value: "codestral-2025", label: "Codestral 2025", tag: "Coding" },
-            { value: "grok-4", label: "Grok 4", tag: "Real-time" },
+            { value: "deepseek-r1-distill-llama-70b", label: "DeepSeek R1", tag: "Reasoning" },
         ],
     },
 };

@@ -169,282 +169,183 @@ export function AISettingsForm({ agencyId, currentSettings }: Props) {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Hero */}
-      <div className="relative overflow-hidden rounded-xl border bg-gradient-to-br from-primary/10 via-primary/5 to-background p-8">
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary">
-              <Bot className="h-6 w-6 text-primary-foreground" />
+    <div className="flex flex-col h-full space-y-4">
+      {/* Compact Header */}
+      <div className="flex items-center justify-between pb-4 border-b">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+            <Bot className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-bold">AI Chat Configuration</h1>
+              <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 h-5 text-[10px]">
+                <Sparkles className="mr-1 h-3 w-3" />
+                2026 Fleet
+              </Badge>
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-bold">AI Chat Configuration</h1>
-                <Badge variant="outline" className="animate-pulse bg-primary/10 text-primary border-primary/20">
-                  <Sparkles className="mr-1 h-3 w-3" />
-                  2026 Fleet
-                </Badge>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Connect your AI provider to enable next-gen agentic capabilities
-              </p>
-            </div>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Manage your AI provider integration and advanced model settings.
+            </p>
           </div>
         </div>
-        <div className="absolute -right-8 -top-8 h-40 w-40 rounded-full bg-primary/5 blur-3xl" />
-        <div className="absolute -bottom-4 -left-4 h-32 w-32 rounded-full bg-primary/5 blur-3xl" />
+
+        <div className="flex items-center gap-2 bg-secondary/50 px-3 py-1.5 rounded-md border">
+          <Label htmlFor="ai-enabled" className="text-sm font-medium cursor-pointer">
+            {enabled ? "Active Integration" : "Integration Paused"}
+          </Label>
+          <Switch
+            id="ai-enabled"
+            checked={enabled}
+            onCheckedChange={setEnabled}
+            className="ml-2"
+          />
+        </div>
       </div>
 
-      {/* Feature cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="border-primary/10">
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-2">
-              <Bot className="h-5 w-5 text-primary" />
-              <CardTitle className="text-sm">Agentic Reasoning</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-xs text-muted-foreground">
-              Gemini 3.1 and GPT-5.3 support native tool-calling for autonomous business tasks.
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-primary/10">
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-2">
-              <Zap className="h-5 w-5 text-primary" />
-              <CardTitle className="text-sm">Flash Inference</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-xs text-muted-foreground">
-              Groq OSS models and Gemini Flash offer sub-100ms response times for real-time chat.
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-primary/10">
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-2">
-              <Key className="h-5 w-5 text-primary" />
-              <CardTitle className="text-sm">Long Context</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-xs text-muted-foreground">
-              Claude 4.6 and Gemini 3 support up to 2M tokens—perfect for analyzing huge datasets.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Settings form */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Settings2 className="h-5 w-5" />
-                Settings
+      {/* Main Settings Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-2">
+        {/* Left Column: Core Connnection */}
+        <div className="lg:col-span-5 space-y-5">
+          <Card className="shadow-sm">
+            <CardHeader className="pb-3 border-b bg-muted/20">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Settings2 className="h-4 w-4 text-primary" />
+                Connection Details
               </CardTitle>
-              <CardDescription className="mt-1">
-                Configure your AI integration with the latest 2026 models
-              </CardDescription>
-            </div>
-            <div className="flex items-center gap-2">
-              <Label htmlFor="ai-enabled" className="text-sm">
-                {enabled ? "Enabled" : "Disabled"}
-              </Label>
-              <Switch
-                id="ai-enabled"
-                checked={enabled}
-                onCheckedChange={setEnabled}
-              />
-            </div>
-          </div>
-        </CardHeader>
+            </CardHeader>
+            <CardContent className="space-y-5 pt-4">
+              {/* Provider */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Platform Provider</Label>
+                <Select value={provider} onValueChange={handleProviderChange}>
+                  <SelectTrigger className="font-medium bg-background">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="gemini">Google Gemini</SelectItem>
+                    <SelectItem value="openai">OpenAI (GPT-5)</SelectItem>
+                    <SelectItem value="anthropic">Anthropic (Claude 4.6)</SelectItem>
+                    <SelectItem value="groq">Groq (LPU Speed)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-        <CardContent className="space-y-6">
-          {/* Provider */}
-          <div className="space-y-2">
-            <Label>AI Provider</Label>
-            <Select value={provider} onValueChange={handleProviderChange}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="gemini">
-                  <span className="flex items-center gap-2">
-                    Google Gemini
-                    <Badge variant="secondary" className="text-[10px] h-4 px-1 text-green-600">v3.1 Ready</Badge>
-                  </span>
-                </SelectItem>
-                <SelectItem value="openai">OpenAI (GPT-5)</SelectItem>
-                <SelectItem value="anthropic">Anthropic (Claude 4.6)</SelectItem>
-                <SelectItem value="groq">
-                  <span className="flex items-center gap-2">
-                    Groq
-                    <Badge variant="secondary" className="text-[10px] h-4 px-1 text-green-600">LPU Speed</Badge>
-                  </span>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">
-              {provider === "gemini"
-                ? "Gemini 3.1 Pro is currently the top-performing model for ARC-AGI reasoning tasks."
-                : provider === "anthropic"
-                  ? "Claude 4.6 leads in professional preference (GDPval-AA) and large-scale context."
-                  : provider === "groq"
-                    ? "Groq features OpenAI's GPT-OSS 120B at nearly 500 tokens per second."
-                    : "OpenAI GPT-5.2 is the industry standard for general intelligence and UI creation."}
-            </p>
-          </div>
+              {/* API Key */}
+              <div className="space-y-1.5 pt-1">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">API Access Key</Label>
+                  {currentSettings?.aiProvider === provider && (
+                    <Badge variant="outline" className="text-[10px] h-4 py-0 text-green-600 border-green-200 bg-green-50">
+                      <CheckCircle2 className="mr-1 h-2.5 w-2.5" /> Verified
+                    </Badge>
+                  )}
+                </div>
+                <Input
+                  type="password"
+                  placeholder={currentSettings?.aiProvider === provider ? "••••••••••••••••••••••" : currentProvider.keyPlaceholder}
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  className="font-mono text-sm bg-background"
+                />
+                <div className="flex items-center justify-between mt-1">
+                  <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                    <Key className="h-3 w-3" /> Securely encrypted
+                  </p>
+                  <a href={currentProvider.keyUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] text-primary hover:underline inline-flex items-center gap-0.5">
+                    Get key <ExternalLink className="h-2.5 w-2.5" />
+                  </a>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
-          <Separator />
+        {/* Right Column: Model Specs */}
+        <div className="lg:col-span-7 space-y-5">
+          <Card className="shadow-sm h-full">
+            <CardHeader className="pb-3 border-b bg-muted/20">
+              <CardTitle className="flex items-center justify-between text-base">
+                <div className="flex items-center gap-2">
+                  <Zap className="h-4 w-4 text-primary" />
+                  Model Parameters
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-4 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
 
-          {/* API Key */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label>{currentProvider.name} API Key</Label>
-              {currentSettings && currentSettings.aiProvider === provider && (
-                <Badge variant="outline" className="text-xs text-green-600 border-green-200">
-                  <CheckCircle2 className="mr-1 h-3 w-3" />
-                  Key configured
-                </Badge>
-              )}
-            </div>
-            <Input
-              type="password"
-              placeholder={
-                currentSettings && currentSettings.aiProvider === provider
-                  ? "••••••••••••••••••••••"
-                  : currentProvider.keyPlaceholder
-              }
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-            />
-            <p className="text-xs text-muted-foreground flex items-center gap-1">
-              <AlertCircle className="h-3 w-3" />
-              Get your key at{" "}
-              <a
-                href={currentProvider.keyUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary hover:underline inline-flex items-center gap-0.5"
-              >
-                {new URL(currentProvider.keyUrl).hostname} <ExternalLink className="h-3 w-3" />
-              </a>
-            </p>
-          </div>
+              {/* Model Select */}
+              <div className="space-y-1.5 md:col-span-2">
+                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Select Model Engine</Label>
+                <Select value={model} onValueChange={setModel}>
+                  <SelectTrigger className="font-medium bg-background">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel className="text-xs text-muted-foreground">{currentProvider.name} Fleet</SelectLabel>
+                      {currentProvider.models.map((m) => (
+                        <SelectItem key={m.value} value={m.value}>
+                          <span className="flex items-center justify-between w-full min-w-[200px]">
+                            {m.label}
+                            {m.badge && <Badge variant="secondary" className="ml-2 text-[10px] h-4 px-1.5 text-blue-600">{m.badge}</Badge>}
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
 
-          <Separator />
+              {/* System Prompt (Spanning 2 columns) */}
+              <div className="space-y-1.5 md:col-span-2">
+                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">System Guidelines (Prompt)</Label>
+                <Textarea
+                  placeholder="E.g., You are an agentic assistant. Use tools for research and execution when necessary..."
+                  value={systemPrompt}
+                  onChange={(e) => setSystemPrompt(e.target.value)}
+                  className="resize-none h-20 text-sm bg-background"
+                />
+              </div>
 
-          {/* Model */}
-          <div className="space-y-2">
-            <Label>Model</Label>
-            <Select value={model} onValueChange={setModel}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>{currentProvider.name} Models</SelectLabel>
-                  {currentProvider.models.map((m) => (
-                    <SelectItem key={m.value} value={m.value}>
-                      <span className="flex items-center gap-2">
-                        {m.label}
-                        {m.badge && (
-                          <Badge variant="secondary" className="text-[10px] h-4 px-1 text-blue-600">
-                            {m.badge}
-                          </Badge>
-                        )}
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
+              {/* Temperature */}
+              <div className="space-y-3 bg-muted/30 p-3 rounded-lg border">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-semibold">Temperature</Label>
+                  <Badge variant="outline" className="font-mono text-[10px] h-4 leading-none bg-background">{temperature.toFixed(1)}</Badge>
+                </div>
+                <Slider min={0} max={2} step={0.1} value={[temperature]} onValueChange={([v]) => setTemperature(v)} className="py-2" />
+                <div className="flex justify-between text-[9px] text-muted-foreground uppercase tracking-wider font-semibold">
+                  <span>Precise</span>
+                  <span className="text-primary/70">Creative</span>
+                </div>
+              </div>
 
-          {/* Temperature */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label>Temperature</Label>
-              <Badge variant="secondary" className="font-mono text-xs">
-                {temperature.toFixed(1)}
-              </Badge>
-            </div>
-            <Slider
-              min={0}
-              max={2}
-              step={0.1}
-              value={[temperature]}
-              onValueChange={([v]) => setTemperature(v)}
-            />
-            <div className="flex justify-between text-[10px] text-muted-foreground">
-              <span>Precise</span>
-              <span>Balanced</span>
-              <span>Creative</span>
-            </div>
-          </div>
+              {/* Max Tokens */}
+              <div className="space-y-3 bg-muted/30 p-3 rounded-lg border">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-semibold">Max Output</Label>
+                  <Badge variant="outline" className="font-mono text-[10px] h-4 leading-none bg-background">{maxTokens} tk</Badge>
+                </div>
+                <Slider min={256} max={16384} step={256} value={[maxTokens]} onValueChange={([v]) => setMaxTokens(v)} className="py-2" />
+                <div className="flex justify-between text-[9px] text-muted-foreground uppercase tracking-wider font-semibold">
+                  <span>Short</span>
+                  <span className="text-primary/70">Extended</span>
+                </div>
+              </div>
 
-          {/* Max Tokens */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label>Max Response Length</Label>
-              <Badge variant="secondary" className="font-mono text-xs">
-                {maxTokens} tokens
-              </Badge>
-            </div>
-            <Slider
-              min={256}
-              max={16384} // Increased for 2026 models
-              step={256}
-              value={[maxTokens]}
-              onValueChange={([v]) => setMaxTokens(v)}
-            />
-            <div className="flex justify-between text-[10px] text-muted-foreground">
-              <span>Short</span>
-              <span>Balanced</span>
-              <span>Extended (Agentic)</span>
-            </div>
-          </div>
+              {/* Save Button */}
+              <div className="md:col-span-2 pt-2">
+                <Button onClick={handleSave} disabled={isLoading} className="w-full shadow-sm hover:shadow-md transition-shadow">
+                  {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : saved ? <CheckCircle2 className="mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}
+                  {isLoading ? "Synchronizing settings..." : saved ? "Configuration Applied!" : "Save & Apply Configuration"}
+                </Button>
+              </div>
 
-          <Separator />
-
-          {/* System Prompt */}
-          <div className="space-y-2">
-            <Label>System Prompt (Optional)</Label>
-            <Textarea
-              placeholder="E.g., You are an agentic assistant. Use tools for research and execution when necessary..."
-              value={systemPrompt}
-              onChange={(e) => setSystemPrompt(e.target.value)}
-              rows={4}
-            />
-            <p className="text-xs text-muted-foreground">
-              Modern models respond best to "Chain of Thought" or "Persona-based" prompts.
-            </p>
-          </div>
-
-          {/* Save button */}
-          <Button
-            onClick={handleSave}
-            disabled={isLoading}
-            className="w-full"
-          >
-            {isLoading ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : saved ? (
-              <CheckCircle2 className="mr-2 h-4 w-4" />
-            ) : (
-              <Save className="mr-2 h-4 w-4" />
-            )}
-            {isLoading ? "Saving..." : saved ? "Settings Updated!" : "Save Configuration"}
-          </Button>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }

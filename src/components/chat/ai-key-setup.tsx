@@ -40,6 +40,7 @@ const PROVIDERS = {
         models: [
             { value: "gemini-3.1-pro", label: "Gemini 3.1 Pro", tag: "Reasoning" },
             { value: "gemini-3.1-flash", label: "Gemini 3.1 Flash", tag: "Fast" },
+            { value: "gemini-flash-latest", label: "Gemini Flash Latest", tag: "Stable API" },
             { value: "gemini-3.1-flash-image", label: "Gemini 3.1 Flash Image", tag: "Nano Banana 2" },
         ],
     },

@@ -51,6 +51,7 @@ export const PROVIDERS = {
     models: [
       { value: "gemini-3.1-pro", label: "Gemini 3.1 Pro", badge: "Reasoning" },
       { value: "gemini-3.1-flash", label: "Gemini 3.1 Flash", badge: "Fast" },
+      { value: "gemini-flash-latest", label: "Gemini Flash Latest", badge: "Stable API" },
       { value: "gemini-3.1-flash-image", label: "Gemini 3.1 Flash Image", badge: "Nano Banana 2" },
     ],
   },

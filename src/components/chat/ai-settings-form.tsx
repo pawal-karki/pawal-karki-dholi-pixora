@@ -42,52 +42,52 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { upsertAISettings } from "@/queries/chat";
 
-const PROVIDERS = {
+export const PROVIDERS = {
   gemini: {
     name: "Google Gemini",
-    description: "Natively agentic reasoning",
+    description: "Free tier available",
     keyUrl: "https://aistudio.google.com/apikey",
     keyPlaceholder: "AIzaSy...",
     models: [
-      { value: "gemini-3.1-pro-preview", label: "Gemini 3.1 Pro", badge: "Newest Flagship" },
-      { value: "gemini-3-flash", label: "Gemini 3 Flash", badge: "Fastest" },
-      { value: "gemini-3-deep-think", label: "Gemini 3 Deep Think", badge: "Reasoning" },
-      { value: "gemini-2.5-flash-lite", label: "Gemini 2.5 Flash-Lite", badge: "Cost Efficient" },
+      { value: "gemini-2.0-flash", label: "Gemini 2.0 Flash", badge: "Recommended" },
+      { value: "gemini-1.5-flash", label: "Gemini 1.5 Flash", badge: "Fast" },
+      { value: "gemini-1.5-pro", label: "Gemini 1.5 Pro", badge: "Most Capable" },
+      { value: "gemini-1.0-pro", label: "Gemini 1.0 Pro", badge: "Stable" },
     ],
   },
   openai: {
     name: "OpenAI",
-    description: "GPT-5 Era performance",
+    description: "Most capable models",
     keyUrl: "https://platform.openai.com/api-keys",
-    keyPlaceholder: "sk-proj-...",
+    keyPlaceholder: "sk-...",
     models: [
-      { value: "gpt-5.2-chat-latest", label: "GPT-5.2 Instant", badge: "Flagship" },
-      { value: "gpt-5.3-codex", label: "GPT-5.3 Codex", badge: "Agentic Coding" },
-      { value: "o3-deep-research", label: "o3 Deep Research", badge: "Scientific" },
-      { value: "gpt-4o", label: "GPT-4o", badge: "Legacy" },
+      { value: "gpt-4o", label: "GPT-4o", badge: "Recommended" },
+      { value: "gpt-4o-mini", label: "GPT-4o Mini", badge: "Faster" },
+      { value: "gpt-4-turbo", label: "GPT-4 Turbo", badge: undefined },
+      { value: "gpt-3.5-turbo", label: "GPT-3.5 Turbo", badge: "Cheapest" },
     ],
   },
   anthropic: {
     name: "Anthropic",
-    description: "Million-token context windows",
+    description: "Advanced reasoning & safety",
     keyUrl: "https://console.anthropic.com/settings/keys",
     keyPlaceholder: "sk-ant-...",
     models: [
-      { value: "claude-4-6-sonnet-latest", label: "Claude 4.6 Sonnet", badge: "Recommended" },
-      { value: "claude-4-6-opus-latest", label: "Claude 4.6 Opus", badge: "Powerhouse" },
-      { value: "claude-4-5-haiku-latest", label: "Claude 4.5 Haiku", badge: "Instant" },
+      { value: "claude-3-5-sonnet-latest", label: "Claude 3.5 Sonnet", badge: "Recommended" },
+      { value: "claude-3-opus-latest", label: "Claude 3 Opus", badge: "Most Capable" },
+      { value: "claude-3-5-haiku-latest", label: "Claude 3.5 Haiku", badge: "Fastest" },
     ],
   },
   groq: {
     name: "Groq",
-    description: "Ultra-fast OSS inference",
+    description: "Lightning fast inference",
     keyUrl: "https://console.groq.com/keys",
     keyPlaceholder: "gsk_...",
     models: [
-      { value: "openai/gpt-oss-120b", label: "GPT-OSS 120B", badge: "Top Speed" },
-      { value: "llama-3.3-70b-versatile", label: "Llama 3.3 70B", badge: "Production" },
-      { value: "deepseek-v3.2", label: "DeepSeek V3.2", badge: "Efficient" },
-      { value: "qwen3-32b", label: "Qwen 3 32B", badge: "Fast" },
+      { value: "llama-3.3-70b-versatile", label: "Llama 3.3 70B", badge: "Recommended" },
+      { value: "deepseek-r1-distill-llama-70b", label: "DeepSeek R1 70B", badge: "Reasoning" },
+      { value: "qwen-2.5-32b", label: "Qwen 2.5 32B", badge: "Fast" },
+      { value: "mixtral-8x7b-32768", label: "Mixtral 8x7B", badge: "Balanced" },
     ],
   },
 } as const;

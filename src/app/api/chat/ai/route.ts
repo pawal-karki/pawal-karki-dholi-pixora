@@ -17,8 +17,12 @@ async function callGemini(
   maxTokens: number
 ) {
   const genAI = new GoogleGenerativeAI(apiKey);
+
+  // Use the model string directly (now matches real API names)
+  const actualModel = model || "gemini-2.0-flash";
+
   const gemini = genAI.getGenerativeModel({
-    model: model || "gemini-2.0-flash",
+    model: actualModel,
     systemInstruction: systemPrompt,
     generationConfig: { temperature, maxOutputTokens: maxTokens },
   });
@@ -45,6 +49,10 @@ async function callOpenAI(
   maxTokens: number
 ) {
   const openai = new OpenAI({ apiKey });
+
+  // Use the model string directly (now matches real API names)
+  const actualModel = model || "gpt-4o";
+
   const messages: { role: "system" | "user" | "assistant"; content: string }[] =
     [{ role: "system", content: systemPrompt }];
 
@@ -56,7 +64,7 @@ async function callOpenAI(
   }
 
   const completion = await openai.chat.completions.create({
-    model: model || "gpt-4o",
+    model: actualModel,
     messages,
     temperature,
     max_tokens: maxTokens,
@@ -75,6 +83,10 @@ async function callAnthropic(
   maxTokens: number
 ) {
   const anthropic = new Anthropic({ apiKey });
+
+  // Use the model string directly (now matches real API names)
+  const actualModel = model || "claude-3-5-sonnet-latest";
+
   const messages: { role: "user" | "assistant"; content: string }[] = [];
 
   for (const msg of history) {
@@ -85,7 +97,7 @@ async function callAnthropic(
   }
 
   const msg = await anthropic.messages.create({
-    model: model || "claude-3-5-sonnet-latest",
+    model: actualModel,
     system: systemPrompt,
     messages,
     temperature,
@@ -108,6 +120,10 @@ async function callGroq(
   maxTokens: number
 ) {
   const groq = new Groq({ apiKey });
+
+  // Use the model string directly (now matches real API names)
+  const actualModel = model || "llama-3.3-70b-versatile";
+
   const messages: { role: "system" | "user" | "assistant"; content: string }[] =
     [{ role: "system", content: systemPrompt }];
 
@@ -119,7 +135,7 @@ async function callGroq(
   }
 
   const completion = await groq.chat.completions.create({
-    model: model || "llama-3.3-70b-versatile",
+    model: actualModel,
     messages,
     temperature,
     max_tokens: maxTokens,
@@ -145,7 +161,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { content, conversationId } = body;
+    const { content, conversationId, overrideModel } = body;
 
     if (!content || !conversationId) {
       return NextResponse.json(
@@ -216,19 +232,21 @@ export async function POST(req: NextRequest) {
       aiSettings.systemPrompt ||
       "You are a helpful AI assistant for a business management platform called Pixora. Help users with their queries about managing their agency, subaccounts, funnels, pipelines, and other business operations. Be concise and professional.";
 
-    const chatHistory = history.map((msg) => ({
+    const chatHistory = history.map((msg: any) => ({
       role: msg.isAiMessage ? "assistant" : "user",
       content: msg.content,
     }));
 
     // 4) Call the appropriate AI provider
+    // Use overrideModel from the chat UI if provided, otherwise fall back to DB setting
+    const activeModel = overrideModel || aiSettings.model;
     let aiContent: string;
     const provider = aiSettings.aiProvider || "openai";
 
     if (provider === "gemini") {
       aiContent = await callGemini(
         aiSettings.apiKey,
-        aiSettings.model,
+        activeModel,
         systemPrompt,
         chatHistory,
         aiSettings.temperature || 0.7,
@@ -237,7 +255,7 @@ export async function POST(req: NextRequest) {
     } else if (provider === "anthropic") {
       aiContent = await callAnthropic(
         aiSettings.apiKey,
-        aiSettings.model,
+        activeModel,
         systemPrompt,
         chatHistory,
         aiSettings.temperature || 0.7,
@@ -246,7 +264,7 @@ export async function POST(req: NextRequest) {
     } else if (provider === "groq") {
       aiContent = await callGroq(
         aiSettings.apiKey,
-        aiSettings.model,
+        activeModel,
         systemPrompt,
         chatHistory,
         aiSettings.temperature || 0.7,

@@ -18,6 +18,7 @@ import { formatDistanceToNow } from "date-fns";
 import { ChatMessages, type ChatMessageData } from "./chat-messages";
 import { ChatInput } from "./chat-input";
 import { AIKeySetup } from "./ai-key-setup";
+import { PROVIDERS } from "./ai-settings-form";
 import { UserPickerDialog } from "./user-picker-dialog";
 import { useChatSocket } from "@/hooks/use-chat-socket";
 import {
@@ -39,6 +40,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Tooltip,
   TooltipContent,
@@ -86,6 +94,8 @@ export function ChatContainer({
   const [search, setSearch] = useState("");
   const [hasAIKey, setHasAIKey] = useState<boolean | null>(null);
   const [showAISetup, setShowAISetup] = useState(false);
+  const [aiSettings, setAiSettings] = useState<any>(null);
+  const [dynamicModel, setDynamicModel] = useState<string>("");
 
   const selectedConversation = conversations.find((c) => c.id === selectedId);
 
@@ -103,7 +113,11 @@ export function ChatContainer({
 
   useEffect(() => {
     refreshConversations();
-    getAISettings(agencyId).then((s) => setHasAIKey(!!s?.enabled && !!s));
+    getAISettings(agencyId).then((s) => {
+      setHasAIKey(!!s?.enabled && !!s);
+      setAiSettings(s);
+      if (s?.model) setDynamicModel(s.model);
+    });
   }, [refreshConversations, agencyId]);
 
   // ─── Fetch messages ───────────────────────────────────────────────────────
@@ -206,10 +220,13 @@ export function ChatContainer({
     setIsSending(true);
     try {
       const isAI = selectedConversation.type === "AI";
+      const bodyPayload: any = { content, conversationId: selectedId };
+      if (isAI && dynamicModel) bodyPayload.overrideModel = dynamicModel;
+
       const res = await fetch(isAI ? "/api/chat/ai" : "/api/chat/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content, conversationId: selectedId }),
+        body: JSON.stringify(bodyPayload),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to send");
@@ -431,7 +448,21 @@ export function ChatContainer({
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-2">
+                {selectedConversation?.type === "AI" && aiSettings?.aiProvider && (
+                  <Select value={dynamicModel || ""} onValueChange={setDynamicModel}>
+                    <SelectTrigger className="h-8 w-[150px] text-xs bg-background">
+                      <SelectValue placeholder="Model" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PROVIDERS[aiSettings.aiProvider as keyof typeof PROVIDERS]?.models.map((m) => (
+                        <SelectItem key={m.value} value={m.value} className="text-xs">
+                          {m.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
                 {selectedConversation?.type === "AI" && (
                   <TooltipProvider delayDuration={0}>
                     <Tooltip>

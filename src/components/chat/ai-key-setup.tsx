@@ -38,9 +38,10 @@ const PROVIDERS = {
         placeholder: "AIzaSy...",
         url: "https://aistudio.google.com/apikey",
         models: [
-            { value: "gemini-2.0-flash", label: "Gemini 2.0 Flash", tag: "Free" },
-            { value: "gemini-1.5-flash", label: "Gemini 1.5 Flash", tag: "Free" },
-            { value: "gemini-1.5-pro", label: "Gemini 1.5 Pro", tag: "Free tier" },
+            { value: "gemini-2.0-flash", label: "Gemini 2.0 Flash", tag: "Recommended" },
+            { value: "gemini-1.5-flash", label: "Gemini 1.5 Flash", tag: "Fast" },
+            { value: "gemini-1.5-pro", label: "Gemini 1.5 Pro", tag: "Most Capable" },
+            { value: "gemini-1.0-pro", label: "Gemini 1.0 Pro", tag: "Stable" },
         ],
     },
     openai: {
@@ -69,9 +70,10 @@ const PROVIDERS = {
         placeholder: "gsk_...",
         url: "https://console.groq.com/keys",
         models: [
-            { value: "llama-3.3-70b-versatile", label: "Llama 3.3 70B", tag: "Fastest" },
-            { value: "mixtral-8x7b-32768", label: "Mixtral 8x7B", tag: "Free" },
-            { value: "gemma2-9b-it", label: "Gemma 2 9B", tag: "Free" },
+            { value: "llama-3.3-70b-versatile", label: "Llama 3.3 70B", tag: "Recommended" },
+            { value: "deepseek-r1-distill-llama-70b", label: "DeepSeek R1 70B", tag: "Reasoning" },
+            { value: "qwen-2.5-32b", label: "Qwen 2.5 32B", tag: "Fast" },
+            { value: "mixtral-8x7b-32768", label: "Mixtral 8x7B", tag: "Balanced" },
         ],
     },
 };
@@ -137,15 +139,15 @@ export function AIKeySetup({ agencyId, onSuccess, compact = false }: Props) {
                         <SelectItem value="gemini">
                             <span className="flex items-center gap-2">
                                 Google Gemini
-                                <Badge variant="secondary" className="text-[9px] h-3.5 px-1 text-green-600">Free</Badge>
+                                <Badge variant="secondary" className="text-[9px] h-3.5 px-1 text-green-600">v3.1 Ready</Badge>
                             </span>
                         </SelectItem>
-                        <SelectItem value="openai">OpenAI</SelectItem>
-                        <SelectItem value="anthropic">Anthropic</SelectItem>
+                        <SelectItem value="openai">OpenAI (GPT-5)</SelectItem>
+                        <SelectItem value="anthropic">Anthropic (Claude 4.6)</SelectItem>
                         <SelectItem value="groq">
                             <span className="flex items-center gap-2">
                                 Groq
-                                <Badge variant="secondary" className="text-[9px] h-3.5 px-1 text-green-600">Free</Badge>
+                                <Badge variant="secondary" className="text-[9px] h-3.5 px-1 text-green-600">LPU Speed</Badge>
                             </span>
                         </SelectItem>
                     </SelectContent>
@@ -226,15 +228,15 @@ export function AIKeySetup({ agencyId, onSuccess, compact = false }: Props) {
                             <SelectItem value="gemini">
                                 <span className="flex items-center gap-2">
                                     Google Gemini
-                                    <Badge variant="secondary" className="text-[9px] h-3.5 px-1 text-green-600">Free tier</Badge>
+                                    <Badge variant="secondary" className="text-[9px] h-3.5 px-1 text-green-600">v3.1 Ready</Badge>
                                 </span>
                             </SelectItem>
-                            <SelectItem value="openai">OpenAI</SelectItem>
-                            <SelectItem value="anthropic">Anthropic</SelectItem>
+                            <SelectItem value="openai">OpenAI (GPT-5)</SelectItem>
+                            <SelectItem value="anthropic">Anthropic (Claude 4.6)</SelectItem>
                             <SelectItem value="groq">
                                 <span className="flex items-center gap-2">
                                     Groq
-                                    <Badge variant="secondary" className="text-[9px] h-3.5 px-1 text-green-600">Free tier</Badge>
+                                    <Badge variant="secondary" className="text-[9px] h-3.5 px-1 text-green-600">LPU Speed</Badge>
                                 </span>
                             </SelectItem>
                         </SelectContent>

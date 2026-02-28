@@ -49,10 +49,9 @@ export const PROVIDERS = {
     keyUrl: "https://aistudio.google.com/apikey",
     keyPlaceholder: "AIzaSy...",
     models: [
-      { value: "gemini-2.0-flash", label: "Gemini 2.0 Flash", badge: "Recommended" },
-      { value: "gemini-1.5-flash", label: "Gemini 1.5 Flash", badge: "Fast" },
-      { value: "gemini-1.5-pro", label: "Gemini 1.5 Pro", badge: "Most Capable" },
-      { value: "gemini-1.0-pro", label: "Gemini 1.0 Pro", badge: "Stable" },
+      { value: "gemini-3.1-pro", label: "Gemini 3.1 Pro", badge: "Reasoning" },
+      { value: "gemini-3.1-flash", label: "Gemini 3.1 Flash", badge: "Fast" },
+      { value: "gemini-3.1-flash-image", label: "Gemini 3.1 Flash Image", badge: "Nano Banana 2" },
     ],
   },
   openai: {
@@ -61,10 +60,10 @@ export const PROVIDERS = {
     keyUrl: "https://platform.openai.com/api-keys",
     keyPlaceholder: "sk-...",
     models: [
-      { value: "gpt-4o", label: "GPT-4o", badge: "Recommended" },
-      { value: "gpt-4o-mini", label: "GPT-4o Mini", badge: "Faster" },
-      { value: "gpt-4-turbo", label: "GPT-4 Turbo", badge: undefined },
-      { value: "gpt-3.5-turbo", label: "GPT-3.5 Turbo", badge: "Cheapest" },
+      { value: "gpt-5.2", label: "GPT-5.2", badge: "Flagship" },
+      { value: "gpt-5-mini", label: "GPT-5 Mini", badge: "Fast" },
+      { value: "gpt-realtime-1.5", label: "GPT Realtime 1.5", badge: "Voice API" },
+      { value: "gpt-image-1.5", label: "GPT Image 1.5", badge: "DALL-E Successor" },
     ],
   },
   anthropic: {
@@ -73,9 +72,9 @@ export const PROVIDERS = {
     keyUrl: "https://console.anthropic.com/settings/keys",
     keyPlaceholder: "sk-ant-...",
     models: [
-      { value: "claude-3-5-sonnet-latest", label: "Claude 3.5 Sonnet", badge: "Recommended" },
-      { value: "claude-3-opus-latest", label: "Claude 3 Opus", badge: "Most Capable" },
-      { value: "claude-3-5-haiku-latest", label: "Claude 3.5 Haiku", badge: "Fastest" },
+      { value: "claude-opus-4-6", label: "Claude 4.6 Opus", badge: "Powerhouse" },
+      { value: "claude-sonnet-4-6", label: "Claude 4.6 Sonnet", badge: "Workhorse" },
+      { value: "claude-haiku-4-5", label: "Claude 4.5 Haiku", badge: "Low-latency" },
     ],
   },
   groq: {
@@ -84,10 +83,12 @@ export const PROVIDERS = {
     keyUrl: "https://console.groq.com/keys",
     keyPlaceholder: "gsk_...",
     models: [
-      { value: "llama-3.3-70b-versatile", label: "Llama 3.3 70B", badge: "Recommended" },
-      { value: "deepseek-r1-distill-llama-70b", label: "DeepSeek R1 70B", badge: "Reasoning" },
-      { value: "qwen-2.5-32b", label: "Qwen 2.5 32B", badge: "Fast" },
-      { value: "mixtral-8x7b-32768", label: "Mixtral 8x7B", badge: "Balanced" },
+      { value: "llama-4-maverick-17b", label: "Llama 4 Maverick", badge: "128E MoE" },
+      { value: "llama-4-scout-17b", label: "Llama 4 Scout", badge: "Lightweight" },
+      { value: "llama-3.3-70b-instruct", label: "Llama 3.3 70B", badge: "Reliable" },
+      { value: "deepseek-v3", label: "DeepSeek V3", badge: "Chat/Reasoning" },
+      { value: "codestral-2025", label: "Codestral 2025", badge: "Coding" },
+      { value: "grok-4", label: "Grok 4", badge: "Real-time" },
     ],
   },
 } as const;

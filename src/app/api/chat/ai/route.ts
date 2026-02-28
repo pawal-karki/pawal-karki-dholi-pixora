@@ -18,8 +18,8 @@ async function callGemini(
 ) {
   const genAI = new GoogleGenerativeAI(apiKey);
 
-  // Use the model string directly (now matches real API names)
-  const actualModel = model || "gemini-2.0-flash";
+  // Use the exact model string from the UI
+  const actualModel = model || "gemini-3.1-flash";
 
   const gemini = genAI.getGenerativeModel({
     model: actualModel,
@@ -50,8 +50,8 @@ async function callOpenAI(
 ) {
   const openai = new OpenAI({ apiKey });
 
-  // Use the model string directly (now matches real API names)
-  const actualModel = model || "gpt-4o";
+  // Use the exact model string from the UI
+  const actualModel = model || "gpt-5.2";
 
   const messages: { role: "system" | "user" | "assistant"; content: string }[] =
     [{ role: "system", content: systemPrompt }];
@@ -84,8 +84,8 @@ async function callAnthropic(
 ) {
   const anthropic = new Anthropic({ apiKey });
 
-  // Use the model string directly (now matches real API names)
-  const actualModel = model || "claude-3-5-sonnet-latest";
+  // Use the exact model string from the UI
+  const actualModel = model || "claude-sonnet-4-6";
 
   const messages: { role: "user" | "assistant"; content: string }[] = [];
 
@@ -121,8 +121,8 @@ async function callGroq(
 ) {
   const groq = new Groq({ apiKey });
 
-  // Use the model string directly (now matches real API names)
-  const actualModel = model || "llama-3.3-70b-versatile";
+  // Use the exact model string from the UI
+  const actualModel = model || "llama-3.3-70b-instruct";
 
   const messages: { role: "system" | "user" | "assistant"; content: string }[] =
     [{ role: "system", content: systemPrompt }];

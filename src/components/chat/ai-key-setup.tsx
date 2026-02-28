@@ -38,10 +38,9 @@ const PROVIDERS = {
         placeholder: "AIzaSy...",
         url: "https://aistudio.google.com/apikey",
         models: [
-            { value: "gemini-2.0-flash", label: "Gemini 2.0 Flash", tag: "Recommended" },
-            { value: "gemini-1.5-flash", label: "Gemini 1.5 Flash", tag: "Fast" },
-            { value: "gemini-1.5-pro", label: "Gemini 1.5 Pro", tag: "Most Capable" },
-            { value: "gemini-1.0-pro", label: "Gemini 1.0 Pro", tag: "Stable" },
+            { value: "gemini-3.1-pro", label: "Gemini 3.1 Pro", tag: "Reasoning" },
+            { value: "gemini-3.1-flash", label: "Gemini 3.1 Flash", tag: "Fast" },
+            { value: "gemini-3.1-flash-image", label: "Gemini 3.1 Flash Image", tag: "Nano Banana 2" },
         ],
     },
     openai: {
@@ -49,10 +48,10 @@ const PROVIDERS = {
         placeholder: "sk-...",
         url: "https://platform.openai.com/api-keys",
         models: [
-            { value: "gpt-4o", label: "GPT-4o", tag: "Recommended" },
-            { value: "gpt-4o-mini", label: "GPT-4o Mini", tag: "Faster" },
-            { value: "gpt-4-turbo", label: "GPT-4 Turbo", tag: null },
-            { value: "gpt-3.5-turbo", label: "GPT-3.5 Turbo", tag: "Cheapest" },
+            { value: "gpt-5.2", label: "GPT-5.2", tag: "Flagship" },
+            { value: "gpt-5-mini", label: "GPT-5 Mini", tag: "Fast" },
+            { value: "gpt-realtime-1.5", label: "GPT Realtime 1.5", tag: "Voice API" },
+            { value: "gpt-image-1.5", label: "GPT Image 1.5", tag: "DALL-E Successor" },
         ],
     },
     anthropic: {
@@ -60,9 +59,9 @@ const PROVIDERS = {
         placeholder: "sk-ant-...",
         url: "https://console.anthropic.com/settings/keys",
         models: [
-            { value: "claude-3-5-sonnet-latest", label: "Claude 3.5 Sonnet", tag: "Recommended" },
-            { value: "claude-3-opus-latest", label: "Claude 3 Opus", tag: "Most Capable" },
-            { value: "claude-3-5-haiku-latest", label: "Claude 3.5 Haiku", tag: "Fastest" },
+            { value: "claude-opus-4-6", label: "Claude 4.6 Opus", tag: "Powerhouse" },
+            { value: "claude-sonnet-4-6", label: "Claude 4.6 Sonnet", tag: "Workhorse" },
+            { value: "claude-haiku-4-5", label: "Claude 4.5 Haiku", tag: "Low-latency" },
         ],
     },
     groq: {
@@ -70,10 +69,12 @@ const PROVIDERS = {
         placeholder: "gsk_...",
         url: "https://console.groq.com/keys",
         models: [
-            { value: "llama-3.3-70b-versatile", label: "Llama 3.3 70B", tag: "Recommended" },
-            { value: "deepseek-r1-distill-llama-70b", label: "DeepSeek R1 70B", tag: "Reasoning" },
-            { value: "qwen-2.5-32b", label: "Qwen 2.5 32B", tag: "Fast" },
-            { value: "mixtral-8x7b-32768", label: "Mixtral 8x7B", tag: "Balanced" },
+            { value: "llama-4-maverick-17b", label: "Llama 4 Maverick", tag: "128E MoE" },
+            { value: "llama-4-scout-17b", label: "Llama 4 Scout", tag: "Lightweight" },
+            { value: "llama-3.3-70b-instruct", label: "Llama 3.3 70B", tag: "Reliable" },
+            { value: "deepseek-v3", label: "DeepSeek V3", tag: "Chat/Reasoning" },
+            { value: "codestral-2025", label: "Codestral 2025", tag: "Coding" },
+            { value: "grok-4", label: "Grok 4", tag: "Real-time" },
         ],
     },
 };

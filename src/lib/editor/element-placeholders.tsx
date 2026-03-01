@@ -17,6 +17,7 @@ import {
   ProductPlaceholder,
   ProductGridPlaceholder,
   CartPlaceholder,
+  CustomHtmlPlaceholder,
 } from "@/components/modules/editor/editor-tabs/components-tab/placeholders";
 import { EditorBtns } from "../types/editor";
 
@@ -91,6 +92,12 @@ export const ELEMENT_PRIMITIVE_PLACEHOLDERS: ComponentElement[] = [
     placeholder: <PaymentFormPlaceholder />,
     label: "Payment",
     id: "paymentForm",
+    group: "elements",
+  },
+  {
+    placeholder: <CustomHtmlPlaceholder />,
+    label: "Custom HTML",
+    id: "customHtml",
     group: "elements",
   },
 ];

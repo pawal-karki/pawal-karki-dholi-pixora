@@ -104,6 +104,7 @@ model User {
   sentMessages          ChatMessage[]
   conversationsAsUser   ChatConversation[] @relation("conversation_user")
   conversationsAsParticipant ChatConversation[] @relation("conversation_participant")
+  authoredComments      TicketComment[]    @relation("authored_comments")
 
   @@index([agencyId])
 
@@ -267,10 +268,27 @@ model Ticket {
   customer Contact? @relation(fields: [customerId], references: [id], onDelete: SetNull)
   tags     Tag[]
   assigned User?    @relation(fields: [assignedUserId], references: [id], onDelete: SetNull)
+  comments TicketComment[]
 
   @@index([laneId])
   @@index([customerId])
   @@index([assignedUserId])
+}
+
+model TicketComment {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  content  String @db.Text
+  ticketId String
+  authorId String
+
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  author User   @relation("authored_comments", fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+  @@index([authorId])
 }
 
 

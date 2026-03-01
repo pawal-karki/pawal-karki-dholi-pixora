@@ -22,7 +22,7 @@ export default async function AISettingsPage({ params }: Props) {
   const aiSettings = await getAISettings(agencyId);
 
   return (
-    <div className="mx-auto max-w-3xl py-6 px-4">
+    <div className="mx-auto w-full max-w-6xl py-6 px-4">
       <AISettingsForm agencyId={agencyId} currentSettings={aiSettings} />
     </div>
   );

@@ -35,6 +35,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
 import TagDetails from "./TagDetails";
+import TicketComments from "@/components/modules/pipelines/TicketComments";
 import { cn } from "@/lib/utils";
 
 interface TicketDetailsProps {
@@ -302,6 +303,11 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({
                         </Button>
                     </div>
                 </form>
+
+                {/* Only show comments if the ticket already exists in the database */}
+                {defaultData?.ticket?.id && (
+                    <TicketComments ticketId={defaultData.ticket.id} />
+                )}
             </CardContent>
         </Card>
     );

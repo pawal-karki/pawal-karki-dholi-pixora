@@ -1,8 +1,7 @@
 "use client";
 
 import React from "react";
-import { Database, PlusCircle, Settings, SquareStack, Palette } from "lucide-react";
-import { FunnelPage } from "@prisma/client";
+import { Database, PlusCircle, Settings, SquareStack, Palette, Code } from "lucide-react";
 
 import { useEditor } from "@/hooks/use-editor";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -18,6 +17,7 @@ import MediaTab from "./editor-tabs/MediaTab";
 import ComponentsTab from "./editor-tabs/components-tab/ComponentsTab";
 import LayersTab from "./editor-tabs/LayersTab";
 import StylesTab from "./editor-tabs/StylesTab";
+import CodeEditorPanel from "./editor-tabs/CodeEditorPanel";
 
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -26,7 +26,7 @@ interface FunnelEditorSidebarProps {
   subAccountId: string;
 }
 
-type TabsName = "Settings" | "Components" | "Layers" | "Media" | "Styles";
+type TabsName = "Settings" | "Components" | "Layers" | "Media" | "Styles" | "Code";
 
 const FunnelEditorSidebar: React.FC<FunnelEditorSidebarProps> = ({
   subAccountId,
@@ -124,6 +124,24 @@ const FunnelEditorSidebar: React.FC<FunnelEditorSidebarProps> = ({
                   <p>Media</p>
                 </TooltipContent>
               </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <TabsTrigger
+                    value="Code"
+                    className="w-10 h-10 p-0 data-[state=active]:bg-muted relative"
+                  >
+                    <Code />
+                    {editor.editor.selectedElement.type === "customHtml" && (
+                      <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-violet-500 rounded-full" />
+                    )}
+                  </TabsTrigger>
+                </TooltipTrigger>
+                <TooltipContent side="left" sideOffset={16}>
+                  <p>Code Editor</p>
+                </TooltipContent>
+              </Tooltip>
+
             </TabsList>
           </SheetContent>
 
@@ -154,6 +172,10 @@ const FunnelEditorSidebar: React.FC<FunnelEditorSidebarProps> = ({
                   <LayersTab />
                 </TabsContent>
               </ScrollArea>
+              {/* Code editor needs full height — outside the ScrollArea */}
+              <TabsContent value="Code" className="h-full m-0 p-0 mt-0 overflow-hidden">
+                <CodeEditorPanel />
+              </TabsContent>
             </div>
           </SheetContent>
         </Tabs>

@@ -16,6 +16,10 @@ export type EditorElement = {
         formDescription?: string;
         formButton?: string;
         alt?: string;
+        /** Raw HTML markup for the customHtml element */
+        html?: string;
+        /** Optional scoped <style> CSS for the customHtml element */
+        css?: string;
     };
 };
 
@@ -54,6 +58,7 @@ export type EditorBtns =
     | "productGrid"
     | "cart"
     | "checkout"
+    | "customHtml"
     | null;
 
 export type EditorAction =

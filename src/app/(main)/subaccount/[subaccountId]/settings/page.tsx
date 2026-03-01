@@ -48,7 +48,7 @@ const SubAccountSettingsPage: React.FC<SubAccountSettingsPageProps> = async ({
   });
 
   return (
-    <div className="flex flex-col gap-4 max-w-4xl w-full mx-auto">
+    <div className="flex flex-col gap-4 max-w-5xl w-full mx-auto">
       <SubAccountDetails
         agencyDetails={agencyDetails}
         details={subAccountDetails}

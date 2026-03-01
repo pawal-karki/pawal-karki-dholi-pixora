@@ -9,6 +9,7 @@ import EditorPayment from "./EditorPayment";
 import { ProductGrid } from "./product-grid";
 import EditorCart from "./EditorCart";
 import EditorImage from "./EditorImage";
+import EditorCustomHtml from "./EditorCustomHtml";
 
 import type { EditorElement } from "@/lib/types/editor";
 import EditorSection from "./EditorSection";
@@ -45,6 +46,8 @@ const EditorRecursive = ({ element }: Props) => {
       return <ProductGrid element={element} />;
     case "cart":
       return <EditorCart element={element} />;
+    case "customHtml":
+      return <EditorCustomHtml element={element} />;
     default:
       return null;
   }

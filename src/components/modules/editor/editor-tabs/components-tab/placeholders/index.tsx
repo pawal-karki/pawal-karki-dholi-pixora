@@ -11,6 +11,7 @@ import ProductGridPlaceholder from "./ProductGridPlaceholder";
 import CartPlaceholder from "./CartPlaceholder";
 import ThreeColumnsPlaceholder from "./ThreeColumnsPlaceholder";
 import SectionPlaceholder from "./SectionPlaceholder";
+import CustomHtmlPlaceholder from "./CustomHtmlPlaceholder";
 import {
   SaasNavbarPlaceholder,
   SaasFooterPlaceholder,
@@ -38,4 +39,5 @@ export {
   SaasPricingPlaceholder,
   SaasProductsPlaceholder,
   ShopSectionPlaceholder,
+  CustomHtmlPlaceholder,
 };

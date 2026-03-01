@@ -4,6 +4,18 @@ import { TOKENS } from "./templates/tokens";
 import { r, section, container, text, link } from "./templates/utils";
 import { createSaasFooter } from "./templates/footer";
 import { createSaasNavbar } from "./templates/navbar";
+import {
+    createHeroGradient,
+    createHeroDark,
+    createFeaturesGrid,
+    createPricingTable,
+    createTestimonials,
+    createCtaBanner,
+    createTeamCards,
+    createFaqSection,
+    createStatsRow,
+} from "./templates/sections";
+
 
 /**
  * ULTRA-MODERN RESPONSIVE Template Section Definitions
@@ -426,4 +438,14 @@ export const TEMPLATE_GENERATORS: Record<
     template__modern_footer: createModernFooter,
     template__modern_products: createModernProducts,
     template__shop_section: createShopSection,
+    // New responsive section templates
+    template__hero_gradient: createHeroGradient,
+    template__hero_dark: createHeroDark,
+    template__features_grid: createFeaturesGrid,
+    template__pricing_table: createPricingTable,
+    template__testimonials: createTestimonials,
+    template__cta_banner: createCtaBanner,
+    template__team_cards: createTeamCards,
+    template__faq_section: createFaqSection,
+    template__stats_row: createStatsRow,
 };

@@ -8,10 +8,10 @@ export const addVerifyElement = (
   id: string,
   dispatch: (value: EditorAction) => void,
   device: "Desktop" | "Mobile" | "Tablet" = "Desktop",
-  extraData?: { imageUrl?: string; imageName?: string }
+  extraData?: { imageUrl?: string; imageName?: string; html?: string; css?: string }
 ) => {
-  // Handle template types
-  if (typeof componentType === "string" && componentType.startsWith("template__")) {
+  // Handle template types (EditorElement-based generators)
+  if (typeof componentType === "string" && componentType.startsWith("template__") && !componentType.startsWith("template__html__")) {
     const generator = TEMPLATE_GENERATORS[componentType];
     if (generator) {
       dispatch({
@@ -23,6 +23,28 @@ export const addVerifyElement = (
       });
       return;
     }
+  }
+
+  // Handle raw HTML/CSS template injection
+  // These are stored externally and passed via extraData.html + extraData.css
+  if (typeof componentType === "string" && componentType.startsWith("template__html__")) {
+    dispatch({
+      type: "ADD_ELEMENT",
+      payload: {
+        containerId: id,
+        elementDetails: {
+          content: {
+            html: extraData?.html || "<div>HTML Template</div>",
+            css: extraData?.css || "",
+          },
+          id: uuidv4(),
+          name: extraData?.imageName || "HTML Block",
+          styles: { width: "100%" },
+          type: "customHtml",
+        },
+      },
+    });
+    return;
   }
 
   switch (componentType) {
@@ -309,6 +331,26 @@ export const addVerifyElement = (
               maxWidth: "500px",
             },
             type: "cart",
+          },
+        },
+      });
+
+      break;
+    }
+    case "customHtml": {
+      dispatch({
+        type: "ADD_ELEMENT",
+        payload: {
+          containerId: id,
+          elementDetails: {
+            content: {
+              html: "<div style=\"padding:20px;background:#f3f4f6;border-radius:8px;\"><h2 style=\"margin:0 0 8px;font-size:18px;\">Custom HTML Block</h2><p style=\"margin:0;color:#6b7280;\">Edit your HTML in the settings panel</p></div>",
+              css: "",
+            },
+            id: uuidv4(),
+            name: "Custom HTML",
+            styles: { width: "100%" },
+            type: "customHtml",
           },
         },
       });

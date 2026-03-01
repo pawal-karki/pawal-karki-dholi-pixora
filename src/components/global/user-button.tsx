@@ -2,6 +2,7 @@
 
 import React, { useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useClerk } from "@clerk/nextjs";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,15 +25,23 @@ interface UserButtonProps {
 }
 
 export function UserButton({ user, afterSignOutUrl = "/" }: UserButtonProps) {
+  const { signOut } = useClerk();
   const router = useRouter();
 
   const handleSignOut = useCallback(async () => {
     // Clear all auth (localStorage + cookies)
     clearAllAuth();
 
+    // Sign out of Clerk if an active session exists
+    try {
+      await signOut();
+    } catch (error) {
+      console.warn("Clerk sign out error:", error);
+    }
+
     // Redirect to home with a full page reload to clear all state
     window.location.href = afterSignOutUrl;
-  }, [afterSignOutUrl]);
+  }, [afterSignOutUrl, signOut]);
 
   if (!user) return null;
 

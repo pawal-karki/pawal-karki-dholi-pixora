@@ -115,9 +115,14 @@ export default clerkMiddleware(async (auth, req) => {
     const jwtToken = req.cookies.get("auth_token")?.value;
     const hasJwtAuth = !!jwtToken;
 
-    // Get Clerk session
-    const session = await auth();
-    const hasClerkAuth = !!session.userId;
+    // Get Clerk session (wrapped in try/catch — dev keys or rate limits can throw in production)
+    let hasClerkAuth = false;
+    try {
+      const session = await auth();
+      hasClerkAuth = !!session.userId;
+    } catch (clerkError) {
+      console.warn("[middleware] Clerk auth() failed, falling back to JWT only:", clerkError);
+    }
 
     // If user is signed in (either method) and trying to access auth pages, redirect
     if ((hasClerkAuth || hasJwtAuth) && isAuthPage(req)) {

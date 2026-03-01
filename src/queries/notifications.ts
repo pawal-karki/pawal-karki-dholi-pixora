@@ -44,14 +44,18 @@ export const saveActivityLogsNotification = async ({
     let foundAgencyId = agencyId;
     if (!foundAgencyId) {
         if (!subaccountId) {
-            throw new Error(
-                "You need to provide atleast an agency Id or subaccount Id"
-            );
+            console.error("[notifications] saveActivityLogsNotification: missing agencyId and subaccountId");
+            return;
         }
         const response = await db.subAccount.findUnique({
             where: { id: subaccountId },
         });
         if (response) foundAgencyId = response.agencyId;
+    }
+
+    if (!foundAgencyId) {
+        console.error("[notifications] saveActivityLogsNotification: could not resolve agencyId");
+        return;
     }
 
     if (subaccountId) {

@@ -339,3 +339,87 @@ export async function sendInvitationEmail({
     return false;
   }
 }
+
+// ─── sendTicketAssignmentEmail ─────────────────────────────────────────────────
+
+interface SendTicketAssignmentEmailParams {
+  to: string;
+  assigneeName: string;
+  ticketName: string;
+  laneName: string;
+  subAccountName: string;
+  pipelineUrl: string;
+  description?: string | null;
+}
+
+export async function sendTicketAssignmentEmail({
+  to,
+  assigneeName,
+  ticketName,
+  laneName,
+  subAccountName,
+  pipelineUrl,
+  description,
+}: SendTicketAssignmentEmailParams): Promise<boolean> {
+  const mailOptions = {
+    from: `"Pixora" <${process.env.GMAIL_USER}>`,
+    to,
+    subject: `📋 You've been assigned a task: ${ticketName}`,
+    html: `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background-color: #f0fdf4; }
+    .container { max-width: 480px; margin: 0 auto; background-color: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 8px 40px rgba(5,150,105,0.12); }
+    .header { background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 32px; text-align: center; }
+    .header h1 { color: white; margin: 0; font-size: 22px; font-weight: 700; }
+    .content { padding: 32px; }
+    .greeting { font-size: 15px; color: #374151; margin: 0 0 20px; }
+    .ticket-card { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 24px; }
+    .ticket-name { font-size: 18px; font-weight: 700; color: #111827; margin: 0 0 8px; }
+    .ticket-meta { font-size: 13px; color: #6b7280; display: flex; align-items: center; gap: 6px; margin: 4px 0; }
+    .badge { display: inline-block; background: #d1fae5; color: #065f46; font-size: 11px; font-weight: 600; padding: 2px 10px; border-radius: 99px; }
+    .desc { font-size: 14px; color: #4b5563; line-height: 1.6; margin: 12px 0 0; border-top: 1px solid #e5e7eb; padding-top: 12px; }
+    .button { display: inline-block; background: #059669; color: #ffffff !important; padding: 14px 28px; border-radius: 12px; text-decoration: none; font-weight: 600; font-size: 14px; margin-top: 4px; }
+    .footer { background-color: #f9fafb; padding: 24px; text-align: center; border-top: 1px solid #e5e7eb; font-size: 11px; color: #9ca3af; border-radius: 0 0 24px 24px; }
+  </style>
+</head>
+<body>
+  <div style="padding: 40px 16px;">
+    <div class="container">
+      <div class="header">
+        <img src="${PIXORA_LOGO_URL}" alt="Pixora" width="120" height="48" style="display: block; margin: 0 auto 16px; max-width: 120px; height: auto;" />
+        <h1>New Task Assigned</h1>
+      </div>
+      <div class="content">
+        <p class="greeting">Hi <strong>${assigneeName}</strong>, a new task has been assigned to you in <strong>${subAccountName}</strong>.</p>
+        <div class="ticket-card">
+          <p class="ticket-name">📋 ${ticketName}</p>
+          <p class="ticket-meta">🗂️ Lane: <span class="badge">${laneName}</span></p>
+          ${description ? `<p class="desc">${description}</p>` : ""}
+        </div>
+        <a href="${pipelineUrl}" class="button">View Task in Pipeline →</a>
+      </div>
+      <div class="footer">
+        <p style="margin: 0 0 4px;">This is an automated notification from Pixora.</p>
+        <p style="margin: 0;">© ${new Date().getFullYear()} Pixora. All rights reserved.</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+    `,
+    text: `Hi ${assigneeName},\n\nYou have been assigned a new task: "${ticketName}" in lane "${laneName}" on ${subAccountName}.\n\nView it here: ${pipelineUrl}\n\n© ${new Date().getFullYear()} Pixora`,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (error) {
+    console.error("[email] sendTicketAssignmentEmail error:", error);
+    return false;
+  }
+}

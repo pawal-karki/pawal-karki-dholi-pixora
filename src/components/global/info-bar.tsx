@@ -35,6 +35,9 @@ interface InfoBarProps {
   };
 }
 
+const isSubAccountUser = (role?: Role) =>
+  role === Role.SUBACCOUNT_USER || role === Role.SUBACCOUNT_GUEST;
+
 const InfoBar: React.FC<InfoBarProps> = ({
   notifications,
   subAccountId,
@@ -42,23 +45,24 @@ const InfoBar: React.FC<InfoBarProps> = ({
   role,
   user,
 }) => {
+  // Subaccount users always see only their subaccount's notifications.
+  // Agency admins/owners start with all notifications but can toggle to current subaccount.
+  const subaccountOnly = isSubAccountUser(role)
+    ? notifications?.filter((n) => n.subAccountId === subAccountId) ?? []
+    : notifications ?? [];
+
   const [allNotifications, setAllNotifications] =
-    React.useState<NotificationsWithUser>(notifications);
+    React.useState<NotificationsWithUser>(subaccountOnly);
   const [isShowAll, setIsShowAll] = React.useState<boolean>(true);
 
   const handleSwitch = () => {
     if (!isShowAll) {
-      setAllNotifications(notifications);
+      setAllNotifications(notifications ?? []);
     } else {
-      if (!!notifications?.length) {
-        const filteredNotifications = notifications?.filter(
-          (notif) => notif.subAccountId === subAccountId
-        );
-
-        setAllNotifications(filteredNotifications ?? []);
-      }
+      setAllNotifications(
+        notifications?.filter((n) => n.subAccountId === subAccountId) ?? []
+      );
     }
-
     setIsShowAll((prev) => !prev);
   };
 
@@ -82,8 +86,11 @@ const InfoBar: React.FC<InfoBarProps> = ({
               <SheetHeader className="text-left">
                 <SheetTitle>Notifications</SheetTitle>
                 <SheetDescription>
-                  View all your notifications here.
+                  {isSubAccountUser(role)
+                    ? "Activity in your subaccount."
+                    : "View all your notifications here."}
                 </SheetDescription>
+                {/* Toggle only visible to agency admins/owners */}
                 {(role === Role.AGENCY_ADMIN ||
                   role === Role.AGENCY_OWNER) && (
                     <Card className="flex items-center justify-between p-4">
@@ -145,4 +152,3 @@ const InfoBar: React.FC<InfoBarProps> = ({
 };
 
 export default InfoBar;
-

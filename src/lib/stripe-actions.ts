@@ -151,6 +151,9 @@ export async function syncSubscriptionFromSession(
     const subscription = await stripe.subscriptions.retrieve(subscriptionId);
     const priceId = subscription.items.data[0]?.price.id || "";
     const customerId = session.customer as string;
+
+    // Keep only one active subscription for this customer to avoid double charges on upgrade.
+    await cancelOtherActiveSubscriptions(customerId, subscriptionId);
     
     // Get plan from priceId
     const planPrice = await db.planPrice.findFirst({ where: { priceId } });
@@ -205,5 +208,32 @@ export async function syncSubscriptionFromSession(
       success: false,
       error: err instanceof Error ? err.message : "Sync failed",
     };
+  }
+}
+
+async function cancelOtherActiveSubscriptions(
+  customerId: string,
+  keepSubscriptionId: string
+) {
+  if (!customerId || !keepSubscriptionId) return;
+
+  const subscriptions = await stripe.subscriptions.list({
+    customer: customerId,
+    status: "all",
+    limit: 100,
+  });
+
+  const toCancel = subscriptions.data.filter(
+    (sub) =>
+      sub.id !== keepSubscriptionId &&
+      !["canceled", "incomplete_expired"].includes(sub.status)
+  );
+
+  for (const sub of toCancel) {
+    try {
+      await stripe.subscriptions.cancel(sub.id);
+    } catch (error) {
+      console.error(`[Stripe] Failed to cancel old subscription ${sub.id}:`, error);
+    }
   }
 }

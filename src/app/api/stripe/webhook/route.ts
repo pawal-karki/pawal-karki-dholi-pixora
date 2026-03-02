@@ -70,10 +70,15 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
     if (!agencyId || !subscriptionId) return;
 
-  const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-  const plan = await getPlanFromPriceId(priceId || subscription.items.data[0]?.price.id || "");
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const periodEnd = (subscription as any).current_period_end;
+    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+    const plan = await getPlanFromPriceId(
+      priceId || subscription.items.data[0]?.price.id || ""
+    );
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const periodEnd = (subscription as any).current_period_end;
+
+    // Prevent double billing after upgrades by cancelling prior active subscriptions.
+    await cancelOtherActiveSubscriptions(customerId, subscriptionId);
 
     await db.subscription.upsert({
       where: { agencyId },
@@ -198,6 +203,36 @@ async function handlePaymentFailed(invoice: Stripe.Invoice) {
   if (!subscriptionId) return;
 
   console.error(`[Stripe] Payment failed for subscription: ${subscriptionId}`);
+}
+
+async function cancelOtherActiveSubscriptions(
+  customerId: string,
+  keepSubscriptionId: string
+) {
+  if (!customerId || !keepSubscriptionId) return;
+
+  const subscriptions = await stripe.subscriptions.list({
+    customer: customerId,
+    status: "all",
+    limit: 100,
+  });
+
+  const toCancel = subscriptions.data.filter(
+    (sub) =>
+      sub.id !== keepSubscriptionId &&
+      !["canceled", "incomplete_expired"].includes(sub.status)
+  );
+
+  for (const sub of toCancel) {
+    try {
+      await stripe.subscriptions.cancel(sub.id);
+    } catch (error) {
+      console.error(
+        `[Stripe Webhook] Failed to cancel old subscription ${sub.id}:`,
+        error
+      );
+    }
+  }
 }
 
 async function getPlanFromPriceId(priceId: string): Promise<string | null> {

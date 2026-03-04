@@ -19,6 +19,7 @@ interface Props {
   agencyId: string;
   isOwner: boolean;
   currentPlan?: string | null;
+  hasActiveSubscription?: boolean;
   planPrices: PlanPrices;
 }
 
@@ -32,9 +33,11 @@ export default function AgencySubscriptionSection({
   agencyId,
   isOwner,
   currentPlan,
+  hasActiveSubscription = false,
   planPrices,
 }: Props) {
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   const getPriceId = useCallback(
     (planTitle: string): string => {
@@ -100,12 +103,65 @@ export default function AgencySubscriptionSection({
     [agencyId, isOwner, getPriceId]
   );
 
+  const canCancelPaidPlan = useMemo(
+    () =>
+      isOwner &&
+      hasActiveSubscription &&
+      !!currentPlan &&
+      !currentPlan.toLowerCase().includes("starter"),
+    [isOwner, hasActiveSubscription, currentPlan]
+  );
+
+  const handleCancelSubscription = useCallback(async () => {
+    if (!canCancelPaidPlan) return;
+    const confirmed = window.confirm(
+      "Are you sure you want to cancel your current subscription?"
+    );
+    if (!confirmed) return;
+
+    try {
+      setIsCancelling(true);
+      const res = await fetch("/api/stripe/cancel-subscription", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ agencyId }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Failed to cancel subscription");
+      }
+
+      toast.success("Subscription will cancel at period end.");
+      window.location.reload();
+    } catch (err) {
+      toast.error("Cancellation failed", {
+        description: err instanceof Error ? err.message : "Unknown error",
+      });
+    } finally {
+      setIsCancelling(false);
+    }
+  }, [agencyId, canCancelPaidPlan]);
+
   return (
     <div className="flex flex-col gap-6">
       {!isOwner && (
         <p className="text-sm text-muted-foreground">
           Only the agency owner can manage subscriptions.
         </p>
+      )}
+
+      {canCancelPaidPlan && (
+        <div className="flex items-center justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={isCancelling}
+            onClick={handleCancelSubscription}
+          >
+            {isCancelling ? "Cancelling..." : "Cancel Current Subscription"}
+          </Button>
+        </div>
       )}
 
       <div className="grid gap-4 md:grid-cols-3">

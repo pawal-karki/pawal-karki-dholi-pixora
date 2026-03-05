@@ -128,3 +128,28 @@ export async function getAgencyUsageStats(agencyId: string) {
     },
   };
 }
+
+/**
+ * Whether subaccount access should be blocked due to an ended/cancelled subscription.
+ * Access is allowed during the paid period and blocked only after period end.
+ */
+export async function isSubscriptionRequiredForSubaccountAccess(
+  agencyId: string
+): Promise<boolean> {
+  const subscription = await db.subscription.findUnique({
+    where: { agencyId },
+  });
+
+  // No subscription record means starter/free flow.
+  if (!subscription) return false;
+
+  // Active subscriptions are always allowed.
+  if (subscription.active) return false;
+
+  // Keep access until billing period end.
+  const now = new Date();
+  if (subscription.currentPeriodEndDate > now) return false;
+
+  // Subscription has ended and is inactive.
+  return true;
+}

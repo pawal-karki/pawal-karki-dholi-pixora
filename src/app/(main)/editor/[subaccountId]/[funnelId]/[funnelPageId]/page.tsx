@@ -1,7 +1,8 @@
 import React from "react";
 import { redirect } from "next/navigation";
 import { constructMetadata } from "@/lib/utils";
-import { getFunnelPageDetails } from "@/lib/queries";
+import { getFunnelPageDetails, getSubAccountDetails } from "@/lib/queries";
+import { isSubscriptionRequiredForSubaccountAccess } from "@/lib/plan-limits";
 
 import EditorProvider from "@/providers/editor/editor-provider";
 import FunnelEditorNavigation from "@/components/modules/editor/FunnelEditorNavigation";
@@ -25,6 +26,18 @@ const FunnelIdEditorPage = async ({
     if (!subaccountId) redirect("/subaccount/unauthorized");
     if (!funnelId || !funnelPageId) {
         redirect(`/subaccount/${subaccountId}/funnels`);
+    }
+
+    const subAccountDetails = await getSubAccountDetails(subaccountId);
+    if (!subAccountDetails) {
+        redirect("/subaccount/unauthorized");
+    }
+
+    const subscriptionRequired = await isSubscriptionRequiredForSubaccountAccess(
+        subAccountDetails.agencyId
+    );
+    if (subscriptionRequired) {
+        redirect(`/agency/${subAccountDetails.agencyId}/billing?subscription_required=true`);
     }
 
     const funnelPageDetails = await getFunnelPageDetails(funnelPageId);

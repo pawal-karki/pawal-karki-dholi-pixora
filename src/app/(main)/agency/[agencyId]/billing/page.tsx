@@ -24,12 +24,17 @@ import { AutoDismissAlert } from "@/components/ui/auto-dismiss-alert";
 
 interface BillingPageProps {
   params: Promise<{ agencyId: string | undefined }>;
-  searchParams: Promise<{ success?: string; canceled?: string; session_id?: string }>;
+  searchParams: Promise<{
+    success?: string;
+    canceled?: string;
+    session_id?: string;
+    subscription_required?: string;
+  }>;
 }
 
 export default async function BillingPage({ params, searchParams }: BillingPageProps) {
   const { agencyId } = await params;
-  const { success, canceled, session_id } = await searchParams;
+  const { success, canceled, session_id, subscription_required } = await searchParams;
 
   if (!agencyId) redirect("/agency/unauthorized");
 
@@ -95,6 +100,15 @@ export default async function BillingPage({ params, searchParams }: BillingPageP
           title="Checkout Canceled"
           description="Your checkout was canceled. You can try again anytime."
           duration={5000}
+        />
+      )}
+
+      {subscription_required === "true" && (
+        <AutoDismissAlert
+          type="warning"
+          title="Subscription Required"
+          description="Your subscription period has ended. Renew a paid plan to access subaccounts."
+          duration={7000}
         />
       )}
 
@@ -213,6 +227,7 @@ export default async function BillingPage({ params, searchParams }: BillingPageP
         agencyId={agencyId}
         isOwner={isOwner}
         currentPlan={currentPlan}
+        hasActiveSubscription={isActive}
         planPrices={planPrices}
       />
     </div>

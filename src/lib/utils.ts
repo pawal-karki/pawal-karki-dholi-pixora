@@ -64,8 +64,13 @@ export function constructMetadata({
 }
 
 export const formatPrice = (price: number) => {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(price)
+  // Display monetary values in Nepali Rupees with an "Rs" prefix.
+  if (isNaN(price)) return "Rs 0";
+
+  const formatted = price.toLocaleString("en-NP", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  });
+
+  return `Rs ${formatted}`;
 }

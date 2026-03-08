@@ -67,20 +67,51 @@ const FunnelEditor: React.FC<FunnelEditorProps> = ({
     "--text": globalStyles?.colors?.text || "#000000",
   } as React.CSSProperties;
 
+  const device = editor.editor.device;
+  const isLive = editor.editor.liveMode;
+  const mobileNavOpen = editor.editor.mobileNavOpen;
+
   return (
     <div
+      data-device={isLive ? undefined : device}
+      data-mobile-nav-open={mobileNavOpen ? "true" : undefined}
       style={cssVars}
       className={cn(
-        "h-screen overflow-y-hidden overflow-x-hidden ml-[320px] mr-[320px] z-[999999] bg-white scrollbar scrollbar-thumb-muted-foreground/20 scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar-medium transition-all duration-300",
+        "@container h-screen overflow-y-hidden overflow-x-hidden ml-[320px] mr-[320px] z-[20] bg-white scrollbar scrollbar-thumb-muted-foreground/20 scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar-medium transition-all duration-300",
         {
           "ml-0 mr-0 p-0": editor.editor.previewMode || editor.editor.liveMode,
-          "!w-[850px] mx-auto": editor.editor.device === "Tablet" && !editor.editor.previewMode,
-          "!w-[420px] mx-auto": editor.editor.device === "Mobile" && !editor.editor.previewMode,
+          "!w-[850px] mx-auto": device === "Tablet" && !editor.editor.previewMode,
+          "!w-[420px] mx-auto": device === "Mobile" && !editor.editor.previewMode,
           "pb-[100px] use-automation-zoom-in": !editor.editor.previewMode && !editor.editor.liveMode,
         }
       )}
       onClick={handleClickElement}
     >
+      <style dangerouslySetInnerHTML={{ __html: `
+        /* Live site: respond to actual viewport width */
+        @media (max-width: 768px) {
+          .nav-desktop-only { display: none !important; }
+          .nav-mobile-only { display: flex !important; }
+          .nav-mobile-panel { display: none !important; }
+          [data-mobile-nav-open="true"] .nav-mobile-panel { display: flex !important; }
+        }
+        @media (min-width: 769px) {
+          .nav-desktop-only { display: flex !important; }
+          .nav-mobile-only { display: none !important; }
+        }
+        /* Editor: override with device selector (higher specificity when data-device is set) */
+        [data-device="Mobile"] .nav-desktop-only { display: none !important; }
+        [data-device="Mobile"] .nav-mobile-only { display: flex !important; }
+        [data-device="Mobile"] .nav-mobile-panel { display: none !important; }
+        [data-device="Mobile"][data-mobile-nav-open="true"] .nav-mobile-panel { display: flex !important; }
+        [data-device="Tablet"] .nav-desktop-only,
+        [data-device="Desktop"] .nav-desktop-only { display: flex !important; }
+        [data-device="Tablet"] .nav-mobile-only,
+        [data-device="Desktop"] .nav-mobile-only { display: none !important; }
+        /* Editor mobile: panel hidden until hamburger clicked */
+        [data-device="Mobile"] .nav-mobile-panel { display: none !important; }
+        [data-device="Mobile"][data-mobile-nav-open="true"] .nav-mobile-panel { display: flex !important; }
+      ` }} />
       {editor.editor.previewMode && editor.editor.liveMode && (
         <Button
           variant="outline"

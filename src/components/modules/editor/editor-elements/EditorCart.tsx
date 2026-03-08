@@ -56,6 +56,14 @@ export const EditorCart: React.FC<EditorCartProps> = ({ element }) => {
         });
     };
 
+    const handleDragStart = (e: React.DragEvent) => {
+        if (editor.liveMode) return;
+        e.dataTransfer.setData("elementId", element.id);
+        e.dataTransfer.setData("componentType", element.type || "");
+        e.dataTransfer.effectAllowed = "move";
+        e.stopPropagation();
+    };
+
     const formatPrice = (price: number, currency: string = "NPR") => {
         return `${currency} ${price.toLocaleString()}`;
     };
@@ -137,6 +145,8 @@ export const EditorCart: React.FC<EditorCartProps> = ({ element }) => {
     return (
         <div
             style={element.styles}
+            draggable={!editor.liveMode}
+            onDragStart={handleDragStart}
             onClick={handleOnClickBody}
             className={cn(
                 "relative w-full transition-all",

@@ -14,6 +14,7 @@ import {
   SaasPricingPlaceholder,
   SaasProductsPlaceholder,
   ShopSectionPlaceholder,
+  AboutStoryPlaceholder,
   ProductPlaceholder,
   ProductGridPlaceholder,
   CartPlaceholder,
@@ -140,6 +141,12 @@ export const TEMPLATE_SECTION_PLACEHOLDERS: ComponentElement[] = [
     placeholder: <ShopSectionPlaceholder />,
     label: "Shop Page",
     id: "template__shop_section",
+    group: "templates",
+  },
+  {
+    placeholder: <AboutStoryPlaceholder />,
+    label: "About Story",
+    id: "template__about_story",
     group: "templates",
   },
 ];

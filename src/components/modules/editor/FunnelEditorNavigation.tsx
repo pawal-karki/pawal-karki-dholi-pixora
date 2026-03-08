@@ -201,8 +201,14 @@ const FunnelEditorNavigation: React.FC<FunnelEditorNavigationProps> = ({
         target.isContentEditable;
 
       if (!isInput && editor.editor.selectedElement.id) {
-        // Prevent default only if we are actually deleting something to avoid navigating back
+        // Prevent browser back navigation for backspace in editor canvas.
         event.preventDefault();
+
+        // Never allow keyboard delete of the root canvas element.
+        if (editor.editor.selectedElement.type === "__body") {
+          return;
+        }
+
         dispatch({
           type: "DELETE_ELEMENT",
           payload: {
@@ -241,13 +247,14 @@ const FunnelEditorNavigation: React.FC<FunnelEditorNavigationProps> = ({
                 defaultValue={funnelPageDetails.name}
                 onBlur={handleBlurTitleChange}
                 className="border-none h-7 m-0 p-0 text-lg font-medium rounded-sm"
+                suppressHydrationWarning
               />
             </div>
             <div className="text-sm text-muted-foreground">
               Path: /{funnelPageDetails.pathName}
             </div>
 
-            <span className="text-muted-foreground text-xs inline-flex items-center gap-1 mt-1">
+            <span className="text-muted-foreground text-xs inline-flex items-center gap-1 mt-1" suppressHydrationWarning>
               <Clock className="w-3 h-3" />
               {format(
                 new Date(funnelPageDetails.updatedAt),
@@ -341,7 +348,7 @@ const FunnelEditorNavigation: React.FC<FunnelEditorNavigationProps> = ({
               <p className="inline-flex items-center gap-2">
                 Preview{" "}
                 <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-                  <div className="text-xs">⌘</div>P
+                  <span className="text-xs">⌘</span>P
                 </kbd>
               </p>
             </TooltipContent>
@@ -361,7 +368,7 @@ const FunnelEditorNavigation: React.FC<FunnelEditorNavigationProps> = ({
               <p className="inline-flex items-center gap-2">
                 Undo{" "}
                 <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-                  <div className="text-xs">⌘</div>Z
+                  <span className="text-xs">⌘</span>Z
                 </kbd>
               </p>
             </TooltipContent>
@@ -385,7 +392,7 @@ const FunnelEditorNavigation: React.FC<FunnelEditorNavigationProps> = ({
               <p className="inline-flex items-center gap-2">
                 Redo{" "}
                 <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-                  <div className="text-xs">⌘</div>Y
+                  <span className="text-xs">⌘</span>Y
                 </kbd>
               </p>
             </TooltipContent>

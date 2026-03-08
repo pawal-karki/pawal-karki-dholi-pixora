@@ -1,6 +1,7 @@
 import React from "react";
 import {
     AppWindow,
+    ImageIcon,
     PanelBottom,
     ShoppingBag,
     Store,
@@ -10,7 +11,8 @@ type TemplateType =
     | "template__modern_navbar"
     | "template__modern_footer"
     | "template__modern_products"
-    | "template__shop_section";
+    | "template__shop_section"
+    | "template__about_story";
 
 interface TemplatePlaceholderProps {
     type: TemplateType;
@@ -66,6 +68,14 @@ export const ShopSectionPlaceholder: React.FC = () => (
         type="template__shop_section"
         icon={<Store className="w-5 h-5" />}
         label="Shop Page"
+    />
+);
+
+export const AboutStoryPlaceholder: React.FC = () => (
+    <TemplatePlaceholder
+        type="template__about_story"
+        icon={<ImageIcon className="w-5 h-5" />}
+        label="About Story"
     />
 );
 

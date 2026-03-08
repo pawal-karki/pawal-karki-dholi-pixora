@@ -38,6 +38,14 @@ const EditorCustomHtml: React.FC<EditorCustomHtmlProps> = ({ element }) => {
         });
     };
 
+    const handleDragStart = (e: React.DragEvent) => {
+        if (isLive) return;
+        e.dataTransfer.setData("elementId", element.id);
+        e.dataTransfer.setData("componentType", element.type || "");
+        e.dataTransfer.effectAllowed = "move";
+        e.stopPropagation();
+    };
+
     // Build a scoped style tag + markup inside a shadow-like wrapper
     const scopedId = `html-block-${id}`;
     const scopedCss = cssContent
@@ -55,8 +63,11 @@ const EditorCustomHtml: React.FC<EditorCustomHtmlProps> = ({ element }) => {
         <div
             id={scopedId}
             style={styles}
+            draggable={!isLive}
+            onDragStart={handleDragStart}
             className={cn(
-                "relative w-full group transition-all",
+                "relative group transition-all",
+                !styles.width && "w-full",
                 {
                     "outline outline-2 outline-blue-500 outline-offset-1":
                         isSelected && !isLive && element.type !== "__body",
@@ -77,15 +88,14 @@ const EditorCustomHtml: React.FC<EditorCustomHtmlProps> = ({ element }) => {
                 </Badge>
             )}
 
-            {/* Inject scoped CSS */}
             {scopedCss && (
                 <style
                     dangerouslySetInnerHTML={{ __html: scopedCss }}
                 />
             )}
 
-            {/* Render the raw HTML */}
             <div
+                style={{ color: "inherit" }}
                 dangerouslySetInnerHTML={{ __html: htmlContent }}
             />
 

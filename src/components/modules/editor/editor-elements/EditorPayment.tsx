@@ -156,6 +156,14 @@ const EditorPayment: React.FC<EditorPaymentProps> = ({ element }) => {
     });
   };
 
+  const handleDragStart = (e: React.DragEvent) => {
+    if (editor.liveMode) return;
+    e.dataTransfer.setData("elementId", element.id);
+    e.dataTransfer.setData("componentType", element.type || "");
+    e.dataTransfer.effectAllowed = "move";
+    e.stopPropagation();
+  };
+
   const handleDeleteElement = () => {
     dispatch({
       type: "DELETE_ELEMENT",
@@ -303,7 +311,8 @@ const EditorPayment: React.FC<EditorPaymentProps> = ({ element }) => {
   return (
     <div
       style={element.styles}
-      draggable
+      draggable={!editor.liveMode}
+      onDragStart={handleDragStart}
       onClick={handleOnClickBody}
       className={cn(
         "p-0.5 w-full m-1 relative text-base min-h-7 transition-all underline-offset-4 flex items-center justify-center",

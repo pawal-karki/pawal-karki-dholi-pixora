@@ -14,6 +14,7 @@ import {
     createTeamCards,
     createFaqSection,
     createStatsRow,
+    createAboutStorySection,
 } from "./templates/sections";
 
 
@@ -338,7 +339,7 @@ export const createShopSection = (
                         textTransform: "uppercase",
                         letterSpacing: "1px",
                     },
-                    content: { innerText: "🛍️ Shop" },
+                    content: { innerText: "Shop" },
                 },
                 {
                     id: genId(),
@@ -448,4 +449,5 @@ export const TEMPLATE_GENERATORS: Record<
     template__team_cards: createTeamCards,
     template__faq_section: createFaqSection,
     template__stats_row: createStatsRow,
+    template__about_story: createAboutStorySection,
 };

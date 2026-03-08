@@ -6,6 +6,7 @@ interface ThreeColumnsPlaceholderProps {}
 const ThreeColumnsPlaceholder: React.FC<ThreeColumnsPlaceholderProps> = ({}) => {
   const handleDragState = (e: React.DragEvent) => {
     e.dataTransfer.setData("componentType", "3Col");
+    e.dataTransfer.setData("layout-component", "true");
   };
 
   return (

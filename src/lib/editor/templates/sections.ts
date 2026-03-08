@@ -107,7 +107,7 @@ export const createHeroGradient = (device: DeviceTypes = "Desktop"): EditorEleme
                 fontWeight: "700",
                 backdropFilter: "blur(8px)",
                 display: "inline-block",
-            }, "", "✨ New – Just Launched"),
+            }, "", "◆ New – Just Launched"),
             text("Hero Title", {
                 fontSize: r(device, "36px", "52px", "72px"),
                 fontWeight: "900",
@@ -163,7 +163,7 @@ export const createHeroGradient = (device: DeviceTypes = "Desktop"): EditorEleme
             text("Social Proof", {
                 color: "rgba(255,255,255,0.65)",
                 fontSize: r(device, "13px", "13px", "14px"),
-            }, "", "Trusted by 10,000+ teams worldwide 🌍"),
+            }, "", "Trusted by 10,000+ teams worldwide"),
         ]),
     ]);
 
@@ -196,7 +196,7 @@ export const createHeroDark = (device: DeviceTypes = "Desktop"): EditorElement =
                 fontSize: r(device, "12px", "12px", "13px"),
                 fontWeight: "600",
                 display: "inline-block",
-            }, "", "🚀 v2.0 Just Launched"),
+            }, "", "→ v2.0 Just Launched"),
             text("Dark Title", {
                 fontSize: r(device, "38px", "58px", "80px"),
                 fontWeight: "900",
@@ -244,12 +244,12 @@ export const createHeroDark = (device: DeviceTypes = "Desktop"): EditorElement =
 // ─── 3. FEATURES GRID ────────────────────────────────────────────────────────
 
 const FEATURES = [
-    { icon: "⚡", title: "Lightning Fast", desc: "Optimized for speed with sub-second load times and a perfect Lighthouse score." },
-    { icon: "🛡️", title: "Secure by Default", desc: "Enterprise-grade security with SSL, DDoS protection, and daily backups." },
-    { icon: "🎨", title: "Beautiful Design", desc: "Stunning UI components crafted by world-class designers and ready to use." },
-    { icon: "📱", title: "Fully Responsive", desc: "Every component adapts perfectly to any screen size, from mobile to 4K." },
-    { icon: "🔌", title: "Easy Integrations", desc: "Connect to 1000+ apps including Stripe, Notion, and Hubspot with one click." },
-    { icon: "📊", title: "Advanced Analytics", desc: "Deep insights into your visitors, conversions, and revenue in one dashboard." },
+    { icon: "⚡", title: "Lightning Fast", desc: "Optimized for speed with sub-second load times and a perfect Lighthouse score.", gradient: "linear-gradient(135deg,#f59e0b,#f97316)" },
+    { icon: "◈", title: "Secure by Default", desc: "Enterprise-grade security with SSL, DDoS protection, and daily backups.", gradient: "linear-gradient(135deg,#6366f1,#8b5cf6)" },
+    { icon: "◆", title: "Beautiful Design", desc: "Stunning UI components crafted by world-class designers and ready to use.", gradient: "linear-gradient(135deg,#ec4899,#f43f5e)" },
+    { icon: "▣", title: "Fully Responsive", desc: "Every component adapts perfectly to any screen size, from mobile to 4K.", gradient: "linear-gradient(135deg,#10b981,#06b6d4)" },
+    { icon: "⊕", title: "Easy Integrations", desc: "Connect to 1000+ apps including Stripe, Notion, and Hubspot with one click.", gradient: "linear-gradient(135deg,#8b5cf6,#d946ef)" },
+    { icon: "⊞", title: "Advanced Analytics", desc: "Deep insights into your visitors, conversions, and revenue in one dashboard.", gradient: "linear-gradient(135deg,#0ea5e9,#6366f1)" },
 ];
 
 export const createFeaturesGrid = (device: DeviceTypes = "Desktop"): EditorElement =>
@@ -277,7 +277,17 @@ export const createFeaturesGrid = (device: DeviceTypes = "Desktop"): EditorEleme
                 gap: "12px",
                 transition: TOKENS.transition,
             }, "", [
-                text(`Feature Icon ${i + 1}`, { fontSize: r(device, "28px", "30px", "32px") }, "", f.icon),
+                text(`Feature Icon ${i + 1}`, {
+                    width: r(device, "42px", "44px", "48px"),
+                    height: r(device, "42px", "44px", "48px"),
+                    borderRadius: "12px",
+                    background: f.gradient,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: r(device, "18px", "20px", "22px"),
+                    color: "#fff",
+                }, "", f.icon),
                 text(`Feature Title ${i + 1}`, { fontSize: r(device, "16px", "17px", "18px"), fontWeight: "700", color: TOKENS.text }, "", f.title),
                 text(`Feature Desc ${i + 1}`, { fontSize: r(device, "13px", "14px", "15px"), color: TOKENS.muted, lineHeight: "1.6" }, "", f.desc),
             ])
@@ -338,7 +348,7 @@ export const createPricingTable = (device: DeviceTypes = "Desktop"): EditorEleme
                 container(`Plan Features ${i + 1}`, {
                     display: "flex", flexDirection: "column", gap: "8px", marginTop: "8px", marginBottom: "8px",
                 }, "", plan.features.map((f, j) =>
-                    text(`Feature ${i}-${j}`, { fontSize: r(device, "13px", "13px", "14px"), color: TOKENS.text }, "", `✅ ${f}`)
+                    text(`Feature ${i}-${j}`, { fontSize: r(device, "13px", "13px", "14px"), color: TOKENS.text, display: "flex", alignItems: "center", gap: "6px" }, "", `✓ ${f}`)
                 )),
                 link(`Plan CTA ${i + 1}`, {
                     background: plan.popular ? "linear-gradient(135deg,#6366f1,#8b5cf6)" : "transparent",
@@ -610,5 +620,181 @@ export const createStatsRow = (device: DeviceTypes = "Desktop"): EditorElement =
                     text(`Stat Label ${i + 1}`, { fontSize: r(device, "12px", "13px", "14px"), color: "rgba(255,255,255,0.75)", lineHeight: "1.4" }, "", label),
                 ]);
             })),
+        ]),
+    ]);
+
+// ─── 10. ABOUT STORY + IMAGE PLACEHOLDERS ─────────────────────────────────────
+
+export const createAboutStorySection = (
+    device: DeviceTypes = "Desktop"
+): EditorElement =>
+    section("About Story", {
+        background: TOKENS.bgGradient,
+        padding: r(device, "80px 20px", "100px 32px", "120px 40px"),
+    }, "", [
+        container("About Wrapper", {
+            maxWidth: "1120px",
+            margin: "0 auto",
+            width: "100%",
+            display: "flex",
+            flexDirection: "column",
+            gap: r(device, "28px", "34px", "40px"),
+        }, "", [
+            container("About Header", {
+                textAlign: "center",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: r(device, "14px", "16px", "18px"),
+            }, "", [
+                badge(device, "About us"),
+                heading(device, "Built by makers for modern SaaS teams"),
+                subheading(
+                    device,
+                    "Share your mission, team story, and product philosophy with structured content and image placeholders."
+                ),
+            ]),
+            container("About Layout", {
+                display: "grid",
+                gridTemplateColumns: r(device, "1fr", "1fr", "1.05fr 1fr"),
+                gap: r(device, "16px", "20px", "24px"),
+                alignItems: "stretch",
+                width: "100%",
+            }, "", [
+                container("Image Placeholders Column", {
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "16px",
+                    minWidth: "0",
+                }, "", [
+                    container("About Hero Image Placeholder", {
+                        background: "linear-gradient(135deg,#e2e8f0,#f8fafc)",
+                        border: "1.5px dashed #cbd5e1",
+                        borderRadius: TOKENS.radiusLg,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: TOKENS.muted,
+                        fontWeight: "600",
+                        fontSize: r(device, "13px", "13px", "14px"),
+                        minHeight: r(device, "220px", "260px", "300px"),
+                        width: "100%",
+                    }, "", [
+                        text("About Hero Placeholder Label", {
+                            color: TOKENS.muted,
+                            fontWeight: "600",
+                            fontSize: r(device, "13px", "13px", "14px"),
+                        }, "", "Image Placeholder 16:9"),
+                    ]),
+                    container("About Secondary Image Placeholder", {
+                        background: "linear-gradient(135deg,#f1f5f9,#ffffff)",
+                        border: "1.5px dashed #cbd5e1",
+                        borderRadius: TOKENS.radiusMd,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: TOKENS.muted,
+                        fontWeight: "600",
+                        fontSize: r(device, "12px", "13px", "13px"),
+                        minHeight: r(device, "160px", "180px", "200px"),
+                        width: "100%",
+                    }, "", [
+                        text("About Secondary Placeholder Label", {
+                            color: TOKENS.muted,
+                            fontWeight: "600",
+                            fontSize: r(device, "12px", "13px", "13px"),
+                        }, "", "Secondary Image Placeholder"),
+                    ]),
+                ]),
+                container("About Story Card", {
+                    background: TOKENS.surface,
+                    border: TOKENS.border,
+                    borderRadius: TOKENS.radiusLg,
+                    boxShadow: TOKENS.shadowCard,
+                    padding: r(device, "24px 20px", "28px 24px", "32px 28px"),
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: r(device, "12px", "14px", "16px"),
+                    minWidth: "0",
+                }, "", [
+                    text("About Story Heading", {
+                        fontSize: r(device, "22px", "24px", "26px"),
+                        fontWeight: "700",
+                        color: TOKENS.text,
+                        letterSpacing: "-0.02em",
+                    }, "", "Our Story"),
+                    text("About Story Paragraph One", {
+                        fontSize: r(device, "14px", "15px", "15px"),
+                        color: TOKENS.muted,
+                        lineHeight: "1.8",
+                    }, "", "We started with one goal: help teams design polished SaaS pages quickly while keeping full editing control over every section and style."),
+                    text("About Story Paragraph Two", {
+                        fontSize: r(device, "14px", "15px", "15px"),
+                        color: TOKENS.muted,
+                        lineHeight: "1.8",
+                    }, "", "Use this section for product story, founder note, hiring message, or company timeline. Replace placeholders with screenshots or team photos."),
+                    container("About Stats", {
+                        display: "grid",
+                        gridTemplateColumns: r(device, "1fr 1fr", "1fr 1fr 1fr", "1fr 1fr 1fr"),
+                        gap: "12px",
+                        marginTop: "6px",
+                    }, "", [
+                        container("About Stat One", {
+                            border: TOKENS.border,
+                            borderRadius: TOKENS.radiusSm,
+                            padding: "12px 10px",
+                            textAlign: "center",
+                            background: TOKENS.surfaceMuted,
+                        }, "", [
+                            text("About Stat One Value", {
+                                fontSize: r(device, "19px", "20px", "22px"),
+                                fontWeight: "800",
+                                color: TOKENS.accent,
+                            }, "", "10K+"),
+                            text("About Stat One Label", {
+                                fontSize: "11px",
+                                color: TOKENS.muted,
+                                marginTop: "4px",
+                            }, "", "Active teams"),
+                        ]),
+                        container("About Stat Two", {
+                            border: TOKENS.border,
+                            borderRadius: TOKENS.radiusSm,
+                            padding: "12px 10px",
+                            textAlign: "center",
+                            background: TOKENS.surfaceMuted,
+                        }, "", [
+                            text("About Stat Two Value", {
+                                fontSize: r(device, "19px", "20px", "22px"),
+                                fontWeight: "800",
+                                color: TOKENS.accent,
+                            }, "", "120M"),
+                            text("About Stat Two Label", {
+                                fontSize: "11px",
+                                color: TOKENS.muted,
+                                marginTop: "4px",
+                            }, "", "Monthly views"),
+                        ]),
+                        container("About Stat Three", {
+                            border: TOKENS.border,
+                            borderRadius: TOKENS.radiusSm,
+                            padding: "12px 10px",
+                            textAlign: "center",
+                            background: TOKENS.surfaceMuted,
+                        }, "", [
+                            text("About Stat Three Value", {
+                                fontSize: r(device, "19px", "20px", "22px"),
+                                fontWeight: "800",
+                                color: TOKENS.accent,
+                            }, "", "99.9%"),
+                            text("About Stat Three Label", {
+                                fontSize: "11px",
+                                color: TOKENS.muted,
+                                marginTop: "4px",
+                            }, "", "Uptime"),
+                        ]),
+                    ]),
+                ]),
+            ]),
         ]),
     ]);

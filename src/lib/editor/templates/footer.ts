@@ -9,7 +9,7 @@ export const createSaasFooter = (
         "Modern Footer",
         {
             padding: r(device, "60px 20px 30px", "80px 40px 40px", "100px 48px 50px"),
-            background: TOKENS.darkBg,
+            backgroundColor: TOKENS.darkBg,
             backgroundImage: `radial-gradient(circle at 50% 0%, ${TOKENS.accentLight} 0%, transparent 50%)`,
             display: "flex",
             flexDirection: "column",
@@ -103,9 +103,9 @@ export const createSaasFooter = (
                                 [
                                     ...[
                                         { name: "Twitter", emoji: "𝕏" },
-                                        { name: "Instagram", emoji: "📷" },
+                                        { name: "Instagram", emoji: "◎" },
                                         { name: "LinkedIn", emoji: "in" },
-                                        { name: "Github", emoji: "⚡" }
+                                        { name: "Github", emoji: "⌘" }
                                     ].map(social =>
                                         link(
                                             social.name,

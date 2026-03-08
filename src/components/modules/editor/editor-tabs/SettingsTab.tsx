@@ -612,17 +612,33 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ }) => {
               <Label>Background Color</Label>
               <ColorPicker
                 value={
-                  (editor.editor.selectedElement.styles.background as string) || ""
+                  (editor.editor.selectedElement.styles.backgroundColor ??
+                    editor.editor.selectedElement.styles.background as string) || ""
                 }
                 className="w-[274px]"
-                onChange={(e) =>
-                  handleOnChanges({
-                    target: {
-                      id: "background",
-                      value: e,
+                onChange={(e) => {
+                  const isGradient = /gradient/i.test(e);
+                  const {
+                    background: _bg,
+                    backgroundColor: _bgc,
+                    backgroundImage: _bgi,
+                    ...rest
+                  } = editor.editor.selectedElement.styles;
+                  dispatch({
+                    type: "UPDATE_ELEMENT",
+                    payload: {
+                      elementDetails: {
+                        ...editor.editor.selectedElement,
+                        styles: {
+                          ...rest,
+                          ...(isGradient
+                            ? { background: e }
+                            : { backgroundColor: e }),
+                        },
+                      },
                     },
-                  })
-                }
+                  });
+                }}
               />
             </div>
             <div className="flex flex-col gap-2">

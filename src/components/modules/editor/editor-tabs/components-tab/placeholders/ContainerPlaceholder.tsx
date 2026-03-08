@@ -6,6 +6,7 @@ interface ContainerPlaceholderProps {}
 const ContainerPlaceholder: React.FC<ContainerPlaceholderProps> = ({}) => {
   const handleDragStart = (event: React.DragEvent) => {
     event.dataTransfer.setData("componentType", "container");
+    event.dataTransfer.setData("layout-component", "true");
   };
 
   return (

@@ -96,6 +96,14 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ element }) => {
     });
   };
 
+  const handleDragStart = (e: React.DragEvent) => {
+    if (editor.liveMode) return;
+    e.dataTransfer.setData("elementId", element.id);
+    e.dataTransfer.setData("componentType", element.type || "");
+    e.dataTransfer.effectAllowed = "move";
+    e.stopPropagation();
+  };
+
   const handleAddToCart = (product: Product) => {
     if (!cart || !agencyId) {
       toast.error("Cannot add to cart", {
@@ -132,6 +140,8 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ element }) => {
   return (
     <div
       style={element.styles}
+      draggable={!editor.liveMode}
+      onDragStart={handleDragStart}
       onClick={handleSelect}
       className={cn("relative w-full", {
         "border border-dashed p-4": !editor.liveMode,

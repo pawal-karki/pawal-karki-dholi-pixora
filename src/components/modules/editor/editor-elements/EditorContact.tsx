@@ -66,6 +66,14 @@ const EditorContact: React.FC<EditorContactForm> = ({ element }) => {
     });
   };
 
+  const handleDragStart = (e: React.DragEvent) => {
+    if (editor.liveMode) return;
+    e.dataTransfer.setData("elementId", element.id);
+    e.dataTransfer.setData("componentType", element.type || "");
+    e.dataTransfer.effectAllowed = "move";
+    e.stopPropagation();
+  };
+
   const onFormSubmit = async (values: ContactDetailsSchema) => {
     if (editor.liveMode || editor.previewMode) {
       try {
@@ -96,6 +104,8 @@ const EditorContact: React.FC<EditorContactForm> = ({ element }) => {
 
   return (
     <div
+      draggable={!editor.liveMode}
+      onDragStart={handleDragStart}
       onClick={handleOnClickBody}
       className={cn(
         "p-[2px] w-full m-[5px] relative text-[16px] transition-all flex items-center justify-center",

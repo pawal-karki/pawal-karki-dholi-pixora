@@ -30,6 +30,7 @@ export type Editor = {
     selectedElement: EditorElement;
     device: DeviceTypes;
     previewMode: boolean;
+    mobileNavOpen: boolean;
     globalStyles: GlobalStyles;
 };
 
@@ -82,6 +83,14 @@ export type EditorAction =
         };
     }
     | {
+        type: "MOVE_ELEMENT";
+        payload: {
+            elementId: string;
+            newContainerId: string;
+            index: number;
+        };
+    }
+    | {
         type: "CHANGE_CLICKED_ELEMENT";
         payload: {
             elementDetails?:
@@ -101,6 +110,7 @@ export type EditorAction =
             device: DeviceTypes;
         };
     }
+    | { type: "TOGGLE_MOBILE_NAV" }
     | {
         type: "TOGGLE_PREVIEW_MODE";
     }

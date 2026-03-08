@@ -37,16 +37,29 @@ const EditorImage: React.FC<EditorImageProps> = ({ element }) => {
     });
   };
 
+  const handleDragStart = (e: React.DragEvent) => {
+    if (editor.liveMode) return;
+    e.dataTransfer.setData("elementId", element.id);
+    e.dataTransfer.setData("componentType", element.type || "");
+    e.dataTransfer.effectAllowed = "move";
+    e.stopPropagation();
+  };
+
   return (
     <div
       style={element.styles}
       draggable={!editor.liveMode}
+      onDragStart={handleDragStart}
       onClick={handleOnClickBody}
-      className={cn("relative p-0.5 min-w-12 min-h-7 flex items-center justify-center", element.className, {
-        "border-blue-500 border-solid":
-          editor.selectedElement.id === element.id,
-        "border-dashed border": !editor.liveMode,
-      })}
+      className={cn(
+        "relative p-0.5 min-w-12 min-h-7 flex items-center justify-center",
+        element.className,
+        {
+          "border-blue-500 border-solid":
+            editor.selectedElement.id === element.id,
+          "border-dashed border": !editor.liveMode,
+        },
+      )}
     >
       {editor.selectedElement.id === element.id && !editor.liveMode && (
         <Badge className="absolute -top-6 -left-0.5 rounded-none rounded-t-md bg-emerald-500 text-white">

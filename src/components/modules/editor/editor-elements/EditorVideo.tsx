@@ -35,10 +35,19 @@ const EditorVideo: React.FC<EditorVideoProps> = ({ element }) => {
     });
   };
 
+  const handleDragStart = (e: React.DragEvent) => {
+    if (editor.liveMode) return;
+    e.dataTransfer.setData("elementId", element.id);
+    e.dataTransfer.setData("componentType", element.type || "");
+    e.dataTransfer.effectAllowed = "move";
+    e.stopPropagation();
+  };
+
   return (
     <div
       style={element.styles}
-      draggable
+      draggable={!editor.liveMode}
+      onDragStart={handleDragStart}
       onClick={handleClickOnBody}
       className={cn(
         "p-1 w-full m-1 relative text-base transition-all flex items-center justify-center",

@@ -18,6 +18,7 @@ import {
   SaasPricingPlaceholder,
   SaasProductsPlaceholder,
   ShopSectionPlaceholder,
+  AboutStoryPlaceholder,
 } from "./TemplatePlaceholder";
 
 export {
@@ -39,5 +40,6 @@ export {
   SaasPricingPlaceholder,
   SaasProductsPlaceholder,
   ShopSectionPlaceholder,
+  AboutStoryPlaceholder,
   CustomHtmlPlaceholder,
 };

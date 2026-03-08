@@ -40,6 +40,14 @@ const EditorText: React.FC<EditorTextProps> = ({ element }) => {
     });
   };
 
+  const handleDragStart = (e: React.DragEvent) => {
+    if (editor.liveMode) return;
+    e.dataTransfer.setData("elementId", element.id);
+    e.dataTransfer.setData("componentType", element.type || "");
+    e.dataTransfer.effectAllowed = "move";
+    e.stopPropagation();
+  };
+
   const onKeyDown = (event: React.KeyboardEvent) => {
     formatTextOnKeyboard(event, editor, dispatch);
   };
@@ -59,15 +67,20 @@ const EditorText: React.FC<EditorTextProps> = ({ element }) => {
   return (
     <div
       className={cn(
-        "p-0.5 w-full m-1 relative text-base min-h-7 transition-all cursor-text",
+        "p-0.5 relative text-base transition-all cursor-text",
+        !element.styles.width && "w-full",
+        !element.styles.margin && !element.styles.marginLeft && "m-1",
+        !element.styles.minHeight && "min-h-7",
         element.className,
         {
           "border-blue-500 border-solid":
             editor.selectedElement.id === element.id,
           "border-dashed border": !editor.liveMode,
-        }
+        },
       )}
       style={element.styles}
+      draggable={!editor.liveMode && !isEditing}
+      onDragStart={handleDragStart}
       onClick={handleClickOnBody}
     >
       {editor.selectedElement.id === element.id && !editor.liveMode && (

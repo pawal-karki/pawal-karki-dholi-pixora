@@ -134,7 +134,8 @@ export async function getAgencyUsageStats(agencyId: string) {
  * Access is allowed during the paid period and blocked only after period end.
  */
 export async function isSubscriptionRequiredForSubaccountAccess(
-  agencyId: string
+  agencyId: string,
+  currentSubAccountId?: string
 ): Promise<boolean> {
   const subscription = await db.subscription.findUnique({
     where: { agencyId },
@@ -151,5 +152,26 @@ export async function isSubscriptionRequiredForSubaccountAccess(
   if (subscription.currentPeriodEndDate > now) return false;
 
   // Subscription has ended and is inactive.
-  return true;
+  // Downgraded/free behavior: allow only the first created subaccount.
+  if (!currentSubAccountId) return true;
+
+  const firstSubAccount = await db.subAccount.findFirst({
+    where: { agencyId },
+    orderBy: { createdAt: "asc" },
+    select: { id: true },
+  });
+
+  if (!firstSubAccount) return true;
+  return firstSubAccount.id !== currentSubAccountId;
+}
+
+export async function getFirstCreatedSubAccountId(
+  agencyId: string
+): Promise<string | null> {
+  const firstSubAccount = await db.subAccount.findFirst({
+    where: { agencyId },
+    orderBy: { createdAt: "asc" },
+    select: { id: true },
+  });
+  return firstSubAccount?.id ?? null;
 }

@@ -3,7 +3,10 @@ import { redirect } from "next/navigation";
 import { Role } from "@prisma/client";
 
 import { getAuthDetails, getNotifications, getSubAccountDetails } from "@/lib/queries";
-import { isSubscriptionRequiredForSubaccountAccess } from "@/lib/plan-limits";
+import {
+  getFirstCreatedSubAccountId,
+  isSubscriptionRequiredForSubaccountAccess,
+} from "@/lib/plan-limits";
 
 import Sidebar from "@/components/navigation/sidebar";
 import BlurPage from "@/components/global/blur-page";
@@ -44,10 +47,19 @@ const SubAccountIdLayout: React.FC<SubAccountIdLayoutProps> = async ({
   if (!subAccountDetails) redirect("/subaccount/unauthorized");
 
   const subscriptionRequired = await isSubscriptionRequiredForSubaccountAccess(
-    subAccountDetails.agencyId
+    subAccountDetails.agencyId,
+    subaccountId
   );
   if (subscriptionRequired) {
-    redirect(`/agency/${subAccountDetails.agencyId}/billing?subscription_required=true`);
+    const firstSubAccountId = await getFirstCreatedSubAccountId(
+      subAccountDetails.agencyId
+    );
+    if (firstSubAccountId && firstSubAccountId !== subaccountId) {
+      redirect(`/subaccount/${firstSubAccountId}?plan_downgraded=true`);
+    }
+    redirect(
+      `/agency/${subAccountDetails.agencyId}/billing?subscription_required=true`
+    );
   }
 
   const notifications = await getNotifications(subAccountDetails.agencyId);

@@ -6,6 +6,7 @@ interface SectionPlaceholderProps {}
 const SectionPlaceholder: React.FC<SectionPlaceholderProps> = ({}) => {
   const handleDragStart = (event: React.DragEvent) => {
     event.dataTransfer.setData("componentType", "section");
+    event.dataTransfer.setData("layout-component", "true");
   };
 
   return (

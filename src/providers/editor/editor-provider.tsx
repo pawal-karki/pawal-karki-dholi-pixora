@@ -31,6 +31,7 @@ const initialEditorState: EditorState["editor"] = {
         type: null,
     },
     funnelPageId: "",
+    mobileNavOpen: false,
     globalStyles: {
         colors: {
             primary: "#000000",
@@ -122,8 +123,14 @@ const deleteElement = (elements: EditorElement[], action: EditorAction) => {
         );
     }
 
-    // if element exists then delete element via payload, if not then handle nested content recursively
     return elements.filter((element) => {
+        if (
+            action.payload.elementDetails.id === "__body" &&
+            element.id === "__body"
+        ) {
+            return true;
+        }
+
         if (element.id === action.payload.elementDetails.id) {
             return false;
         } else if (element.content && Array.isArray(element.content)) {
@@ -132,6 +139,69 @@ const deleteElement = (elements: EditorElement[], action: EditorAction) => {
 
         return true;
     });
+};
+
+const findElement = (
+    elements: EditorElement[],
+    id: string,
+): EditorElement | null => {
+    for (const el of elements) {
+        if (el.id === id) return el;
+        if (Array.isArray(el.content)) {
+            const found = findElement(el.content, id);
+            if (found) return found;
+        }
+    }
+    return null;
+};
+
+const removeElement = (
+    elements: EditorElement[],
+    id: string,
+): EditorElement[] =>
+    elements
+        .filter((el) => el.id !== id)
+        .map((el) =>
+            Array.isArray(el.content)
+                ? { ...el, content: removeElement(el.content, id) }
+                : el,
+        );
+
+const insertElement = (
+    elements: EditorElement[],
+    containerId: string,
+    element: EditorElement,
+    index: number,
+): EditorElement[] =>
+    elements.map((el) => {
+        if (el.id === containerId && Array.isArray(el.content)) {
+            const newContent = [...el.content];
+            const clampedIndex = Math.min(index, newContent.length);
+            newContent.splice(clampedIndex, 0, element);
+            return { ...el, content: newContent };
+        }
+        if (Array.isArray(el.content)) {
+            return {
+                ...el,
+                content: insertElement(el.content, containerId, element, index),
+            };
+        }
+        return el;
+    });
+
+const isDescendant = (
+    elements: EditorElement[],
+    parentId: string,
+    childId: string,
+): boolean => {
+    const parent = findElement(elements, parentId);
+    if (!parent || !Array.isArray(parent.content)) return false;
+    for (const c of parent.content) {
+        if (c.id === childId) return true;
+        if (Array.isArray(c.content) && isDescendant([c], c.id, childId))
+            return true;
+    }
+    return false;
 };
 
 const editorReducer = (
@@ -224,6 +294,39 @@ const editorReducer = (
 
             return newEditorState;
         }
+        case "MOVE_ELEMENT": {
+            const { elementId, newContainerId, index } = action.payload;
+            if (elementId === "__body" || elementId === newContainerId) return state;
+            if (isDescendant(state.editor.elements, elementId, newContainerId))
+                return state;
+
+            const movingElement = findElement(state.editor.elements, elementId);
+            if (!movingElement) return state;
+
+            const afterRemove = removeElement(state.editor.elements, elementId);
+            const afterInsert = insertElement(
+                afterRemove,
+                newContainerId,
+                movingElement,
+                index,
+            );
+
+            const updatedEditor = { ...state.editor, elements: afterInsert };
+            const updatedHistory = [
+                ...state.history.history.slice(0, state.history.currentIndex + 1),
+                { ...updatedEditor },
+            ];
+
+            return {
+                ...state,
+                editor: updatedEditor,
+                history: {
+                    ...state.history,
+                    history: updatedHistory,
+                    currentIndex: updatedHistory.length - 1,
+                },
+            };
+        }
         case "CHANGE_CLICKED_ELEMENT": {
             const clickedState: EditorState = {
                 ...state,
@@ -247,10 +350,20 @@ const editorReducer = (
                 editor: {
                     ...state.editor,
                     device: action.payload.device,
+                    mobileNavOpen: false,
                 },
             };
 
             return changeDeviceState;
+        }
+        case "TOGGLE_MOBILE_NAV": {
+            return {
+                ...state,
+                editor: {
+                    ...state.editor,
+                    mobileNavOpen: !state.editor.mobileNavOpen,
+                },
+            };
         }
         case "TOGGLE_PREVIEW_MODE": {
             const togglePreviewState: EditorState = {

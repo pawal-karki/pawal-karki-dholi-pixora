@@ -39,6 +39,14 @@ const EditorLink: React.FC<EditorLinkProps> = ({ element }) => {
     });
   };
 
+  const handleDragStart = (e: React.DragEvent) => {
+    if (editor.liveMode) return;
+    e.dataTransfer.setData("elementId", element.id);
+    e.dataTransfer.setData("componentType", element.type || "");
+    e.dataTransfer.effectAllowed = "move";
+    e.stopPropagation();
+  };
+
   const onKeyDown = (event: React.KeyboardEvent) => {
     formatTextOnKeyboard(event, editor, dispatch);
   };
@@ -58,15 +66,19 @@ const EditorLink: React.FC<EditorLinkProps> = ({ element }) => {
     <div
       style={element.styles}
       draggable={!editor.liveMode}
+      onDragStart={handleDragStart}
       onClick={handleOnClickBody}
       className={cn(
-        "p-0.5 w-full m-1 relative text-base min-h-7 transition-all underline-offset-4 cursor-pointer",
+        "p-0.5 relative text-base transition-all underline-offset-4 cursor-pointer",
+        !element.styles.width && "w-full",
+        !element.styles.margin && !element.styles.marginLeft && "m-1",
+        !element.styles.minHeight && "min-h-7",
         element.className,
         {
           "!border-blue-500 !border-solid":
             editor.selectedElement.id === element.id,
           "!border-dashed !border": !editor.liveMode,
-        }
+        },
       )}
     >
       {editor.selectedElement.id === element.id && !editor.liveMode && (
@@ -120,7 +132,9 @@ const EditorLink: React.FC<EditorLinkProps> = ({ element }) => {
       {editor.selectedElement.id === element.id && !editor.liveMode && (
         <div className="absolute bg-emerald-500 px-2.5 py-1 text-xs font-bold -top-[25px] right-[40px] rounded-none rounded-t-lg !text-white">
           <LinkPicker
-            initialValue={(!Array.isArray(element.content) && element.content.href) || "#"}
+            initialValue={
+              (!Array.isArray(element.content) && element.content.href) || "#"
+            }
             onSave={(href) => {
               dispatch({
                 type: "UPDATE_ELEMENT",

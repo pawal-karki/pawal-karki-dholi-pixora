@@ -6,6 +6,7 @@ interface TwoColumnsPlaceholderProps {}
 const TwoColumnsPlaceholder: React.FC<TwoColumnsPlaceholderProps> = ({}) => {
   const handleDragState = (e: React.DragEvent) => {
     e.dataTransfer.setData("componentType", '2Col');
+    e.dataTransfer.setData("layout-component", "true");
   };
 
   return (

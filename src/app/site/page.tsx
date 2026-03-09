@@ -14,6 +14,7 @@ import Link from "next/link";
 import TestimonialsSection from "@/components/site/testimonials";
 import { getAllTestimonials } from "@/lib/queries";
 import SiteContactForm from "@/components/site/contact-form";
+import SiteFooter from "@/components/site/footer";
 
 export const dynamic = "force-dynamic";
 
@@ -207,6 +208,7 @@ export default async function Home() {
           <SiteContactForm />
         </div>
       </section>
+      <SiteFooter />
     </>
   );
 }

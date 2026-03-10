@@ -137,6 +137,7 @@ model Agency {
   Testimonials Testimonial[]
   ChatConversations ChatConversation[]
   AISettings        AISettings?
+  ContactMessages   ContactMessage[]
 }
 
 model SubAccount {

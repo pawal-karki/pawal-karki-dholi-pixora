@@ -15,11 +15,11 @@ type Props = {
 };
 
 const navLinks = [
-  { label: "Home", href: "#" },
-  { label: "Features", href: "#features" },
-  { label: "Pricing", href: "#pricing" },
-  { label: "About", href: "#about" },
-  { label: "Contact", href: "#contact" },
+  { label: "Home", href: "/site" },
+  { label: "Features", href: "/site#features" },
+  { label: "Pricing", href: "/site#pricing" },
+  { label: "About", href: "/site#about" },
+  { label: "Contact", href: "/site#contact" },
 ];
 
 // Generate DiceBear avatar URL

@@ -29,6 +29,7 @@ interface InfoBarProps {
   role?: Role;
   className?: string;
   user?: {
+    id: string;
     name: string;
     email: string;
     avatarUrl: string;
@@ -45,20 +46,31 @@ const InfoBar: React.FC<InfoBarProps> = ({
   role,
   user,
 }) => {
-  // Subaccount users always see only their subaccount's notifications.
-  // Agency admins/owners start with all notifications but can toggle to current subaccount.
-  const subaccountOnly = isSubAccountUser(role)
-    ? notifications?.filter((n) => n.subAccountId === subAccountId) ?? []
-    : notifications ?? [];
+  const isSubUser = isSubAccountUser(role);
+
+  // For subaccount users: show only notifications in this subaccount that belong to them.
+  // For agency admins/owners: start with all notifications, with option to filter to current subaccount.
+  const initialNotifications: NotificationsWithUser = React.useMemo(() => {
+    if (isSubUser && user?.id) {
+      return (
+        notifications?.filter(
+          (n) => n.subAccountId === subAccountId && n.userId === user.id
+        ) ?? []
+      );
+    }
+    return notifications ?? [];
+  }, [isSubUser, notifications, subAccountId, user?.id]);
 
   const [allNotifications, setAllNotifications] =
-    React.useState<NotificationsWithUser>(subaccountOnly);
+    React.useState<NotificationsWithUser>(initialNotifications);
   const [isShowAll, setIsShowAll] = React.useState<boolean>(true);
 
   const handleSwitch = () => {
     if (!isShowAll) {
+      // Back to all agency notifications
       setAllNotifications(notifications ?? []);
     } else {
+      // Only current subaccount's notifications
       setAllNotifications(
         notifications?.filter((n) => n.subAccountId === subAccountId) ?? []
       );

@@ -84,6 +84,8 @@ export const upsertTicket = async (
                 agencyId: subAccount?.agencyId,
                 description: `assigned ticket | ${response.name} | to ${assignee.name}`,
                 subaccountId: subAccountId,
+                // Ensure the notification belongs to the assignee so they see it
+                targetUserId: assignee.id,
             });
         } catch (notifErr) {
             console.error("[upsertTicket] Failed to save notification:", notifErr);

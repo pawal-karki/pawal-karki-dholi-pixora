@@ -1,28 +1,12 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { cookies } from "next/headers";
-import { verifyToken } from "@/lib/auth";
+import { getAuthDetails } from "@/queries/auth";
 
-/** Get the current user from the JWT cookie */
-async function getCurrentUser() {
-    try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get("auth_token")?.value;
-        if (!token) return null;
-        const payload = verifyToken(token);
-        if (!payload) return null;
-        return await db.user.findUnique({ where: { id: payload.userId } });
-    } catch (error) {
-        console.error("[ticket-comments] getCurrentUser error:", error);
-        return null;
-    }
-}
-
-/** Returns just the id and role of the currently signed-in user */
+/** Returns just the id and role of the currently signed-in user (Clerk or JWT) */
 export const getCurrentUserInfo = async (): Promise<{ id: string; role: string } | null> => {
     try {
-        const user = await getCurrentUser();
+        const user = await getAuthDetails();
         if (!user) return null;
         return { id: user.id, role: user.role };
     } catch (error) {
@@ -56,13 +40,13 @@ export const getTicketComments = async (ticketId: string) => {
 
 /** Add a comment — restricted to AGENCY_OWNER and AGENCY_ADMIN roles */
 export const addTicketComment = async (ticketId: string, content: string) => {
-    const user = await getCurrentUser();
+    const userInfo = await getCurrentUserInfo();
 
-    if (!user) {
+    if (!userInfo) {
         throw new Error("Not authenticated");
     }
 
-    if (user.role !== "AGENCY_OWNER" && user.role !== "AGENCY_ADMIN") {
+    if (userInfo.role !== "AGENCY_OWNER" && userInfo.role !== "AGENCY_ADMIN") {
         throw new Error("Only agency owners and admins can post comments");
     }
 
@@ -76,7 +60,7 @@ export const addTicketComment = async (ticketId: string, content: string) => {
             data: {
                 content: trimmed,
                 ticketId,
-                authorId: user.id,
+                authorId: userInfo.id,
             },
             include: {
                 author: {
@@ -97,10 +81,12 @@ export const addTicketComment = async (ticketId: string, content: string) => {
 
 /** Delete a comment — restricted to AGENCY_OWNER and AGENCY_ADMIN */
 export const deleteTicketComment = async (commentId: string) => {
-    const user = await getCurrentUser();
+    const userInfo = await getCurrentUserInfo();
 
-    if (!user) throw new Error("Not authenticated");
-    if (user.role !== "AGENCY_OWNER" && user.role !== "AGENCY_ADMIN") throw new Error("Only agency owners and admins can delete comments");
+    if (!userInfo) throw new Error("Not authenticated");
+    if (userInfo.role !== "AGENCY_OWNER" && userInfo.role !== "AGENCY_ADMIN") {
+        throw new Error("Only agency owners and admins can delete comments");
+    }
 
     try {
         return await db.ticketComment.delete({ where: { id: commentId } });

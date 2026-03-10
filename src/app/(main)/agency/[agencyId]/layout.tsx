@@ -44,6 +44,7 @@ const AgencyIdLayout: React.FC<AgencyIdLayoutProps> = async ({
           subAccountId={user.id}
           role={user.role}
           user={{
+            id: user.id,
             name: user.name,
             email: user.email,
             avatarUrl: user.avatarUrl,

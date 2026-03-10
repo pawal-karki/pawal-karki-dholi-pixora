@@ -15,10 +15,16 @@ export const saveActivityLogsNotification = async ({
     agencyId,
     description,
     subaccountId,
+    /**
+     * Optional: explicitly set which user should own this notification.
+     * Defaults to the acting user resolved from auth.
+     */
+    targetUserId,
 }: {
     agencyId?: string;
     description: string;
     subaccountId?: string;
+    targetUserId?: string;
 }) => {
     const userEmail = await getCurrentUserEmail();
     let userData;
@@ -58,11 +64,13 @@ export const saveActivityLogsNotification = async ({
         return;
     }
 
+    const notificationUserId = targetUserId || userData.id;
+
     if (subaccountId) {
         await db.notification.create({
             data: {
                 notification: `${userData.name} | ${description}`,
-                user: { connect: { id: userData.id } },
+                user: { connect: { id: notificationUserId } },
                 agency: { connect: { id: foundAgencyId } },
                 subAccount: { connect: { id: subaccountId } },
             },
@@ -71,7 +79,7 @@ export const saveActivityLogsNotification = async ({
         await db.notification.create({
             data: {
                 notification: `${userData.name} | ${description}`,
-                user: { connect: { id: userData.id } },
+                user: { connect: { id: notificationUserId } },
                 agency: { connect: { id: foundAgencyId } },
             },
         });

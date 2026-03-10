@@ -96,6 +96,25 @@ const Sidebar: React.FC<SidebarProps> = async ({ id, type }) => {
         } as AgencySidebarOption
       ];
     }
+
+    // Add Contact Messages option if not present
+    const hasContactMessages = sidebarOptions.some(
+      (opt) => opt.name === "Contact Messages"
+    );
+    if (!hasContactMessages) {
+      sidebarOptions = [
+        ...sidebarOptions,
+        {
+          id: "virtual-contact-messages",
+          name: "Contact Messages",
+          link: `/agency/${user.agency.id}/contact-messages`,
+          icon: "messages",
+          agencyId: user.agency.id,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        } as AgencySidebarOption,
+      ];
+    }
   } else {
     sidebarOptions = subAccount?.sidebarOptions || [];
 

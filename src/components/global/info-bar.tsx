@@ -65,6 +65,8 @@ const InfoBar: React.FC<InfoBarProps> = ({
     React.useState<NotificationsWithUser>(initialNotifications);
   const [isShowAll, setIsShowAll] = React.useState<boolean>(true);
 
+  const notificationCount = allNotifications?.length ?? 0;
+
   const handleSwitch = () => {
     if (!isShowAll) {
       // Back to all agency notifications
@@ -90,8 +92,13 @@ const InfoBar: React.FC<InfoBarProps> = ({
           <UserButton user={user} afterSignOutUrl="/" />
           <Sheet>
             <SheetTrigger asChild>
-              <Button size="icon" className="rounded-full w-8 h-8">
+              <Button size="icon" className="relative rounded-full w-8 h-8">
                 <Bell aria-label="Notifications" className="w-4 h-4" />
+                {notificationCount > 0 && (
+                  <span className="absolute -top-1 -right-1 inline-flex items-center justify-center rounded-full bg-destructive text-[10px] min-w-[16px] h-[16px] px-1 text-white font-semibold">
+                    {notificationCount > 9 ? "9+" : notificationCount}
+                  </span>
+                )}
               </Button>
             </SheetTrigger>
             <SheetContent className="pr-4 flex flex-col">
@@ -126,17 +133,7 @@ const InfoBar: React.FC<InfoBarProps> = ({
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col gap-2">
-                          <p className="leading-tight">
-                            <span className="font-semibold">
-                              {notification.notification.split("|")[0]}
-                            </span>
-                            <span className="text-muted-foreground">
-                              {notification.notification.split("|")[1]}
-                            </span>
-                            <span className="font-semibold">
-                              {notification.notification.split("|")[2]}
-                            </span>
-                          </p>
+                          <NotificationText text={notification.notification} />
                           <small className="text-sm text-muted-foreground">
                             {format(
                               new Date(notification.createdAt),
@@ -160,6 +157,29 @@ const InfoBar: React.FC<InfoBarProps> = ({
         </div>
       </div>
     </>
+  );
+};
+
+interface NotificationTextProps {
+  text: string;
+}
+
+const NotificationText: React.FC<NotificationTextProps> = ({ text }) => {
+  const parts = React.useMemo(
+    () => text.split("|").map((p) => p.trim()).filter(Boolean),
+    [text]
+  );
+
+  if (parts.length === 0) return null;
+
+  const actor = parts[0];
+  const message = parts.slice(1).join(" ");
+
+  return (
+    <p className="leading-tight">
+      <span className="font-semibold">{actor}</span>{" "}
+      <span className="text-muted-foreground">{message}</span>
+    </p>
   );
 };
 

@@ -141,6 +141,7 @@ export const upsertAgency = async (agency: UpsertAgencyInput) => {
                         { name: "Dashboard", icon: "category", link: `/agency/${agency.id}` },
                         { name: "Launchpad", icon: "clipboardIcon", link: `/agency/${agency.id}/launchpad` },
                         { name: "Billing", icon: "payment", link: `/agency/${agency.id}/billing` },
+                        { name: "Contact Messages", icon: "messages", link: `/agency/${agency.id}/contact-messages` },
                         { name: "Settings", icon: "settings", link: `/agency/${agency.id}/settings` },
                         { name: "Sub Accounts", icon: "person", link: `/agency/${agency.id}/all-subaccounts` },
                         { name: "Team", icon: "shield", link: `/agency/${agency.id}/team` },

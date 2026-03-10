@@ -275,6 +275,115 @@ export function generateOTP(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
+// ─── Contact Reply Email ────────────────────────────────────────────────────────
+
+interface SendContactReplyEmailParams {
+  to: string;
+  subject: string;
+  message: string;
+  agencyName?: string;
+  originalMessage?: string;
+}
+
+export async function sendContactReplyEmail({
+  to,
+  subject,
+  message,
+  agencyName = "Pixora",
+  originalMessage,
+}: SendContactReplyEmailParams): Promise<boolean> {
+  const displayAgency = agencyName || "Pixora";
+
+  const mailOptions = {
+    from: `"${displayAgency}" <${process.env.GMAIL_USER}>`,
+    to,
+    subject,
+    html: `
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; background-color: #f9fafb; }
+      .container { max-width: 640px; margin: 0 auto; padding: 32px 16px; }
+      .card { background-color: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,0.08); }
+      .header { background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 24px 24px 20px; color: #ecfdf5; text-align: left; }
+      .header-title { font-size: 22px; font-weight: 700; margin: 0 0 4px; }
+      .header-subtitle { font-size: 13px; opacity: 0.9; margin: 0; }
+      .content { padding: 24px; color: #111827; font-size: 14px; line-height: 1.7; }
+      .divider { height: 1px; background: #e5e7eb; margin: 20px 0; }
+      .original-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: #6b7280; margin-bottom: 8px; }
+      .original-box { background: #f9fafb; border-radius: 12px; border: 1px solid #e5e7eb; padding: 14px 16px; font-size: 13px; color: #4b5563; white-space: pre-wrap; }
+      .footer { background-color: #f9fafb; padding: 18px 24px 20px; text-align: center; font-size: 11px; color: #6b7280; border-top: 1px solid #e5e7eb; }
+      .brand { font-weight: 600; color: #059669; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <div class="header">
+          <h1 class="header-title">Reply from ${displayAgency}</h1>
+          <p class="header-subtitle">
+            Thank you for reaching out. Here's our response to your message.
+          </p>
+        </div>
+        <div class="content">
+          <div style="margin-bottom: 16px;">
+            ${message
+              .split("\n")
+              .map(
+                (line) =>
+                  `<p style="margin: 0 0 8px; color: #111827;">${line.replace(
+                    /</g,
+                    "&lt;"
+                  ).replace(/>/g, "&gt;")}</p>`
+              )
+              .join("")}
+          </div>
+
+          ${
+            originalMessage
+              ? `
+          <div class="divider"></div>
+          <div>
+            <div class="original-label">Your original message</div>
+            <div class="original-box">
+              ${originalMessage
+                .split("\n")
+                .map((line) => line.replace(/</g, "&lt;").replace(/>/g, "&gt;"))
+                .join("<br />")}
+            </div>
+          </div>
+          `
+              : ""
+          }
+        </div>
+        <div class="footer">
+          <p style="margin: 0 0 4px;">This reply was sent from <span class="brand">${displayAgency}</span>.</p>
+          <p style="margin: 0;">© ${new Date().getFullYear()} ${displayAgency}. All rights reserved.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>`,
+    text: `Reply from ${displayAgency}
+--------------------------------
+
+${message}
+
+${originalMessage ? `\n\n--- Your original message ---\n${originalMessage}` : ""}`,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (error) {
+    console.error("Error sending contact reply email:", error);
+    return false;
+  }
+}
+
 interface SendInvitationEmailParams {
   to: string;
   role: string;

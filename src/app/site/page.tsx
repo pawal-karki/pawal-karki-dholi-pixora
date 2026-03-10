@@ -13,6 +13,7 @@ import { Check } from "lucide-react";
 import Link from "next/link";
 import TestimonialsSection from "@/components/site/testimonials";
 import { getAllTestimonials } from "@/lib/queries";
+import SiteContactForm from "@/components/site/contact-form";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +21,7 @@ export default async function Home() {
   const testimonials = await getAllTestimonials();
   return (
     <>
-      <section className="h-full w-full pt-36 md:pt-44 relative flex items-center justify-center flex-col">
+      <section className="h-full w-full pt-36 md:pt-44 relative flex items-center justify-center flex-col" id="features">
         {/* grid */}
 
         {/* Grid - light mode uses dark lines, dark mode uses lighter lines */}
@@ -126,8 +127,86 @@ export default async function Home() {
         </div>
       </section>
 
+      {/* About Section – target for navbar `#about` link */}
+      <section
+        id="about"
+        className="w-full bg-muted/30 border-y border-border/60 py-16 md:py-20 px-4 scroll-mt-32 md:scroll-mt-40 lg:scroll-mt-48"
+      >
+        <div className="max-w-5xl mx-auto grid gap-10 md:grid-cols-[1.1fr,0.9fr] items-center">
+          <div className="space-y-4">
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
+              Built for modern agencies and creators
+            </h2>
+            <p className="text-muted-foreground text-sm md:text-base leading-relaxed">
+              Pixora combines a powerful drag-and-drop funnel builder with a CRM and client
+              portal so you can manage everything from one place. Launch high-converting
+              pages, track leads, and handle client communication without jumping between
+              tools.
+            </p>
+            <p className="text-muted-foreground text-sm md:text-base leading-relaxed">
+              Whether you&apos;re a solo creator or a growing agency, Pixora helps you ship
+              faster, stay organized, and deliver a premium experience to your clients.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+              <div>
+                <p className="text-sm font-semibold">Drag-and-drop funnels</p>
+                <p className="text-xs text-muted-foreground">
+                  Launch beautiful, responsive pages in minutes with reusable blocks.
+                </p>
+              </div>
+              <div>
+                <p className="text-sm font-semibold">Client workspaces</p>
+                <p className="text-xs text-muted-foreground">
+                  Give each client their own sub-account, pipelines, and reporting.
+                </p>
+              </div>
+              <div>
+                <p className="text-sm font-semibold">Automation-ready</p>
+                <p className="text-xs text-muted-foreground">
+                  Connect payments, triggers, and notifications to keep work flowing.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="relative">
+            <div className="absolute -inset-4 bg-gradient-to-tr from-emerald-500/10 via-sky-500/10 to-amber-500/10 blur-2xl" />
+            <div className="relative rounded-2xl border border-border/70 bg-background/80 p-5 shadow-lg space-y-4">
+              <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                Why teams choose Pixora
+              </p>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>• Unified workspace for funnels, contacts, and pipelines.</li>
+                <li>• Built-in client chat to keep conversations in context.</li>
+                <li>• Stripe-powered billing and subscription management.</li>
+                <li>• Fine-grained permissions for agency owners and team members.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Testimonials Section */}
       <TestimonialsSection customTestimonials={testimonials} />
+
+      {/* Contact Section – target for navbar `#contact` link */}
+      <section
+        id="contact"
+        className="w-full py-16 md:py-20 px-4 bg-gradient-to-b from-background via-background to-muted/40 scroll-mt-32 md:scroll-mt-40 lg:scroll-mt-48"
+      >
+        <div className="max-w-5xl mx-auto flex flex-col items-center gap-8">
+          <div className="text-center max-w-2xl space-y-3">
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
+              Let&apos;s talk about your next project
+            </h2>
+            <p className="text-sm md:text-base text-muted-foreground">
+              Send us a message and our team will reach out with next steps. All inquiries
+              land directly in your agency dashboard so nothing slips through the cracks.
+            </p>
+          </div>
+          <SiteContactForm />
+        </div>
+      </section>
     </>
   );
 }

@@ -308,6 +308,27 @@ model Contact {
   @@index([subAccountId])
 }
 
+model ContactMessage {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name    String
+  email   String
+  subject String?
+  message String   @db.Text
+
+  agencyId String
+  agency   Agency @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+
+  replied       Boolean   @default(false)
+  replySubject  String?
+  replyBody     String?   @db.Text
+  replySentAt   DateTime?
+
+  @@index([agencyId])
+}
+
 model Media {
   id        String   @id @default(uuid())
   createdAt DateTime @default(now())

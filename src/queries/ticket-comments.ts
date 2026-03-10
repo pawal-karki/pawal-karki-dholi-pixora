@@ -54,7 +54,7 @@ export const getTicketComments = async (ticketId: string) => {
     }
 };
 
-/** Add a comment — restricted to AGENCY_OWNER role only */
+/** Add a comment — restricted to AGENCY_OWNER and AGENCY_ADMIN roles */
 export const addTicketComment = async (ticketId: string, content: string) => {
     const user = await getCurrentUser();
 
@@ -62,8 +62,8 @@ export const addTicketComment = async (ticketId: string, content: string) => {
         throw new Error("Not authenticated");
     }
 
-    if (user.role !== "AGENCY_OWNER") {
-        throw new Error("Only agency owners can post comments");
+    if (user.role !== "AGENCY_OWNER" && user.role !== "AGENCY_ADMIN") {
+        throw new Error("Only agency owners and admins can post comments");
     }
 
     const trimmed = content.trim();
@@ -95,12 +95,12 @@ export const addTicketComment = async (ticketId: string, content: string) => {
     }
 };
 
-/** Delete a comment — restricted to AGENCY_OWNER and comment's own author */
+/** Delete a comment — restricted to AGENCY_OWNER and AGENCY_ADMIN */
 export const deleteTicketComment = async (commentId: string) => {
     const user = await getCurrentUser();
 
     if (!user) throw new Error("Not authenticated");
-    if (user.role !== "AGENCY_OWNER") throw new Error("Only agency owners can delete comments");
+    if (user.role !== "AGENCY_OWNER" && user.role !== "AGENCY_ADMIN") throw new Error("Only agency owners and admins can delete comments");
 
     try {
         return await db.ticketComment.delete({ where: { id: commentId } });

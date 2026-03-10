@@ -42,7 +42,7 @@ const TicketComments: React.FC<TicketCommentsProps> = ({ ticketId }) => {
             .finally(() => setLoading(false));
     }, [ticketId]);
 
-    const isOwner = currentUserRole === "AGENCY_OWNER";
+    const canComment = currentUserRole === "AGENCY_OWNER" || currentUserRole === "AGENCY_ADMIN";
 
     // Auto-scroll to latest comment
     React.useEffect(() => {
@@ -100,7 +100,7 @@ const TicketComments: React.FC<TicketCommentsProps> = ({ ticketId }) => {
                     <p className="text-xs text-muted-foreground py-2">Loading comments…</p>
                 ) : comments.length === 0 ? (
                     <p className="text-xs text-muted-foreground py-2 text-center">
-                        No comments yet.{isOwner ? " Be the first to comment!" : ""}
+                        No comments yet.{canComment ? " Be the first to comment!" : ""}
                     </p>
                 ) : (
                     <AnimatePresence initial={false}>
@@ -125,9 +125,14 @@ const TicketComments: React.FC<TicketCommentsProps> = ({ ticketId }) => {
                                         </span>
                                         <Badge
                                             variant="outline"
-                                            className="text-[9px] py-0 px-1.5 h-4 border-amber-400 text-amber-500"
+                                            className={cn(
+                                                "text-[9px] py-0 px-1.5 h-4",
+                                                comment.author.role === "AGENCY_OWNER"
+                                                    ? "border-amber-400 text-amber-500"
+                                                    : "border-sky-400 text-sky-500"
+                                            )}
                                         >
-                                            Owner
+                                            {comment.author.role === "AGENCY_OWNER" ? "Owner" : "Admin"}
                                         </Badge>
                                         <span className="text-[10px] text-muted-foreground ml-auto whitespace-nowrap">
                                             {format(new Date(comment.createdAt), "dd MMM, hh:mm a")}
@@ -137,8 +142,8 @@ const TicketComments: React.FC<TicketCommentsProps> = ({ ticketId }) => {
                                         {comment.content}
                                     </p>
                                 </div>
-                                {/* Delete button — only for owner */}
-                                {isOwner && (
+                                {/* Delete button — for owner/admin */}
+                                {canComment && (
                                     <button
                                         onClick={() => handleDelete(comment.id)}
                                         disabled={deletingId === comment.id}
@@ -158,8 +163,8 @@ const TicketComments: React.FC<TicketCommentsProps> = ({ ticketId }) => {
                 <div ref={bottomRef} />
             </div>
 
-            {/* Comment input — only for AGENCY_OWNER */}
-            {isOwner ? (
+            {/* Comment input — for AGENCY_OWNER and AGENCY_ADMIN */}
+            {canComment ? (
                 <form onSubmit={handleSubmit} className="space-y-2">
                     <Textarea
                         value={newComment}
@@ -193,7 +198,7 @@ const TicketComments: React.FC<TicketCommentsProps> = ({ ticketId }) => {
                 <div className="flex items-center gap-2 py-2 px-3 bg-muted/40 rounded-md">
                     <Lock className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
                     <span className="text-xs text-muted-foreground">
-                        Only the agency owner can post comments
+                        Only agency owners and admins can post comments
                     </span>
                 </div>
             )}

@@ -22,6 +22,10 @@ import { UserButton } from "@/components/global/user-button";
 
 import { cn } from "@/lib/utils";
 import { type NotificationsWithUser } from "@/lib/types";
+import {
+  markNotificationRead,
+  markAllNotificationsReadForCurrentUser,
+} from "@/queries/notifications";
 
 interface InfoBarProps {
   notifications: NotificationsWithUser;
@@ -65,7 +69,8 @@ const InfoBar: React.FC<InfoBarProps> = ({
     React.useState<NotificationsWithUser>(initialNotifications);
   const [isShowAll, setIsShowAll] = React.useState<boolean>(true);
 
-  const notificationCount = allNotifications?.length ?? 0;
+  const unreadCount =
+    allNotifications?.filter((n) => !n.read).length ?? 0;
 
   const handleSwitch = () => {
     if (!isShowAll) {
@@ -78,6 +83,28 @@ const InfoBar: React.FC<InfoBarProps> = ({
       );
     }
     setIsShowAll((prev) => !prev);
+  };
+
+  const handleMarkOneRead = async (id: string) => {
+    setAllNotifications((prev) =>
+      prev?.map((n) => (n.id === id ? { ...n, read: true } : n))
+    );
+    try {
+      await markNotificationRead(id);
+    } catch {
+      // best-effort; state will refresh on next load
+    }
+  };
+
+  const handleMarkAllRead = async () => {
+    setAllNotifications((prev) =>
+      prev?.map((n) => ({ ...n, read: true }))
+    );
+    try {
+      await markAllNotificationsReadForCurrentUser();
+    } catch {
+      // ignore, UI already updated optimistically
+    }
   };
 
   return (
@@ -94,9 +121,9 @@ const InfoBar: React.FC<InfoBarProps> = ({
             <SheetTrigger asChild>
               <Button size="icon" className="relative rounded-full w-8 h-8">
                 <Bell aria-label="Notifications" className="w-4 h-4" />
-                {notificationCount > 0 && (
+                {unreadCount > 0 && (
                   <span className="absolute -top-1 -right-1 inline-flex items-center justify-center rounded-full bg-destructive text-[10px] min-w-[16px] h-[16px] px-1 text-white font-semibold">
-                    {notificationCount > 9 ? "9+" : notificationCount}
+                    {unreadCount > 9 ? "9+" : unreadCount}
                   </span>
                 )}
               </Button>
@@ -117,12 +144,24 @@ const InfoBar: React.FC<InfoBarProps> = ({
                       <Switch onCheckedChange={handleSwitch} />
                     </Card>
                   )}
+                {(allNotifications?.some((n) => !n.read) ?? false) && (
+                  <div className="flex justify-end mt-2">
+                    <Button
+                      variant="outline"
+                      size="xs"
+                      className="h-7 text-[11px]"
+                      onClick={handleMarkAllRead}
+                    >
+                      Mark all as read
+                    </Button>
+                  </div>
+                )}
               </SheetHeader>
               {!!allNotifications?.length && (
                 <div className="flex flex-col gap-4 overflow-y-auto scrollbar scrollbar-thumb-muted-foreground/20 scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar-medium">
                   {allNotifications?.map((notification) => (
                     <Card key={notification.id}>
-                      <CardContent className="flex gap-4 p-4">
+                      <CardContent className="flex gap-4 p-4 items-start">
                         <Avatar>
                           <AvatarImage
                             src={notification.user.avatarUrl}
@@ -132,7 +171,7 @@ const InfoBar: React.FC<InfoBarProps> = ({
                             {notification.user.name.slice(0, 2).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
-                        <div className="flex flex-col gap-2">
+                        <div className="flex flex-col gap-2 flex-1">
                           <NotificationText text={notification.notification} />
                           <small className="text-sm text-muted-foreground">
                             {format(
@@ -141,6 +180,20 @@ const InfoBar: React.FC<InfoBarProps> = ({
                             )}
                           </small>
                         </div>
+                        {notification.read ? (
+                          <span className="text-[10px] text-muted-foreground">
+                            Read
+                          </span>
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            size="xs"
+                            className="h-7 text-[11px] px-2"
+                            onClick={() => handleMarkOneRead(notification.id)}
+                          >
+                            Mark as read
+                          </Button>
+                        )}
                       </CardContent>
                     </Card>
                   ))}

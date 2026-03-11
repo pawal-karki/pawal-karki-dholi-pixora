@@ -3,6 +3,7 @@
 import { cache } from "react";
 
 import { db } from "@/lib/db";
+import { formatActivityNotification } from "@/lib/notification-format";
 import { getCurrentUserEmail } from "@/queries/auth";
 
 // ─── saveActivityLogsNotification ────────────────────────────────────────────
@@ -69,7 +70,10 @@ export const saveActivityLogsNotification = async ({
     if (subaccountId) {
         await db.notification.create({
             data: {
-                notification: `${userData.name} | ${description}`,
+                notification: formatActivityNotification(
+                    userData.name,
+                    description,
+                ),
                 user: { connect: { id: notificationUserId } },
                 agency: { connect: { id: foundAgencyId } },
                 subAccount: { connect: { id: subaccountId } },
@@ -78,7 +82,10 @@ export const saveActivityLogsNotification = async ({
     } else {
         await db.notification.create({
             data: {
-                notification: `${userData.name} | ${description}`,
+                notification: formatActivityNotification(
+                    userData.name,
+                    description,
+                ),
                 user: { connect: { id: notificationUserId } },
                 agency: { connect: { id: foundAgencyId } },
             },
@@ -112,3 +119,41 @@ const getNotificationsInternal = async (agencyId: string) => {
 };
 
 export const getNotifications = cache(getNotificationsInternal);
+
+// ─── markNotificationRead ──────────────────────────────────────────────────────
+
+export const markNotificationRead = async (notificationId: string) => {
+    try {
+        await db.notification.update({
+            where: { id: notificationId },
+            data: { read: true },
+        });
+    } catch (error) {
+        console.error("[notifications] markNotificationRead error:", error);
+        throw new Error("Failed to mark notification as read");
+    }
+};
+
+// ─── markAllNotificationsReadForCurrentUser ────────────────────────────────────
+
+export const markAllNotificationsReadForCurrentUser = async () => {
+    try {
+        const email = await getCurrentUserEmail();
+        if (!email) {
+            throw new Error("Not authenticated");
+        }
+
+        const user = await db.user.findUnique({ where: { email } });
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        await db.notification.updateMany({
+            where: { userId: user.id, read: false },
+            data: { read: true },
+        });
+    } catch (error) {
+        console.error("[notifications] markAllNotificationsReadForCurrentUser error:", error);
+        throw new Error("Failed to mark notifications as read");
+    }
+};

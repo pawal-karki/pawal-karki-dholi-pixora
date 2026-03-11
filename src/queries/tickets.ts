@@ -1,6 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
+import { isNewTicketAssignment } from "@/lib/ticket-assignment";
 import { v4 as uuidv4 } from "uuid";
 import { Prisma, Tag } from "@prisma/client";
 
@@ -42,9 +43,12 @@ export const upsertTicket = async (
     // ── Trigger email notification when ticket is newly assigned ──────────────
     const newAssigneeId = response.assignedUserId;
     const prevAssigneeId = prevTicket?.assignedUserId;
-    const isNewAssignment = newAssigneeId && newAssigneeId !== prevAssigneeId;
+    const assignmentChanged = isNewTicketAssignment(
+      prevAssigneeId,
+      newAssigneeId,
+    );
 
-    if (isNewAssignment && response.assigned) {
+    if (assignmentChanged && response.assigned) {
         const assignee = response.assigned;
         const lane = response.lane;
         const subAccount = lane?.pipeline?.subAccount;

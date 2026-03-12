@@ -1,24 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { parseContactMessageBody } from "@/lib/contact-payload";
 import { createContactMessage } from "@/queries/contact-messages";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, email, subject, message } = body ?? {};
-
-    if (!name || !email || !message) {
-      return NextResponse.json(
-        { error: "Name, email, and message are required." },
-        { status: 400 }
-      );
+    const parsed = parseContactMessageBody(body);
+    if (!parsed.ok) {
+      return NextResponse.json({ error: parsed.error }, { status: 400 });
     }
 
     const created = await createContactMessage({
-      name: String(name).trim(),
-      email: String(email).trim(),
-      subject: subject ? String(subject).trim() : undefined,
-      message: String(message).trim(),
+      name: parsed.data.name,
+      email: parsed.data.email,
+      subject: parsed.data.subject,
+      message: parsed.data.message,
     });
 
     return NextResponse.json({ success: true, message: created });

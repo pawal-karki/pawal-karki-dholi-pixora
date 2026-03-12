@@ -2,6 +2,7 @@
 
 import React from "react";
 import { toast } from "sonner";
+import { User, Mail, FileText, MessageSquare, Send } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -69,7 +70,12 @@ export const SiteContactForm: React.FC = () => {
   return (
     <Card className="w-full max-w-xl mx-auto shadow-md border-border/60">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-semibold">Contact Us</CardTitle>
+        <div className="flex items-center gap-2">
+          <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
+            <Mail className="h-4.5 w-4.5 text-primary" />
+          </div>
+          <CardTitle className="text-2xl font-semibold">Contact Us</CardTitle>
+        </div>
         <CardDescription>
           Have a question or need help? Send us a message and our team will reach out.
         </CardDescription>
@@ -78,7 +84,8 @@ export const SiteContactForm: React.FC = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium" htmlFor="contact-name">
+              <label className="text-sm font-medium flex items-center gap-1.5" htmlFor="contact-name">
+                <User className="h-3.5 w-3.5 text-muted-foreground" />
                 Name<span className="text-red-500">*</span>
               </label>
               <Input
@@ -90,7 +97,8 @@ export const SiteContactForm: React.FC = () => {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium" htmlFor="contact-email">
+              <label className="text-sm font-medium flex items-center gap-1.5" htmlFor="contact-email">
+                <Mail className="h-3.5 w-3.5 text-muted-foreground" />
                 Email<span className="text-red-500">*</span>
               </label>
               <Input
@@ -105,7 +113,8 @@ export const SiteContactForm: React.FC = () => {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="contact-subject">
+            <label className="text-sm font-medium flex items-center gap-1.5" htmlFor="contact-subject">
+              <FileText className="h-3.5 w-3.5 text-muted-foreground" />
               Subject
             </label>
             <Input
@@ -118,7 +127,8 @@ export const SiteContactForm: React.FC = () => {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="contact-message">
+            <label className="text-sm font-medium flex items-center gap-1.5" htmlFor="contact-message">
+              <MessageSquare className="h-3.5 w-3.5 text-muted-foreground" />
               Message<span className="text-red-500">*</span>
             </label>
             <Textarea
@@ -132,8 +142,15 @@ export const SiteContactForm: React.FC = () => {
           </div>
 
           <div className="flex justify-end">
-            <Button type="submit" disabled={isSubmitting} className="min-w-[140px]">
-              {isSubmitting ? "Sending..." : "Send Message"}
+            <Button type="submit" disabled={isSubmitting} className="min-w-[140px] gap-2">
+              {isSubmitting ? (
+                "Sending..."
+              ) : (
+                <>
+                  <Send className="h-4 w-4" />
+                  Send Message
+                </>
+              )}
             </Button>
           </div>
         </form>

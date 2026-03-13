@@ -4,6 +4,11 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import Anthropic from "@anthropic-ai/sdk";
 import Groq from "groq-sdk";
 import { db } from "@/lib/db";
+import {
+  isAiAuthError,
+  isAiModelNotFoundError,
+  isAiRateLimitedError,
+} from "@/lib/ai-chat-errors";
 import { pusherServer } from "@/lib/pusher-server";
 import { getCurrentUserEmail } from "@/queries/auth";
 
@@ -322,26 +327,22 @@ export async function POST(req: NextRequest) {
     console.error("[AI_CHAT]", error);
 
     const msg = error?.message || error?.toString() || "";
-    const status = error?.status || error?.statusCode;
 
-    // Rate limit exceeded (429)
-    if (status === 429 || msg.includes("429") || msg.includes("Too Many Requests") || msg.includes("quota")) {
+    if (isAiRateLimitedError({ ...error, message: msg })) {
       return NextResponse.json(
         { error: "You've exceeded the API rate limit. Please wait a moment and try again, or check your plan at your AI provider's dashboard." },
         { status: 429 }
       );
     }
 
-    // Invalid API key (401/403)
-    if (status === 401 || status === 403 || msg.includes("API key") || msg.includes("Unauthorized") || msg.includes("invalid")) {
+    if (isAiAuthError({ ...error, message: msg })) {
       return NextResponse.json(
         { error: "Invalid API key. Please check your API key in AI Settings and try again." },
         { status: 401 }
       );
     }
 
-    // Model not found
-    if (msg.includes("model") && (msg.includes("not found") || msg.includes("does not exist"))) {
+    if (isAiModelNotFoundError({ message: msg })) {
       return NextResponse.json(
         { error: "The selected AI model is not available. Please change the model in AI Settings." },
         { status: 400 }

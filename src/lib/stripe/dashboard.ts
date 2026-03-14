@@ -1,6 +1,12 @@
 import Stripe from "stripe";
 import { db } from "@/lib/db";
+import {
+  dedupePaidInvoicesByBillingPeriod,
+  getInvoiceSubscriptionId,
+} from "@/lib/subscription-invoice-utils";
 import { stripe } from "@/lib/stripe/server";
+
+type StripeChargeListResponse = Awaited<ReturnType<typeof stripe.charges.list>>;
 
 export interface TransactionData {
   id: string;
@@ -24,7 +30,9 @@ export interface DashboardMetrics {
 /**
  * Get Stripe Connect balance for an agency
  */
-export async function getStripeConnectBalance(connectAccountId: string): Promise<number> {
+export async function getStripeConnectBalance(
+  connectAccountId: string,
+): Promise<number> {
   try {
     const balance = await stripe.balance.retrieve({
       stripeAccount: connectAccountId,
@@ -45,7 +53,7 @@ export async function getStripeConnectBalance(connectAccountId: string): Promise
 export async function getStripeTransactions(
   connectAccountId: string,
   limit: number = 10,
-  subAccountIds?: string[]
+  subAccountIds?: string[],
 ): Promise<TransactionData[]> {
   try {
     // Get charges from the connected account
@@ -56,21 +64,24 @@ export async function getStripeTransactions(
       },
       {
         stripeAccount: connectAccountId,
-      }
+      },
     );
 
     const formattedCharges = charges.data.map((charge) => {
       // Get subAccountId from charge metadata or payment_intent metadata
-      const subAccountId = charge.metadata?.subAccountId ||
+      const subAccountId =
+        charge.metadata?.subAccountId ||
         (typeof charge.payment_intent === "object" && charge.payment_intent
-          ? (charge.payment_intent as Stripe.PaymentIntent).metadata?.subAccountId
+          ? (charge.payment_intent as Stripe.PaymentIntent).metadata
+              ?.subAccountId
           : undefined);
 
       return {
         id: charge.id,
         amount: charge.amount / 100,
         currency: charge.currency.toUpperCase(),
-        description: charge.description || charge.metadata?.description || "Payment",
+        description:
+          charge.description || charge.metadata?.description || "Payment",
         status: charge.status,
         created: new Date(charge.created * 1000),
         type: "charge" as const,
@@ -86,8 +97,9 @@ export async function getStripeTransactions(
     if (subAccountIds) {
       if (subAccountIds.length === 0) return [];
 
-      return formattedCharges.filter(charge =>
-        charge.subAccountId && subAccountIds.includes(charge.subAccountId)
+      return formattedCharges.filter(
+        (charge) =>
+          charge.subAccountId && subAccountIds.includes(charge.subAccountId),
       );
     }
 
@@ -105,7 +117,7 @@ export async function getStripeTransactionsByDateRange(
   connectAccountId: string,
   startDate: Date,
   endDate: Date,
-  subAccountIds?: string[]
+  subAccountIds?: string[],
 ): Promise<TransactionData[]> {
   try {
     const allCharges: TransactionData[] = [];
@@ -113,7 +125,7 @@ export async function getStripeTransactionsByDateRange(
     let startingAfter: string | undefined = undefined;
 
     while (hasMore) {
-      const charges = await stripe.charges.list(
+      const charges: StripeChargeListResponse = await stripe.charges.list(
         {
           limit: 100,
           created: {
@@ -125,21 +137,24 @@ export async function getStripeTransactionsByDateRange(
         },
         {
           stripeAccount: connectAccountId,
-        }
+        },
       );
 
-      const mappedCharges = charges.data.map((charge) => {
+      const mappedCharges = charges.data.map((charge: Stripe.Charge) => {
         // Get subAccountId from charge metadata or payment_intent metadata
-        const subAccountId = charge.metadata?.subAccountId ||
+        const subAccountId =
+          charge.metadata?.subAccountId ||
           (typeof charge.payment_intent === "object" && charge.payment_intent
-            ? (charge.payment_intent as Stripe.PaymentIntent).metadata?.subAccountId
+            ? (charge.payment_intent as Stripe.PaymentIntent).metadata
+                ?.subAccountId
             : undefined);
 
         return {
           id: charge.id,
           amount: charge.amount / 100,
           currency: charge.currency.toUpperCase(),
-          description: charge.description || charge.metadata?.description || "Payment",
+          description:
+            charge.description || charge.metadata?.description || "Payment",
           status: charge.status,
           created: new Date(charge.created * 1000),
           type: "charge" as const,
@@ -163,8 +178,9 @@ export async function getStripeTransactionsByDateRange(
     if (subAccountIds) {
       if (subAccountIds.length === 0) return [];
 
-      return allCharges.filter(charge =>
-        charge.subAccountId && subAccountIds.includes(charge.subAccountId)
+      return allCharges.filter(
+        (charge) =>
+          charge.subAccountId && subAccountIds.includes(charge.subAccountId),
       );
     }
 
@@ -181,7 +197,7 @@ export async function getStripeTransactionsByDateRange(
 export async function getYearlyRevenue(
   connectAccountId: string,
   year: number = new Date().getFullYear(),
-  subAccountIds?: string[]
+  subAccountIds?: string[],
 ): Promise<number> {
   try {
     const startOfYear = new Date(year, 0, 1);
@@ -198,7 +214,7 @@ export async function getYearlyRevenue(
       },
       {
         stripeAccount: connectAccountId,
-      }
+      },
     );
 
     // Sum up successful charges, optionally filtering by subAccountIds
@@ -209,12 +225,16 @@ export async function getYearlyRevenue(
         if (subAccountIds) {
           if (subAccountIds.length === 0) return false;
 
-          const chargeSubAccountId = charge.metadata?.subAccountId ||
+          const chargeSubAccountId =
+            charge.metadata?.subAccountId ||
             (typeof charge.payment_intent === "object" && charge.payment_intent
-              ? (charge.payment_intent as Stripe.PaymentIntent).metadata?.subAccountId
+              ? (charge.payment_intent as Stripe.PaymentIntent).metadata
+                  ?.subAccountId
               : undefined);
 
-          return chargeSubAccountId && subAccountIds.includes(chargeSubAccountId);
+          return (
+            chargeSubAccountId && subAccountIds.includes(chargeSubAccountId)
+          );
         }
 
         return true;
@@ -259,7 +279,7 @@ export async function getPotentialIncome(agencyId: string): Promise<number> {
     // Sum up ticket values
     const total = tickets.reduce(
       (sum, ticket) => sum + (ticket.value?.toNumber() || 0),
-      0
+      0,
     );
 
     return total;
@@ -275,7 +295,7 @@ export async function getPotentialIncome(agencyId: string): Promise<number> {
 export async function getAgencyDashboardMetrics(
   agencyId: string,
   connectAccountId: string | null,
-  subAccountIds?: string[]
+  subAccountIds?: string[],
 ): Promise<DashboardMetrics> {
   const currentYear = new Date().getFullYear();
 
@@ -295,33 +315,56 @@ export async function getAgencyDashboardMetrics(
 }
 
 /**
- * Get agency's own subscription transaction history
+ * Get agency's own subscription transaction history.
+ * Only includes invoices for the subscription currently linked in our DB (avoids
+ * showing duplicate rows from older cancelled Stripe subscriptions on the same customer).
+ * Deduplicates by billing period (subscription + period_start) if Stripe returns multiples.
  */
 export async function getAgencySubscriptionHistory(agencyId: string) {
   const subscription = await db.subscription.findUnique({
     where: { agencyId },
-    include: { agency: true },
   });
-
-  if (!subscription?.customerId) return [];
+  if (!subscription) return [];
 
   try {
     const invoices = await stripe.invoices.list({
       customer: subscription.customerId,
-      limit: 10,
+      limit: 50,
     });
 
-    return invoices.data.map((invoice) => ({
+    const activeSubscriptionId = subscription.subscritiptionId;
+
+    const forCurrentSubscription = invoices.data.filter((invoice) => {
+      const sid = getInvoiceSubscriptionId(invoice);
+      return sid === activeSubscriptionId;
+    });
+
+    const normalized = forCurrentSubscription.map((invoice) => ({
       id: invoice.id,
-      amount: (invoice.amount_paid || 0) / 100,
-      currency: (invoice.currency || "npr").toUpperCase(),
-      description: invoice.lines.data[0]?.description || "Subscription Payment",
-      status: invoice.status || "unknown",
-      created: new Date((invoice.created || 0) * 1000),
-      type: "subscription" as const,
-      invoicePdf: invoice.invoice_pdf,
-      hostedUrl: invoice.hosted_invoice_url,
+      subscription: getInvoiceSubscriptionId(invoice),
+      period_start: invoice.period_start ?? 0,
+      created: invoice.created ?? 0,
+      status: invoice.status,
+      amount_paid: invoice.amount_paid,
     }));
+
+    const sorted = dedupePaidInvoicesByBillingPeriod(normalized);
+
+    return sorted.slice(0, 10).map((row) => {
+      const invoice = forCurrentSubscription.find((i) => i.id === row.id)!;
+      return {
+        id: invoice.id,
+        amount: invoice.amount_paid / 100,
+        currency: invoice.currency.toUpperCase(),
+        description:
+          invoice.lines.data[0]?.description || "Subscription Payment",
+        status: invoice.status || "unknown",
+        created: new Date((invoice.created || 0) * 1000),
+        type: "subscription" as const,
+        invoicePdf: invoice.invoice_pdf,
+        hostedUrl: invoice.hosted_invoice_url,
+      };
+    });
   } catch (error) {
     console.error("Error fetching subscription history:", error);
     return [];

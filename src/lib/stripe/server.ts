@@ -10,4 +10,3 @@ export const stripe = new Proxy({} as Stripe, {
     return stripeClient[prop as keyof Stripe];
   },
 });
-

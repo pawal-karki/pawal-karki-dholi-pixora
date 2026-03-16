@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Quote } from "lucide-react";
+import { Quote, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Testimonial {
@@ -125,8 +125,12 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ customTestimo
     >
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/30 bg-primary/5 text-primary text-xs font-medium mb-4">
+            <Star className="h-3.5 w-3.5" />
+            Testimonials
+          </div>
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            Here's what real businesses are saying about their experience with
+            Here&apos;s what real businesses are saying about their experience with
             Pixora
           </h2>
         </div>

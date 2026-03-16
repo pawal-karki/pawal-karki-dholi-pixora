@@ -9,7 +9,20 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import clsx from "clsx";
-import { Check } from "lucide-react";
+import {
+  Check,
+  Sparkles,
+  Rocket,
+  MousePointerClick,
+  Users,
+  Zap,
+  Layout,
+  MessageCircle,
+  CreditCard,
+  Shield,
+  MessageSquareQuote,
+  ArrowRight,
+} from "lucide-react";
 import Link from "next/link";
 import TestimonialsSection from "@/components/site/testimonials";
 import { getAllTestimonials } from "@/lib/queries";
@@ -28,7 +41,12 @@ export default async function Home() {
         {/* Grid - light mode uses dark lines, dark mode uses lighter lines */}
         <div className="absolute bottom-0 left-0 right-0 top-0 bg-[linear-gradient(to_right,#e5e5e5_1px,transparent_1px),linear-gradient(to_bottom,#e5e5e5_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#2a2a2a_1px,transparent_1px),linear-gradient(to_bottom,#2a2a2a_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_110%)] -z-10" />
 
-        <p className="text-center mt-4 text-lg text-muted-foreground">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/30 bg-primary/5 text-primary text-sm font-medium mb-4">
+          <Sparkles className="h-4 w-4" />
+          The all-in-one platform for agencies
+          <ArrowRight className="h-3.5 w-3.5" />
+        </div>
+        <p className="text-center mt-2 text-lg text-muted-foreground max-w-xl">
           Build your site with drag-and-drop for your online presence.
         </p>
         <div className="bg-gradient-to-r from-primary to-secondary-foreground text-transparent bg-clip-text relative">
@@ -52,6 +70,10 @@ export default async function Home() {
         id="pricing"
         className="flex justify-center items-center flex-col gap-4 md:mt-20 px-4 pb-20 scroll-mt-32 md:scroll-mt-40 lg:scroll-mt-48"
       >
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/30 bg-primary/5 text-primary text-xs font-medium">
+          <Rocket className="h-3.5 w-3.5" />
+          Pricing Plans
+        </div>
         <h2 className="text-4xl font-bold text-center">
           Create your website in minutes
         </h2>
@@ -135,6 +157,10 @@ export default async function Home() {
       >
         <div className="max-w-5xl mx-auto grid gap-10 md:grid-cols-[1.1fr,0.9fr] items-center">
           <div className="space-y-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/30 bg-primary/5 text-primary text-xs font-medium">
+              <Sparkles className="h-3.5 w-3.5" />
+              About Pixora
+            </div>
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
               Built for modern agencies and creators
             </h2>
@@ -149,23 +175,38 @@ export default async function Home() {
               faster, stay organized, and deliver a premium experience to your clients.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-              <div>
-                <p className="text-sm font-semibold">Drag-and-drop funnels</p>
-                <p className="text-xs text-muted-foreground">
-                  Launch beautiful, responsive pages in minutes with reusable blocks.
-                </p>
+              <div className="flex gap-3">
+                <div className="shrink-0 mt-0.5 h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <MousePointerClick className="h-4 w-4 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold">Drag-and-drop funnels</p>
+                  <p className="text-xs text-muted-foreground">
+                    Launch beautiful, responsive pages in minutes with reusable blocks.
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-semibold">Client workspaces</p>
-                <p className="text-xs text-muted-foreground">
-                  Give each client their own sub-account, pipelines, and reporting.
-                </p>
+              <div className="flex gap-3">
+                <div className="shrink-0 mt-0.5 h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Users className="h-4 w-4 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold">Client workspaces</p>
+                  <p className="text-xs text-muted-foreground">
+                    Give each client their own sub-account, pipelines, and reporting.
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-semibold">Automation-ready</p>
-                <p className="text-xs text-muted-foreground">
-                  Connect payments, triggers, and notifications to keep work flowing.
-                </p>
+              <div className="flex gap-3">
+                <div className="shrink-0 mt-0.5 h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Zap className="h-4 w-4 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold">Automation-ready</p>
+                  <p className="text-xs text-muted-foreground">
+                    Connect payments, triggers, and notifications to keep work flowing.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -176,11 +217,23 @@ export default async function Home() {
               <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
                 Why teams choose Pixora
               </p>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>• Unified workspace for funnels, contacts, and pipelines.</li>
-                <li>• Built-in client chat to keep conversations in context.</li>
-                <li>• Stripe-powered billing and subscription management.</li>
-                <li>• Fine-grained permissions for agency owners and team members.</li>
+              <ul className="space-y-3 text-sm text-muted-foreground">
+                <li className="flex items-start gap-2.5">
+                  <Layout className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                  Unified workspace for funnels, contacts, and pipelines.
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <MessageCircle className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                  Built-in client chat to keep conversations in context.
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <CreditCard className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                  Stripe-powered billing and subscription management.
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <Shield className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                  Fine-grained permissions for agency owners and team members.
+                </li>
               </ul>
             </div>
           </div>
@@ -197,6 +250,10 @@ export default async function Home() {
       >
         <div className="max-w-5xl mx-auto flex flex-col items-center gap-8">
           <div className="text-center max-w-2xl space-y-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/30 bg-primary/5 text-primary text-xs font-medium">
+              <MessageSquareQuote className="h-3.5 w-3.5" />
+              Get in Touch
+            </div>
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
               Let&apos;s talk about your next project
             </h2>

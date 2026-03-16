@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Github, Twitter, Youtube, Mail } from "lucide-react";
+import { Github, Twitter, Youtube, Mail, Package, BookOpen, Building2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -58,9 +58,9 @@ export const SiteFooter: React.FC<React.HTMLAttributes<HTMLElement>> = ({
             </div>
           </div>
 
-          <FooterColumn title="Product" links={footerLinks.product} />
-          <FooterColumn title="Resources" links={footerLinks.resources} />
-          <FooterColumn title="Company" links={footerLinks.company} />
+          <FooterColumn title="Product" icon={<Package className="h-3.5 w-3.5 text-primary" />} links={footerLinks.product} />
+          <FooterColumn title="Resources" icon={<BookOpen className="h-3.5 w-3.5 text-primary" />} links={footerLinks.resources} />
+          <FooterColumn title="Company" icon={<Building2 className="h-3.5 w-3.5 text-primary" />} links={footerLinks.company} />
         </div>
 
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 border-t border-border/60 pt-4">
@@ -80,13 +80,17 @@ export const SiteFooter: React.FC<React.HTMLAttributes<HTMLElement>> = ({
 
 interface FooterColumnProps {
   title: string;
+  icon?: React.ReactNode;
   links: { label: string; href: string }[];
 }
 
-const FooterColumn: React.FC<FooterColumnProps> = ({ title, links }) => {
+const FooterColumn: React.FC<FooterColumnProps> = ({ title, icon, links }) => {
   return (
     <div className="space-y-3">
-      <h4 className="text-sm font-semibold text-foreground/90">{title}</h4>
+      <h4 className="text-sm font-semibold text-foreground/90 flex items-center gap-1.5">
+        {icon}
+        {title}
+      </h4>
       <ul className="space-y-2">
         {links.map((link) => (
           <li key={link.label}>

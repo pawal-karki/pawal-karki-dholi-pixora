@@ -1,0 +1,43 @@
+# ─── Pixora – run app with production database ──────────────────────────────────
+#
+# Set DATABASE_URL in .env to your production PostgreSQL connection string.
+#
+# Usage:
+#   docker compose up --build          # build and run (foreground)
+#   docker compose up -d --build       # build and run in background
+#
+# App: http://localhost:3000
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+        CLERK_SECRET_KEY: ${CLERK_SECRET_KEY}
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      NODE_ENV: production
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      NEXT_PUBLIC_URL: ${NEXT_PUBLIC_URL:-http://localhost:3000}
+      NEXT_PUBLIC_DOMAIN: ${NEXT_PUBLIC_DOMAIN:-localhost:3000}
+      GMAIL_USER: ${GMAIL_USER:-}
+      GMAIL_APP_PASSWORD: ${GMAIL_APP_PASSWORD:-}
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:-}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:-}
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:-}
+      PUSHER_APP_ID: ${PUSHER_APP_ID:-}
+      NEXT_PUBLIC_PUSHER_KEY: ${NEXT_PUBLIC_PUSHER_KEY:-}
+      PUSHER_SECRET: ${PUSHER_SECRET:-}
+      NEXT_PUBLIC_PUSHER_CLUSTER: ${NEXT_PUBLIC_PUSHER_CLUSTER:-}
+      NEXT_PUBLIC_STRIPE_CLIENT_ID: ${NEXT_PUBLIC_STRIPE_CLIENT_ID:-}
+      NEXT_PUBLIC_SCHEME: ${NEXT_PUBLIC_SCHEME:-http://}
+      UPLOADTHING_SECRET: ${UPLOADTHING_SECRET:-}
+      UPLOADTHING_APP_ID: ${UPLOADTHING_APP_ID:-}
+      UPLOADTHING_TOKEN: ${UPLOADTHING_TOKEN:-}

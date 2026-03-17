@@ -1,0 +1,38 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+bun.lockb
+
+# Build
+.next
+out
+build
+dist
+*.tsbuildinfo
+
+# Env (compose injects; avoid baking secrets)
+.env
+.env.*
+!.env.example
+
+# Git / IDE
+.git
+.gitignore
+.cursor
+.vscode
+*.log
+npm-debug.log*
+
+# Docker
+Dockerfile*
+docker-compose*
+.docker
+
+# Misc
+README.md
+*.md
+.DS_Store
+coverage
+.nyc_output
+.turbo

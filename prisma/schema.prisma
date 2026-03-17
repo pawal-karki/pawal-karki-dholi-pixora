@@ -226,6 +226,7 @@ model Notification {
   agencyId     String
   subAccountId String?
   userId       String
+  read         Boolean @default(false)
 
   user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   agency     Agency      @relation(fields: [agencyId], references: [id], onDelete: Cascade)

@@ -103,15 +103,22 @@ Deploy to Vercel with one click:
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new)
 
-### Docker
+### Running with Docker (Docker Compose)
+
+Run the app and PostgreSQL locally with Docker Compose:
 
 ```bash
-# Build
-docker build -t pixora .
+# Optional: copy env example and set variables (e.g. JWT_SECRET, Stripe, Clerk)
+cp .env.example .env
 
-# Run
-docker run -p 3000:3000 pixora
+# Build and run (app + database)
+docker compose up --build
 ```
+
+- **App:** [http://localhost:3000](http://localhost:3000)
+- **PostgreSQL:** `localhost:5432` (user: `pixora`, password: `pixora`, database: `pixora`)
+
+The app container runs `prisma db push` on startup so the schema is applied automatically. To run in the background: `docker compose up -d --build`.
 
 ## License
 

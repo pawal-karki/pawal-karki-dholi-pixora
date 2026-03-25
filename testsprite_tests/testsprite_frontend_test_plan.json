@@ -1,0 +1,143 @@
+[
+  {
+    "id": "FE001",
+    "title": "landing page loads with hero section and navigation",
+    "description": "Navigate to the landing page and verify hero section and navigation render correctly.",
+    "steps": [
+      "Navigate to /site",
+      "Verify the page title or heading contains agency management or platform text",
+      "Verify the navigation bar is visible with links for Pricing, About, Contact",
+      "Verify a Get Started or call-to-action button is present in the hero section"
+    ]
+  },
+  {
+    "id": "FE002",
+    "title": "landing page pricing section displays plans",
+    "description": "Verify the pricing section shows plan cards with Rs currency.",
+    "steps": [
+      "Navigate to /site",
+      "Scroll to the pricing section or navigate to /site#pricing",
+      "Verify at least two pricing plan cards are visible",
+      "Verify price amounts contain Rs (Nepali Rupees format)",
+      "Verify each plan card has a list of features"
+    ]
+  },
+  {
+    "id": "FE003",
+    "title": "landing page about section renders with features",
+    "description": "Verify the about section displays feature descriptions with icons.",
+    "steps": [
+      "Navigate to /site#about",
+      "Verify the About section heading is visible",
+      "Verify feature items are displayed with descriptive text",
+      "Verify SVG icons are present next to feature descriptions"
+    ]
+  },
+  {
+    "id": "FE004",
+    "title": "contact form submission with valid data",
+    "description": "Fill and submit the contact form with valid data.",
+    "steps": [
+      "Navigate to /site#contact",
+      "Fill in the Name field with 'Test User'",
+      "Fill in the Email field with 'test@example.com'",
+      "Fill in the Subject field with 'Test Subject'",
+      "Fill in the Message field with 'This is a test message from TestSprite'",
+      "Click the Submit or Send button",
+      "Verify a success toast notification or message appears"
+    ]
+  },
+  {
+    "id": "FE005",
+    "title": "contact form validation rejects empty fields",
+    "description": "Verify the contact form shows validation errors for empty required fields.",
+    "steps": [
+      "Navigate to /site#contact",
+      "Click the Submit or Send button without filling any fields",
+      "Verify the form does not submit or shows validation error feedback"
+    ]
+  },
+  {
+    "id": "FE006",
+    "title": "footer renders with link columns and copyright",
+    "description": "Verify the footer section displays correctly.",
+    "steps": [
+      "Navigate to /site",
+      "Scroll to the bottom of the page to the footer section",
+      "Verify Product, Resources, and Company link columns are visible",
+      "Verify the copyright text includes 2026 or the current year",
+      "Verify social media icon links are present"
+    ]
+  },
+  {
+    "id": "FE007",
+    "title": "sign in page renders login form",
+    "description": "Navigate to the sign-in page and verify the login form is present.",
+    "steps": [
+      "Navigate to /agency/auth/sign-in",
+      "Verify email input field is present",
+      "Verify password input field is present",
+      "Verify a sign in or login button is present"
+    ]
+  },
+  {
+    "id": "FE008",
+    "title": "navigation anchor links scroll to sections",
+    "description": "Verify clicking navigation links scrolls to the correct page sections.",
+    "steps": [
+      "Navigate to /site",
+      "Click the Pricing link in the navigation bar",
+      "Verify the pricing section is now visible in the viewport",
+      "Click the About link in the navigation bar",
+      "Verify the about section is now visible in the viewport",
+      "Click the Contact link in the navigation bar",
+      "Verify the contact section is now visible in the viewport"
+    ]
+  },
+  {
+    "id": "FE009",
+    "title": "testimonials section displays reviews",
+    "description": "Verify the testimonials section shows customer review cards.",
+    "steps": [
+      "Navigate to /site",
+      "Scroll to the testimonials section",
+      "Verify at least one testimonial card is visible",
+      "Verify each card shows a name, role or title, and review text"
+    ]
+  },
+  {
+    "id": "FE010",
+    "title": "landing page icons render as SVGs in all sections",
+    "description": "Verify Lucide React icons render correctly across all landing page sections.",
+    "steps": [
+      "Navigate to /site",
+      "Verify SVG elements are present in the hero badge area",
+      "Scroll to the pricing section and verify SVG check icons in feature lists",
+      "Scroll to the about section and verify SVG icons next to feature items",
+      "Scroll to the contact section and verify form label icons"
+    ]
+  },
+  {
+    "id": "FE011",
+    "title": "landing page is responsive on mobile viewport",
+    "description": "Verify the landing page works on a mobile viewport.",
+    "steps": [
+      "Set viewport to 375px width (mobile)",
+      "Navigate to /site",
+      "Verify the page content is visible and not horizontally scrolling",
+      "Verify navigation adapts to mobile layout (hamburger menu or stacked)"
+    ]
+  },
+  {
+    "id": "FE012",
+    "title": "sign in with valid credentials redirects to dashboard",
+    "description": "Test signing in with valid credentials.",
+    "steps": [
+      "Navigate to /agency/auth/sign-in",
+      "Enter email 'test_pawal@yopmail.com' in the email field",
+      "Enter password 'Wlink123' in the password field",
+      "Click the sign in or login button",
+      "Verify the page redirects to the agency dashboard or shows a success state"
+    ]
+  }
+]

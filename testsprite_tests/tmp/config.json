@@ -1,0 +1,20 @@
+{
+  "status": "commited",
+  "type": "backend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:3000",
+  "backendAuthType": "Cookie",
+  "backendCredential": "auth_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJiZGY0YWJhNi1iMGFlLTQ4MTUtYWQ0Mi02Mzk1NWM2NTQzMDciLCJlbWFpbCI6InRlc3RfcGF3YWxAeW9wbWFpbC5jb20iLCJyb2xlIjoiQUdFTkNZX09XTkVSIiwiaWF0IjoxNzc0Njc4MjAxLCJleHAiOjE3NzUyODMwMDF9.JL99quoBT9pJJyeVx5DsoxD4d4U8TdkLGq5UsD8tYPE",
+  "executionArgs": {
+    "projectName": "pixora",
+    "projectPath": "c:\\Users\\Administrator\\Videos\\pixora",
+    "testIds": [],
+    "additionalInstruction": "FRONTEND TEST INSTRUCTIONS:\n1. The app is a Next.js 15 app running at http://localhost:3000.\n2. The landing page is at /site (NOT /). Navigating to / redirects.\n3. For login tests, use credentials: email=test_pawal@yopmail.com password=Wlink123. The sign-in page is accessible from the site navigation.\n4. The theme uses Tailwind CSS dark mode with class-based toggling on the html element.\n5. Navigation links use anchor fragments like /site#pricing, /site#about, /site#contact.\n6. The contact form submits to POST /api/contact-messages.\n7. Currency is displayed in Rs (Nepali Rupees).\n8. Icons are Lucide React SVG icons.\n9. In development mode, limit to 12 high-priority tests.",
+    "serverMode": "development",
+    "envs": {
+      "API_KEY": "sk-user-eYu9pFk3WrnmegFKXvEZQHgSBH7eWTg9TRKZu6ZTPtJIHYvDCKHblsgfVSurfpM0ZfQY6NL-_OztO7p0Pre_2B3MO93iuEYa0U3JhCokhb5k1caXBxycED31dTfd2NupHDc"
+    }
+  },
+  "serverPort": 54870,
+  "proxy": "http://26ff14e9-faab-4d5a-aa15-6da0fb28a998:4VXRiZyQzRdrUKfHI7SwaAmmUHJ0k031@tun.testsprite.com:8080"
+}

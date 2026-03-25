@@ -1,0 +1,396 @@
+version: "2"
+type: backend
+tech_stack:
+  - TypeScript
+  - Next.js 15 (App Router / Turbopack)
+  - Prisma ORM
+  - PostgreSQL
+  - Stripe API
+  - Clerk Authentication
+  - JWT (jsonwebtoken + bcryptjs)
+  - Pusher (realtime)
+  - Nodemailer (SMTP)
+  - UploadThing (file uploads)
+  - Bun runtime
+features:
+  - name: User Authentication
+    description: Email/password signup, signin, JWT token management, forgot password with OTP, password reset
+    files:
+      - src/app/api/auth/signup/route.ts
+      - src/app/api/auth/signin/route.ts
+      - src/app/api/auth/me/route.ts
+      - src/app/api/auth/forgot-password/route.ts
+      - src/app/api/auth/verify-otp/route.ts
+      - src/app/api/auth/reset-password/route.ts
+      - src/lib/auth.ts
+    endpoints:
+      - method: POST
+        path: /api/auth/signup
+        description: Register new user with name, email, password. Returns JWT token.
+        auth_required: false
+        request_schema:
+          body:
+            name: string
+            email: string
+            password: string (min 8 chars)
+        response_schema:
+          "201": "{ message, user: { id, name, email, role }, token }"
+          "400": "Validation error (missing fields, invalid email, short password)"
+          "409": "Email already exists"
+      - method: POST
+        path: /api/auth/signin
+        description: Authenticate user with email/password, return JWT
+        auth_required: false
+        request_schema:
+          body:
+            email: string
+            password: string
+        response_schema:
+          "200": "{ message, user: { id, name, email, role, avatarUrl }, token }"
+          "400": "OAuth-only account"
+          "401": "Invalid credentials"
+      - method: GET
+        path: /api/auth/me
+        description: Get current user profile from Bearer JWT
+        auth_required: true
+        request_schema:
+          headers:
+            Authorization: "Bearer <jwt>"
+        response_schema:
+          "200": "{ user: { id, name, email, role, avatarUrl, createdAt, agencyId } }"
+          "401": "Missing or invalid token"
+          "404": "User not found"
+      - method: POST
+        path: /api/auth/forgot-password
+        description: Send password reset OTP to email (anti-enumeration - always 200)
+        auth_required: false
+        request_schema:
+          body:
+            email: string
+        response_schema:
+          "200": "{ message } (always success for anti-enumeration)"
+      - method: POST
+        path: /api/auth/verify-otp
+        description: Verify email OTP and return reset token
+        auth_required: false
+        request_schema:
+          body:
+            email: string
+            otp: string
+        response_schema:
+          "200": "{ message, resetToken }"
+          "400": "Invalid or expired OTP"
+      - method: POST
+        path: /api/auth/reset-password
+        description: Reset password using reset JWT token
+        auth_required: false
+        request_schema:
+          body:
+            token: string (JWT from verify-otp)
+            password: string (min 8 chars)
+        response_schema:
+          "200": "{ message }"
+          "400": "Invalid or expired reset token"
+          "404": "User not found"
+    depends_on: []
+
+  - name: Contact Messages
+    description: Public contact form submission and staff reply with email
+    files:
+      - src/app/api/contact-messages/route.ts
+      - src/app/api/contact-messages/reply/route.ts
+      - src/lib/contact-payload.ts
+      - src/queries/contact-messages.ts
+    endpoints:
+      - method: POST
+        path: /api/contact-messages
+        description: Submit public contact message
+        auth_required: false
+        request_schema:
+          body:
+            name: string
+            email: string
+            message: string
+            subject: string (optional)
+        response_schema:
+          "200": "{ success: true, message: ContactMessage }"
+          "400": "Validation error"
+      - method: POST
+        path: /api/contact-messages/reply
+        description: Staff sends email reply to contact message and marks it replied
+        auth_required: true
+        request_schema:
+          body:
+            messageId: string
+            subject: string
+            replyBody: string
+        response_schema:
+          "200": "{ success: true, message: ContactMessage }"
+          "401": "Unauthorized"
+          "404": "Message not found"
+    depends_on:
+      - User Authentication
+
+  - name: AI Chat
+    description: Send messages to AI providers (OpenAI/Gemini/Anthropic/Groq) with conversation context
+    files:
+      - src/app/api/chat/ai/route.ts
+      - src/lib/ai-chat-errors.ts
+    endpoints:
+      - method: POST
+        path: /api/chat/ai
+        description: Send message to AI provider and receive AI response
+        auth_required: true
+        request_schema:
+          body:
+            content: string
+            conversationId: string
+            overrideModel: string (optional)
+        response_schema:
+          "200": "{ userMessage, aiMessage }"
+          "400": "Missing fields or AI not configured"
+          "401": "Unauthorized"
+          "429": "Rate limit exceeded"
+    depends_on:
+      - User Authentication
+
+  - name: Direct Chat
+    description: User-to-user chat messages with Pusher realtime events
+    files:
+      - src/app/api/chat/send/route.ts
+    endpoints:
+      - method: POST
+        path: /api/chat/send
+        description: Save chat message and trigger Pusher realtime event
+        auth_required: true
+        request_schema:
+          body:
+            content: string
+            conversationId: string
+        response_schema:
+          "200": "ChatMessage with senderUser"
+          "400": "Missing content or conversationId"
+          "401": "Unauthorized"
+    depends_on:
+      - User Authentication
+
+  - name: Stripe Payments - Checkout
+    description: Create Stripe Checkout sessions for connected account payments
+    files:
+      - src/app/api/stripe/create-checkout-session/route.ts
+      - src/lib/stripe/validate-cart-agency.ts
+    endpoints:
+      - method: POST
+        path: /api/stripe/create-checkout-session
+        description: Create embedded or redirect Stripe Checkout session on connected account
+        auth_required: false
+        request_schema:
+          body:
+            subAccountConnectedId: string (optional)
+            prices: "array of { priceId, quantity }"
+            subAccountId: string (optional)
+            mode: "embedded | redirect (default embedded)"
+            successUrl: string (optional, for redirect)
+            cancelUrl: string (optional, for redirect)
+        response_schema:
+          "200": "{ clientSecret } (embedded) or { checkoutUrl, sessionId } (redirect)"
+          "400": "Validation error or cross-agency cart"
+    depends_on: []
+
+  - name: Stripe Payments - Subscription
+    description: Agency subscription checkout and cancellation
+    files:
+      - src/app/api/stripe/create-subscription-session/route.ts
+      - src/app/api/stripe/cancel-subscription/route.ts
+    endpoints:
+      - method: POST
+        path: /api/stripe/create-subscription-session
+        description: Create subscription checkout for agency plan
+        auth_required: true
+        request_schema:
+          body:
+            agencyId: string
+            priceId: string
+            successUrl: string
+            cancelUrl: string
+        response_schema:
+          "200": "{ url, sessionId }"
+          "400": "Missing fields, invalid price, invalid URL host"
+          "401": "Unauthorized"
+          "403": "Not member of agency"
+      - method: POST
+        path: /api/stripe/cancel-subscription
+        description: Cancel agency subscription at period end
+        auth_required: true
+        request_schema:
+          body:
+            agencyId: string
+        response_schema:
+          "200": "{ success: true, message }"
+          "401": "Unauthorized"
+          "403": "Not agency owner"
+          "404": "No subscription found"
+    depends_on:
+      - User Authentication
+
+  - name: Stripe Webhook
+    description: Process Stripe webhook events for subscription and payment lifecycle
+    files:
+      - src/app/api/stripe/webhook/route.ts
+    endpoints:
+      - method: POST
+        path: /api/stripe/webhook
+        description: Handle Stripe webhook events (checkout completed, subscription changes, invoice events)
+        auth_required: false
+        request_schema:
+          headers:
+            stripe-signature: string
+          body: raw Stripe event payload
+        response_schema:
+          "200": "{ received: true }"
+          "400": "Missing or invalid Stripe signature"
+    depends_on: []
+
+  - name: Products Management
+    description: CRUD for subaccount products with optional Stripe integration
+    files:
+      - src/app/api/stripe/products/route.ts
+    endpoints:
+      - method: GET
+        path: /api/stripe/products
+        description: List products for a subaccount
+        auth_required: false
+        request_schema:
+          query:
+            subAccountId: string
+            source: "local | stripe (optional)"
+        response_schema:
+          "200": "{ products, stripeConnected }"
+          "400": "Missing subAccountId"
+      - method: POST
+        path: /api/stripe/products
+        description: Create product (local-only or synced to Stripe)
+        auth_required: false
+        request_schema:
+          body:
+            subAccountId: string
+            name: string
+            price: number
+            description: string (optional)
+            recurring: "month | year (optional)"
+            localOnly: boolean (optional)
+        response_schema:
+          "200": "{ success, product }"
+      - method: DELETE
+        path: /api/stripe/products
+        description: Delete product and archive on Stripe if linked
+        auth_required: false
+        request_schema:
+          query:
+            productId: string
+        response_schema:
+          "200": "{ success: true }"
+    depends_on: []
+
+  - name: Plan Prices
+    description: Public API returning available Stripe plan price IDs
+    files:
+      - src/app/api/stripe/plan-prices/route.ts
+    endpoints:
+      - method: GET
+        path: /api/stripe/plan-prices
+        description: Get map of plan keys to Stripe price IDs
+        auth_required: false
+        response_schema:
+          "200": "Record<string, string>"
+    depends_on: []
+
+  - name: Plan Limits
+    description: Check if agency can add more subaccounts or team members
+    files:
+      - src/app/api/plan-limits/route.ts
+      - src/lib/plan-limits.ts
+    endpoints:
+      - method: GET
+        path: /api/plan-limits
+        description: Validate agency plan limits for subaccounts or team members
+        auth_required: false
+        request_schema:
+          query:
+            agencyId: string
+            type: "subaccount | team"
+        response_schema:
+          "200": "{ allowed, currentCount, maxAllowed, planName }"
+          "400": "Missing or invalid params"
+    depends_on: []
+
+  - name: Media Management
+    description: List media files for a subaccount
+    files:
+      - src/app/api/media/route.ts
+    endpoints:
+      - method: GET
+        path: /api/media
+        description: List media files for a subaccount ordered by newest
+        auth_required: false
+        request_schema:
+          query:
+            subAccountId: string
+        response_schema:
+          "200": "{ media: Media[] }"
+          "400": "Missing subAccountId"
+    depends_on: []
+
+  - name: Subdomain Routing
+    description: Multi-tenant subdomain resolution in middleware
+    files:
+      - src/lib/subdomain.ts
+      - src/middleware.ts
+    endpoints: []
+    depends_on: []
+
+  - name: Notification System
+    description: Activity log notifications with role-based filtering and read status
+    files:
+      - src/queries/notifications.ts
+      - src/lib/notification-format.ts
+      - src/components/global/info-bar.tsx
+    endpoints: []
+    depends_on:
+      - User Authentication
+
+  - name: Ticket Assignment
+    description: Pipeline ticket management with assignment notifications
+    files:
+      - src/queries/tickets.ts
+      - src/lib/ticket-assignment.ts
+    endpoints: []
+    depends_on:
+      - Notification System
+
+  - name: Funnel Builder
+    description: Drag-and-drop funnel page ordering and published URL generation
+    files:
+      - src/queries/funnels.ts
+      - src/lib/funnel-url.ts
+      - src/lib/dnd-reorder.ts
+    endpoints: []
+    depends_on: []
+
+  - name: Rate Limiting
+    description: In-memory sliding window rate limiter for API protection
+    files:
+      - src/lib/rate-limit-memory.ts
+    endpoints: []
+    depends_on: []
+
+known_limitations:
+  - issue: GET /api/auth/me crashes with HTTP 500 when given a malformed JWT instead of returning 401
+    location: src/app/api/auth/me/route.ts
+    impact: Error response leaks implementation details; should gracefully return 401
+  - issue: Several API routes (media, products, plan-limits) lack explicit authentication checks
+    location: src/app/api/media/route.ts, src/app/api/stripe/products/route.ts
+    impact: Endpoints are accessible without authentication
+  - issue: Stripe subscription model has typo field name subscritiptionId
+    location: prisma/schema.prisma
+    impact: Code uses workaround casts; may confuse new developers

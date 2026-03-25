@@ -1,0 +1,77 @@
+[
+  {
+    "id": "TC001",
+    "title": "post api auth signup create new user account",
+    "description": "Test POST /api/auth/signup with valid name, email, password. Expect 201 with JWT token and user object. Also test duplicate email returns 409 and missing fields return 400."
+  },
+  {
+    "id": "TC002",
+    "title": "post api auth signin authenticate user",
+    "description": "Test POST /api/auth/signin with valid credentials (email=test_pawal@yopmail.com, password=Wlink123). Expect 200 with JWT token and user object. Also test invalid password returns 401."
+  },
+  {
+    "id": "TC003",
+    "title": "get api auth me return current user profile",
+    "description": "Test GET /api/auth/me with valid Bearer JWT token. Expect 200 with user profile. Test missing Authorization header returns 401. Test invalid/malformed token returns 401."
+  },
+  {
+    "id": "TC004",
+    "title": "post api auth forgot password send otp",
+    "description": "Test POST /api/auth/forgot-password with known email. Expect 200. Test with unknown email also returns 200 (anti-enumeration). Test missing email returns 400 or 500."
+  },
+  {
+    "id": "TC005",
+    "title": "post api auth verify otp validate otp",
+    "description": "Test POST /api/auth/verify-otp with invalid OTP. Expect 400 invalid OTP. Cannot test valid OTP flow since OTP is sent via email."
+  },
+  {
+    "id": "TC006",
+    "title": "post api auth reset password set new password",
+    "description": "Test POST /api/auth/reset-password with invalid reset token. Expect 400 invalid or expired token. Cannot test valid flow since it depends on verify-otp."
+  },
+  {
+    "id": "TC007",
+    "title": "post api contact messages submit public message",
+    "description": "Test POST /api/contact-messages with valid name, email, message. Expect 200 with success:true. Test missing required fields returns 400."
+  },
+  {
+    "id": "TC008",
+    "title": "post api contact messages reply send email reply",
+    "description": "Test POST /api/contact-messages/reply requires auth. Without auth cookie expect 401. With auth cookie send messageId, subject, replyBody."
+  },
+  {
+    "id": "TC009",
+    "title": "post api chat send save direct chat message",
+    "description": "Test POST /api/chat/send requires auth. Without auth expect 401. With auth but missing content/conversationId expect 400."
+  },
+  {
+    "id": "TC010",
+    "title": "get api stripe plan prices list plan price ids",
+    "description": "Test GET /api/stripe/plan-prices. Expect 200 with an object mapping plan keys to Stripe price IDs."
+  },
+  {
+    "id": "TC011",
+    "title": "get api plan limits check agency plan limits",
+    "description": "Test GET /api/plan-limits with query params agencyId and type=subaccount. Expect 200 with allowed, currentCount, maxAllowed fields. Test missing agencyId returns 400."
+  },
+  {
+    "id": "TC012",
+    "title": "get api media list media files",
+    "description": "Test GET /api/media with valid subAccountId query param. Expect 200 with media array. Test missing subAccountId returns 400."
+  },
+  {
+    "id": "TC013",
+    "title": "post api stripe cancel subscription unauthorized",
+    "description": "Test POST /api/stripe/cancel-subscription without auth. Expect 401. Test with non-owner role expect 403."
+  },
+  {
+    "id": "TC014",
+    "title": "post api stripe create subscription session validation",
+    "description": "Test POST /api/stripe/create-subscription-session without auth. Expect 401. Test with auth but missing required fields (agencyId, priceId, successUrl, cancelUrl) expect 400."
+  },
+  {
+    "id": "TC015",
+    "title": "post api stripe create checkout session validation",
+    "description": "Test POST /api/stripe/create-checkout-session with missing required fields. Expect 400. Test with empty prices array."
+  }
+]

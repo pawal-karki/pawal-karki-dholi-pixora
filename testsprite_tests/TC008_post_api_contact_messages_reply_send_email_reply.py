@@ -3,63 +3,56 @@ import requests
 BASE_URL = "http://localhost:3000"
 SIGNIN_ENDPOINT = f"{BASE_URL}/api/auth/signin"
 CONTACT_MESSAGES_ENDPOINT = f"{BASE_URL}/api/contact-messages"
-REPLY_ENDPOINT = f"{BASE_URL}/api/contact-messages/reply"
+CONTACT_MESSAGES_REPLY_ENDPOINT = f"{BASE_URL}/api/contact-messages/reply"
+
+AUTH_EMAIL = "test_pawal@yopmail.com"
+AUTH_PASSWORD = "Wlink123"
 TIMEOUT = 30
 
 def test_post_api_contact_messages_reply_send_email_reply():
-    signin_payload = {
-        "email": "test_pawal@yopmail.com",
-        "password": "Wlink123"
-    }
-
-    # Step 1: Attempt POST /api/contact-messages/reply without auth header -> Expect 401
-    reply_payload_dummy = {
-        "messageId": "dummy-id",
-        "replySubject": "Subject",
-        "replyBody": "Reply body"
-    }
-    without_auth_response = requests.post(REPLY_ENDPOINT, json=reply_payload_dummy, timeout=TIMEOUT)
-    assert without_auth_response.status_code == 401, f"Expected 401 Unauthorized without auth, got {without_auth_response.status_code}"
-
-    # Step 2: Sign in to get auth token
+    # Sign in to get token
+    signin_payload = {"email": AUTH_EMAIL, "password": AUTH_PASSWORD}
     signin_resp = requests.post(SIGNIN_ENDPOINT, json=signin_payload, timeout=TIMEOUT)
-    assert signin_resp.status_code == 200, f"Signing in failed with status {signin_resp.status_code}"
-    signin_data = signin_resp.json()
-    token = signin_data.get("token")
-    assert token and isinstance(token, str), "No token found in signin response"
+    assert signin_resp.status_code == 200, f"Signing in failed: {signin_resp.text}"
+    signin_json = signin_resp.json()
+    token = signin_json.get("token")
+    assert token is not None, "Token not found in signin response"
+    auth_header = {"Authorization": f"Bearer {token}"}
 
-    headers = {"Authorization": f"Bearer {token}"}
+    # 1. Without auth header: expect 401 Unauthorized
+    without_auth_resp = requests.post(CONTACT_MESSAGES_REPLY_ENDPOINT, json={}, timeout=TIMEOUT)
+    assert without_auth_resp.status_code == 401, f"Expected 401 without auth, got {without_auth_resp.status_code}"
 
-    # Step 3: Create a new public contact message to get a valid messageId
-    contact_message_payload = {
+    # 2. With auth header: need a message to reply to -> create a contact message first
+    new_message_payload = {
         "name": "Test User",
-        "email": "test_user@yopmail.com",
-        "subject": "Test subject for reply",
-        "message": "This is a test message body to generate messageId."
+        "email": "testuser@example.com",
+        "subject": "Test Subject",
+        "message": "This is a test message for reply"
     }
-    contact_resp = requests.post(CONTACT_MESSAGES_ENDPOINT, json=contact_message_payload, timeout=TIMEOUT)
-    assert contact_resp.status_code == 200, f"Creating contact message failed with status {contact_resp.status_code}"
-    contact_resp_json = contact_resp.json()
-    assert contact_resp_json.get("success") is True, "Contact message creation success flag not true"
-    message_obj = contact_resp_json.get("message")
-    assert message_obj and isinstance(message_obj, dict), "No message object returned"
-    message_id = message_obj.get("id")
-    assert message_id and isinstance(message_id, str), "No valid messageId found in created contact message"
+    create_msg_resp = requests.post(CONTACT_MESSAGES_ENDPOINT, json=new_message_payload, timeout=TIMEOUT)
+    assert create_msg_resp.status_code == 200, f"Failed to create contact message: {create_msg_resp.text}"
+    create_msg_json = create_msg_resp.json()
+    assert create_msg_json.get("success") is True, f"Create contact message success false: {create_msg_json}"
 
-    # Step 4: POST /api/contact-messages/reply with auth header and valid payload
+    message_obj = create_msg_json.get("message")
+    assert message_obj and "id" in message_obj, "Created message object missing id"
+    message_id = message_obj["id"]
+
+    # Send reply with valid auth header
     reply_payload = {
         "messageId": message_id,
-        "replySubject": "Re: Test subject for reply",
-        "replyBody": "This is a test reply body."
+        "replySubject": "Re: Test Subject",
+        "replyBody": "This is a reply from test."
     }
+    headers = {
+        "Content-Type": "application/json",
+        **auth_header
+    }
+    reply_resp = requests.post(CONTACT_MESSAGES_REPLY_ENDPOINT, json=reply_payload, headers=headers, timeout=TIMEOUT)
+    assert reply_resp.status_code == 200, f"Reply request failed: {reply_resp.text}"
+    reply_json = reply_resp.json()
+    assert reply_json.get("success") is True, f"Reply response success false: {reply_json}"
 
-    try:
-        reply_resp = requests.post(REPLY_ENDPOINT, json=reply_payload, headers=headers, timeout=TIMEOUT)
-        assert reply_resp.status_code == 200, f"Reply sending failed with status {reply_resp.status_code}"
-        reply_json = reply_resp.json()
-        assert reply_json.get("success") is True, "Reply success flag not true"
-    finally:
-        # Cleanup: no direct API to delete a contact message, so no delete attempt
-        pass
 
 test_post_api_contact_messages_reply_send_email_reply()

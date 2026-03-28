@@ -1,36 +1,45 @@
 import requests
 
 BASE_URL = "http://localhost:3000"
-TIMEOUT = 30
+AUTH_COOKIE = {
+    'auth_token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJiZGY0YWJhNi1iMGFlLTQ4MTUtYWQ0Mi02Mzk1NWM2NTQzMDciLCJlbWFpbCI6InRlc3RfcGF3YWxAeW9wbWFpbC5jb20iLCJyb2xlIjoiQUdFTkNZX09XTkVSIiwiaWF0IjoxNzc0Njg4MjU1LCJleHAiOjE3NzUyOTMwNTV9.LFtQEgaHNMtNyMuaVMA6aEj92lbRUs6UPJy0y4I3BI0'
+}
 
 def test_get_api_media_list_media_files():
-    # Valid subAccountId param - expect 200 with media array
-    valid_sub_account_id = "test-sub-account-id-123"
+    timeout_seconds = 30
 
-    params = {"subAccountId": valid_sub_account_id}
+    # Test with valid subAccountId query param - Expect 200 with { media: [...] }
+    valid_sub_account_id = "valid-sub-account-id-example"  # Example subAccountId; in real scenario, replace or create
+
+    # Since subAccountId is required and not provided in instructions, attempt to get a valid subAccountId first:
+    # As we do not have an endpoint to create or list subAccountId, we will mock this as a fixed string.
+    # The API docs show no auth required for /api/media.
+
+    # Make GET request with valid subAccountId
     try:
-        response = requests.get(f"{BASE_URL}/api/media", params=params, timeout=TIMEOUT)
+        resp = requests.get(
+            f"{BASE_URL}/api/media",
+            params={"subAccountId": valid_sub_account_id},
+            timeout=timeout_seconds
+        )
     except requests.RequestException as e:
-        assert False, f"Request to GET /api/media with valid subAccountId failed: {e}"
+        assert False, f"Request failed: {e}"
     
-    assert response.status_code == 200, f"Expected status 200, got {response.status_code}"
-    try:
-        media_list = response.json()
-    except ValueError:
-        assert False, "Response is not valid JSON"
+    assert resp.status_code == 200, f"Expected 200, got {resp.status_code}"
+    json_data = resp.json()
+    assert isinstance(json_data, dict), f"Response should be JSON object/dict"
+    assert "media" in json_data, "Response JSON must contain 'media' key"
+    assert isinstance(json_data["media"], list), "'media' must be a list"
 
-    assert isinstance(media_list, list), "Expected response to be a list (media array)"
-    # Optional: further validate each media item if schema was known
-
-    # Missing subAccountId param - expect 400 validation error
+    # Test missing subAccountId parameter - Expect 400
     try:
-        response_missing = requests.get(f"{BASE_URL}/api/media", timeout=TIMEOUT)
+        resp_missing = requests.get(
+            f"{BASE_URL}/api/media",
+            timeout=timeout_seconds
+        )
     except requests.RequestException as e:
-        assert False, f"Request to GET /api/media without subAccountId failed: {e}"
+        assert False, f"Request failed: {e}"
 
-    assert response_missing.status_code == 400, (
-        f"Expected status 400 when missing subAccountId, got {response_missing.status_code}"
-    )
-
+    assert resp_missing.status_code == 400, f"Expected 400 for missing subAccountId, got {resp_missing.status_code}"
 
 test_get_api_media_list_media_files()

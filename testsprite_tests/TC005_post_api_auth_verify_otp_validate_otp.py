@@ -1,53 +1,47 @@
 import requests
 
 BASE_URL = "http://localhost:3000"
-SIGNIN_URL = f"{BASE_URL}/api/auth/signin"
-VERIFY_OTP_URL = f"{BASE_URL}/api/auth/verify-otp"
+AUTH_TOKEN_COOKIE = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJiZGY0YWJhNi1iMGFlLTQ4MTUtYWQ0Mi02Mzk1NWM2NTQzMDciLCJlbWFpbCI6InRlc3RfcGF3YWxAeW9wbWFpbC5jb20iLCJyb2xlIjoiQUdFTkNZX09XTkVSIiwiaWF0IjoxNzc0Njg4MjU1LCJleHAiOjE3NzUyOTMwNTV9.LFtQEgaHNMtNyMuaVMA6aEj92lbRUs6UPJy0y4I3BI0"
+VERIFY_OTP_ENDPOINT = f"{BASE_URL}/api/auth/verify-otp"
+EMAIL = "test_pawal@yopmail.com"
+INVALID_OTP = "000000"
 TIMEOUT = 30
 
-def test_post_api_auth_verify_otp_invalid_otp():
-    signin_payload = {
-        "email": "test_pawal@yopmail.com",
-        "password": "Wlink123"
-    }
-    # Sign in to get JWT token
-    try:
-        signin_resp = requests.post(SIGNIN_URL, json=signin_payload, timeout=TIMEOUT)
-        assert signin_resp.status_code == 200, f"Sign-in failed with status {signin_resp.status_code}"
-        token = signin_resp.json().get("token")
-        assert token, "No token in sign-in response"
-    except Exception as e:
-        raise AssertionError(f"Sign-in request failed: {e}")
-
-    # Prepare headers; no auth needed for verify-otp as per schema, but just in case
+def test_post_api_auth_verify_otp_invalid():
     headers = {
         "Content-Type": "application/json",
     }
-    # Use a known email and an invalid OTP
-    verify_otp_payload = {
-        "email": "test_pawal@yopmail.com",
-        "otp": "000000"  # Intentionally invalid OTP
+    payload = {
+        "email": EMAIL,
+        "otp": INVALID_OTP
     }
     try:
-        resp = requests.post(VERIFY_OTP_URL, json=verify_otp_payload, headers=headers, timeout=TIMEOUT)
-    except Exception as e:
-        raise AssertionError(f"POST /api/auth/verify-otp request failed: {e}")
+        response = requests.post(
+            VERIFY_OTP_ENDPOINT,
+            json=payload,
+            headers=headers,
+            timeout=TIMEOUT
+        )
+    except requests.RequestException as e:
+        assert False, f"Request failed: {e}"
 
-    # Assert response status and error message
-    assert resp.status_code == 400, f"Expected status 400 for invalid OTP but got {resp.status_code}"
-    # The body is expected to indicate 'Invalid OTP' - check JSON message or text
+    assert response.status_code == 400, f"Expected status code 400, got {response.status_code}"
     try:
-        resp_json = resp.json()
-        # Accept either a field error or a general message containing "Invalid"
-        error_msgs = []
-        if isinstance(resp_json, dict):
-            for v in resp_json.values():
-                if isinstance(v, str):
-                    error_msgs.append(v.lower())
-        error_text = resp.text.lower() if not error_msgs else " ".join(error_msgs)
-        assert "invalid" in error_text and "otp" in error_text, f"Response does not indicate invalid OTP: {resp.text}"
-    except Exception:
-        # If response is not JSON, just check plain text
-        assert "invalid" in resp.text.lower() and "otp" in resp.text.lower(), f"Response does not indicate invalid OTP: {resp.text}"
+        json_resp = response.json()
+    except ValueError:
+        assert False, "Response is not valid JSON"
 
-test_post_api_auth_verify_otp_invalid_otp()
+    error_msgs = []
+    if isinstance(json_resp, dict):
+        if "message" in json_resp:
+            error_msgs.append(json_resp["message"])
+        if "error" in json_resp:
+            error_msgs.append(json_resp["error"])
+        if "detail" in json_resp:
+            error_msgs.append(json_resp["detail"])
+
+    combined_errors = " ".join(error_msgs).lower()
+    assert "invalid" in combined_errors and "otp" in combined_errors, \
+        f"Expected error message containing 'invalid' and 'otp', got: {json_resp}"
+
+test_post_api_auth_verify_otp_invalid()

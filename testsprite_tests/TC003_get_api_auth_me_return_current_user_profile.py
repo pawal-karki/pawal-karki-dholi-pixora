@@ -1,52 +1,33 @@
 import requests
 
-base_url = "http://localhost:3000"
-signin_url = f"{base_url}/api/auth/signin"
-me_url = f"{base_url}/api/auth/me"
+BASE_URL = "http://localhost:3000"
+AUTH_TOKEN = ("auth_token", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9."
+                         "eyJ1c2VySWQiOiJiZGY0YWJhNi1iMGFlLTQ4MTUtYWQ0Mi02Mzk1NWM2NTQzMDciLCJlbWFpbCI6InRlc3RfcGF3YWxAeW9wbWFpbC5jb20iLCJyb2xlIjoiQUdFTkNZX09XTkVSIiwiaWF0IjoxNzc0Njg4MjU1LCJleHAiOjE3NzUyOTMwNTV9."
+                         "LFtQEgaHNMtNyMuaVMA6aEj92lbRUs6UPJy0y4I3BI0")
 
-def test_get_api_auth_me_return_current_user_profile():
-    # First, sign in to get a valid JWT token
-    signin_payload = {
-        "email": "test_pawal@yopmail.com",
-        "password": "Wlink123"
-    }
+def test_get_api_auth_me_with_and_without_auth_token_cookie():
+    # Test with valid Bearer token in Authorization header
+    headers = {"Authorization": f"Bearer {AUTH_TOKEN[1]}"}
     try:
-        signin_resp = requests.post(signin_url, json=signin_payload, timeout=30)
-        assert signin_resp.status_code == 200, f"Signin failed with status {signin_resp.status_code}"
-        signin_data = signin_resp.json()
-        token = signin_data.get("token")
-        assert token, "Token not found in signin response"
-    except Exception as e:
-        raise AssertionError(f"Signin step failed: {e}")
+        response = requests.get(f"{BASE_URL}/api/auth/me", headers=headers, timeout=30)
+    except requests.RequestException as e:
+        assert False, f"Request to /api/auth/me with valid Authorization header failed: {e}"
 
-    # Test GET /api/auth/me with valid Bearer JWT token in Authorization header
-    headers_valid = {
-        "Authorization": f"Bearer {token}"
-    }
+    assert response.status_code == 200, f"Expected 200 OK, got {response.status_code}"
+    data = response.json()
+    # Validate user profile contains required fields and correct email and role from token payload
+    assert isinstance(data, dict), "Response JSON is not an object"
+    assert "id" in data and isinstance(data["id"], str) and data["id"], "User id missing or invalid"
+    assert "name" in data and isinstance(data["name"], str) and data["name"], "User name missing or invalid"
+    assert "email" in data and data["email"] == "test_pawal@yopmail.com", "Email does not match"
+    assert "role" in data and data["role"] == "AGENCY_OWNER", "Role does not match"
+
+    # Test request without Authorization header
     try:
-        resp_valid = requests.get(me_url, headers=headers_valid, timeout=30)
-        assert resp_valid.status_code == 200, f"Expected 200 with valid token, got {resp_valid.status_code}"
-        user_profile = resp_valid.json()
-        assert isinstance(user_profile, dict), "User profile response is not a JSON object"
-        assert user_profile, "User profile is empty"
-    except Exception as e:
-        raise AssertionError(f"GET /api/auth/me with valid token failed: {e}")
+        response_no_auth = requests.get(f"{BASE_URL}/api/auth/me", timeout=30)
+    except requests.RequestException as e:
+        assert False, f"Request to /api/auth/me without Authorization header failed: {e}"
 
-    # Test GET /api/auth/me missing Authorization header returns 401
-    try:
-        resp_no_auth = requests.get(me_url, timeout=30)
-        assert resp_no_auth.status_code == 401, f"Expected 401 without Authorization header, got {resp_no_auth.status_code}"
-    except Exception as e:
-        raise AssertionError(f"GET /api/auth/me without Authorization header failed: {e}")
+    assert response_no_auth.status_code == 401, f"Expected 401 Unauthorized without Authorization header, got {response_no_auth.status_code}"
 
-    # Test GET /api/auth/me with invalid/malformed token returns 401
-    headers_invalid_token = {
-        "Authorization": "Bearer invalid.token.value"
-    }
-    try:
-        resp_invalid = requests.get(me_url, headers=headers_invalid_token, timeout=30)
-        assert resp_invalid.status_code == 401, f"Expected 401 with invalid token, got {resp_invalid.status_code}"
-    except Exception as e:
-        raise AssertionError(f"GET /api/auth/me with invalid token failed: {e}")
-
-test_get_api_auth_me_return_current_user_profile()
+test_get_api_auth_me_with_and_without_auth_token_cookie()

@@ -12,120 +12,170 @@
 
 ## 2️⃣ Requirement Validation Summary
 
-#### Test FE001 landing page loads with hero section and navigation
-- **Test Code:** [FE001_landing_page_loads_with_hero_section_and_navigation.py](./FE001_landing_page_loads_with_hero_section_and_navigation.py)
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/ffdf90ac-7a09-4640-9e9e-a0d8443f1270/78df24eb-7f1d-40f1-aa9e-cabbc7e887ff
+#### Test TC001 post api auth signup create new user account
+- **Test Code:** [TC001_post_api_auth_signup_create_new_user_account.py](./TC001_post_api_auth_signup_create_new_user_account.py)
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/9e153332-3794-4dae-a650-09ba1cbedd9a/b0b0451c-b05b-4035-99b8-a8717e422b10
 - **Status:** ✅ Passed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
 
-#### Test FE002 landing page pricing section displays plans
-- **Test Code:** [FE002_landing_page_pricing_section_displays_plans.py](./FE002_landing_page_pricing_section_displays_plans.py)
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/ffdf90ac-7a09-4640-9e9e-a0d8443f1270/9bf808dc-eb8a-4ff0-a0af-4b56f873311e
+#### Test TC002 post api auth signin authenticate user and get jwt
+- **Test Code:** [TC002_post_api_auth_signin_authenticate_user_and_get_jwt.py](./TC002_post_api_auth_signin_authenticate_user_and_get_jwt.py)
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/9e153332-3794-4dae-a650-09ba1cbedd9a/9602f7e2-1293-4c8d-a15c-554592acbcbd
 - **Status:** ✅ Passed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
 
-#### Test FE003 landing page about section renders with features
-- **Test Code:** [FE003_landing_page_about_section_renders_with_features.py](./FE003_landing_page_about_section_renders_with_features.py)
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/ffdf90ac-7a09-4640-9e9e-a0d8443f1270/4583fe96-4402-491a-a88e-90bec8c374b2
-- **Status:** ✅ Passed
-- **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
----
+#### Test TC003 get api auth me return current user profile with role
+- **Test Code:** [TC003_get_api_auth_me_return_current_user_profile_with_role.py](./TC003_get_api_auth_me_return_current_user_profile_with_role.py)
+- **Test Error:** Traceback (most recent call last):
+  File "/var/task/handler.py", line 258, in run_with_retry
+    exec(code, exec_env)
+  File "<string>", line 78, in <module>
+  File "<string>", line 63, in test_get_api_auth_me_return_current_user_profile_with_role
+AssertionError: Expected 401 for invalid token, got 500
 
-#### Test FE004 contact form submission with valid data
-- **Test Code:** [FE004_contact_form_submission_with_valid_data.py](./FE004_contact_form_submission_with_valid_data.py)
-- **Test Error:** The contact form was filled and the Send Message button was clicked, but no visible success confirmation appeared on the page.
-
-Observations:
-- The contact form fields were filled with: Name='Test User', Email='test@example.com', Subject='Test Subject', Message='This is a test message from TestSprite'.
-- The Send Message button was clicked and showed a sending state, but no confirmation message appeared.
-- No toast/snackbar or confirmation strings such as 'Message sent', 'Thank you', 'Success', or 'We've received your message' were found on the page.
-- The page remained on /site#contact and the form inputs remained visible (not cleared).
-- Extracted content (extracted_content_0.md, extracted_content_1.md) contains the page text and does not show any submission confirmation.
-
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/ffdf90ac-7a09-4640-9e9e-a0d8443f1270/531a0058-4d3e-47b7-905e-eb506dea8e56
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/9e153332-3794-4dae-a650-09ba1cbedd9a/292d7766-11af-4cc0-a32c-ff046decfe44
 - **Status:** ❌ Failed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
 
-#### Test FE005 contact form validation rejects empty fields
-- **Test Code:** [FE005_contact_form_validation_rejects_empty_fields.py](./FE005_contact_form_validation_rejects_empty_fields.py)
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/ffdf90ac-7a09-4640-9e9e-a0d8443f1270/ffc4e3bf-6e20-408b-bd3b-9c4c1a3521d0
+#### Test TC004 post api auth forgot password anti enumeration
+- **Test Code:** [TC004_post_api_auth_forgot_password_anti_enumeration.py](./TC004_post_api_auth_forgot_password_anti_enumeration.py)
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/9e153332-3794-4dae-a650-09ba1cbedd9a/5e43424e-5382-49ba-bf25-ddca44eefa64
 - **Status:** ✅ Passed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
 
-#### Test FE006 footer renders with link columns and copyright
-- **Test Code:** [FE006_footer_renders_with_link_columns_and_copyright.py](./FE006_footer_renders_with_link_columns_and_copyright.py)
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/ffdf90ac-7a09-4640-9e9e-a0d8443f1270/b8f7300d-107b-4a3a-b831-32d17684111f
+#### Test TC005 post api auth verify otp with invalid otp
+- **Test Code:** [TC005_post_api_auth_verify_otp_with_invalid_otp.py](./TC005_post_api_auth_verify_otp_with_invalid_otp.py)
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/9e153332-3794-4dae-a650-09ba1cbedd9a/8e681c68-e191-41c1-a4de-800cfd964478
 - **Status:** ✅ Passed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
 
-#### Test FE007 sign in page renders login form
-- **Test Code:** [FE007_sign_in_page_renders_login_form.py](./FE007_sign_in_page_renders_login_form.py)
-- **Test Error:** The sign-in page could not be reached — the requested resource returned a 'Not Found' page, so the login form is not available and verification cannot proceed.
+#### Test TC006 post api auth reset password with invalid token
+- **Test Code:** [TC006_post_api_auth_reset_password_with_invalid_token.py](./TC006_post_api_auth_reset_password_with_invalid_token.py)
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/9e153332-3794-4dae-a650-09ba1cbedd9a/de88e95d-12bc-4f5a-b357-76f44aa34277
+- **Status:** ✅ Passed
+- **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
+---
 
-Observations:
-- Navigated to http://localhost:3000/agency/auth/sign-in and the page displayed "Not Found".
-- The page shows the message: "Could not find requested resource." 
-- The only visible interactive element is a 'Return Home' link (element index 2352); there is no email input, no password input, and no sign-in/login button present.
-- Current tab URL: http://localhost:3000/agency/auth/sign-in (tab 3A47).
-- Verification checks remaining: email input 0/1, password input 0/1, sign-in button 0/1.
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/ffdf90ac-7a09-4640-9e9e-a0d8443f1270/326e5446-7773-479a-b287-6f51ded73469
+#### Test TC007 post api contact messages submit and validate fields
+- **Test Code:** [TC007_post_api_contact_messages_submit_and_validate_fields.py](./TC007_post_api_contact_messages_submit_and_validate_fields.py)
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/9e153332-3794-4dae-a650-09ba1cbedd9a/f65292bf-1510-4237-ad33-aab4ac109c55
+- **Status:** ✅ Passed
+- **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
+---
+
+#### Test TC008 post api contact messages reply requires auth
+- **Test Code:** [TC008_post_api_contact_messages_reply_requires_auth.py](./TC008_post_api_contact_messages_reply_requires_auth.py)
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/9e153332-3794-4dae-a650-09ba1cbedd9a/464b87ab-f20d-48c7-be3e-2e6bbfc1bb16
+- **Status:** ✅ Passed
+- **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
+---
+
+#### Test TC009 post api chat ai requires auth and validates body
+- **Test Code:** [TC009_post_api_chat_ai_requires_auth_and_validates_body.py](./TC009_post_api_chat_ai_requires_auth_and_validates_body.py)
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/9e153332-3794-4dae-a650-09ba1cbedd9a/8649c01f-1c5c-4c2a-b829-7041a2c63551
+- **Status:** ✅ Passed
+- **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
+---
+
+#### Test TC010 post api chat send requires auth and validates body
+- **Test Code:** [TC010_post_api_chat_send_requires_auth_and_validates_body.py](./TC010_post_api_chat_send_requires_auth_and_validates_body.py)
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/9e153332-3794-4dae-a650-09ba1cbedd9a/00ee4733-3cc5-495f-9cdd-16d6497e8b48
+- **Status:** ✅ Passed
+- **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
+---
+
+#### Test TC011 get api stripe plan prices public endpoint
+- **Test Code:** [TC011_get_api_stripe_plan_prices_public_endpoint.py](./TC011_get_api_stripe_plan_prices_public_endpoint.py)
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/9e153332-3794-4dae-a650-09ba1cbedd9a/35b0b973-688d-481c-bc28-22cedb8358af
+- **Status:** ✅ Passed
+- **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
+---
+
+#### Test TC012 get api plan limits subaccount validation
+- **Test Code:** [TC012_get_api_plan_limits_subaccount_validation.py](./TC012_get_api_plan_limits_subaccount_validation.py)
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/9e153332-3794-4dae-a650-09ba1cbedd9a/c836f254-0b63-4ede-a3c7-f6c0f08abd55
+- **Status:** ✅ Passed
+- **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
+---
+
+#### Test TC013 get api media requires subaccountid param
+- **Test Code:** [TC013_get_api_media_requires_subaccountid_param.py](./TC013_get_api_media_requires_subaccountid_param.py)
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/9e153332-3794-4dae-a650-09ba1cbedd9a/c3c9c3da-83e4-4497-992a-778f7f21f2e2
+- **Status:** ✅ Passed
+- **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
+---
+
+#### Test TC014 post api stripe cancel subscription role based access
+- **Test Code:** [TC014_post_api_stripe_cancel_subscription_role_based_access.py](./TC014_post_api_stripe_cancel_subscription_role_based_access.py)
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/9e153332-3794-4dae-a650-09ba1cbedd9a/ea39aefa-1b01-4bb8-98bc-b48081100aaf
+- **Status:** ✅ Passed
+- **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
+---
+
+#### Test TC015 post api stripe create subscription session role access
+- **Test Code:** [TC015_post_api_stripe_create_subscription_session_role_access.py](./TC015_post_api_stripe_create_subscription_session_role_access.py)
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/9e153332-3794-4dae-a650-09ba1cbedd9a/36c0f78b-25f8-41e5-b590-4ce5d8fe417d
+- **Status:** ✅ Passed
+- **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
+---
+
+#### Test TC016 post api stripe create checkout session validation
+- **Test Code:** [TC016_post_api_stripe_create_checkout_session_validation.py](./TC016_post_api_stripe_create_checkout_session_validation.py)
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/9e153332-3794-4dae-a650-09ba1cbedd9a/3e668843-e10b-40a9-aa0d-1963f17d7ca8
+- **Status:** ✅ Passed
+- **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
+---
+
+#### Test TC017 get api stripe products list by subaccount
+- **Test Code:** [TC017_get_api_stripe_products_list_by_subaccount.py](./TC017_get_api_stripe_products_list_by_subaccount.py)
+- **Test Error:** Traceback (most recent call last):
+  File "/var/task/handler.py", line 258, in run_with_retry
+    exec(code, exec_env)
+  File "<string>", line 80, in <module>
+  File "<string>", line 58, in test_get_api_stripe_products_list_by_subaccount
+AssertionError: Failed to create product for testing local source: {"error":"\nInvalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__[\"db\"].product.create()` invocation in\nC:\\Users\\Administrator\\Videos\\pixora\\.next\\server\\chunks\\[root of the server]__83e713._.js:287:169\n\n  284 const truncatedDescription = description && description.length > 1000 ? description.substring(0, 1000) : description;\n  285 // If localOnly flag or no Stripe Connect, create local product only\n  286 if (localOnly || !hasStripeConnect) {\n→ 287     const localProduct = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__[\"db\"].product.create(\nForeign key constraint failed on the field: `Product_subAccountId_fkey (index)`"}
+
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/9e153332-3794-4dae-a650-09ba1cbedd9a/e236c44b-608f-46e6-8d62-5c87887be3f0
 - **Status:** ❌ Failed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
 
-#### Test FE008 navigation anchor links scroll to sections
-- **Test Code:** [FE008_navigation_anchor_links_scroll_to_sections.py](./FE008_navigation_anchor_links_scroll_to_sections.py)
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/ffdf90ac-7a09-4640-9e9e-a0d8443f1270/1781db63-42de-4f4c-a763-d1a6f1d2037c
-- **Status:** ✅ Passed
-- **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
----
+#### Test TC018 post api stripe products create product validation
+- **Test Code:** [TC018_post_api_stripe_products_create_product_validation.py](./TC018_post_api_stripe_products_create_product_validation.py)
+- **Test Error:** Traceback (most recent call last):
+  File "/var/task/handler.py", line 258, in run_with_retry
+    exec(code, exec_env)
+  File "<string>", line 103, in <module>
+  File "<string>", line 73, in test_post_api_stripe_products_create_product_validation
+AssertionError: Expected 200 for valid product but got 500: {"error":"\nInvalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__[\"db\"].product.create()` invocation in\nC:\\Users\\Administrator\\Videos\\pixora\\.next\\server\\chunks\\[root of the server]__83e713._.js:287:169\n\n  284 const truncatedDescription = description && description.length > 1000 ? description.substring(0, 1000) : description;\n  285 // If localOnly flag or no Stripe Connect, create local product only\n  286 if (localOnly || !hasStripeConnect) {\n→ 287     const localProduct = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__[\"db\"].product.create({\n            data: {\n              name: \"Valid Product\",\n              price: 1500,\n                     ~~~~\n              description: \"Optional product description\",\n              image: undefined,\n              recurring: undefined,\n              currency: \"NPR\",\n              subAccountId: \"test-subaccount-id\"\n            }\n          })\n\nArgument `price`: Invalid value provided. Expected String, provided Int."}
 
-#### Test FE009 testimonials section displays reviews
-- **Test Code:** [FE009_testimonials_section_displays_reviews.py](./FE009_testimonials_section_displays_reviews.py)
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/ffdf90ac-7a09-4640-9e9e-a0d8443f1270/b0a7e42f-9f2e-4ed3-b949-c51f0e966be3
-- **Status:** ✅ Passed
-- **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
----
-
-#### Test FE010 landing page icons render as SVGs in all sections
-- **Test Code:** [FE010_landing_page_icons_render_as_SVGs_in_all_sections.py](./FE010_landing_page_icons_render_as_SVGs_in_all_sections.py)
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/ffdf90ac-7a09-4640-9e9e-a0d8443f1270/1efc6079-5881-477d-ad7b-3b351a2a832e
-- **Status:** ✅ Passed
-- **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
----
-
-#### Test FE011 landing page is responsive on mobile viewport
-- **Test Code:** [FE011_landing_page_is_responsive_on_mobile_viewport.py](./FE011_landing_page_is_responsive_on_mobile_viewport.py)
-- **Test Error:** Could not verify the landing page on a mobile viewport because the test environment does not provide a way to change the browser viewport size.
-
-Observations:
-- The /site landing page loaded successfully and the desktop layout is visible (hero text, pricing cards, and dashboard preview are present).
-- The top navigation shows full links (Home, Features, Pricing, About, Contact, Sign In, Get Started) indicating the desktop menu is rendered.
-- No interactive control or action was available to set the viewport to 375px width in this testing interface.
-- A mobile-specific hamburger menu or stacked navigation was not visible at the current desktop width, but this cannot be confirmed without resizing the viewport.
-- Verifying mobile layout and horizontal scrolling requires resizing the viewport to a mobile width (375px), which is not supported here.
-
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/ffdf90ac-7a09-4640-9e9e-a0d8443f1270/7adab364-0b11-461e-b562-121660fa5131
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/9e153332-3794-4dae-a650-09ba1cbedd9a/76051fd9-861b-417f-99f4-d259f23c6bbe
 - **Status:** ❌ Failed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
 
-#### Test FE012 sign in with valid credentials redirects to dashboard
-- **Test Code:** [FE012_sign_in_with_valid_credentials_redirects_to_dashboard.py](./FE012_sign_in_with_valid_credentials_redirects_to_dashboard.py)
-- **Test Error:** The sign-in page could not be reached — navigating to /agency/auth/sign-in returned a Not Found page. Without the sign-in form, the login test cannot be completed.
+#### Test TC019 delete api stripe products delete validation
+- **Test Code:** [TC019_delete_api_stripe_products_delete_validation.py](./TC019_delete_api_stripe_products_delete_validation.py)
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/9e153332-3794-4dae-a650-09ba1cbedd9a/061d067e-bcc5-4d82-9d35-d7395de44578
+- **Status:** ✅ Passed
+- **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
+---
 
-Observations:
-- Navigated to http://localhost:3000/agency/auth/sign-in and the page displays 'Not Found'.
-- The page body shows the message: 'Could not find requested resource'.
-- Interactive elements present are only a 'Return Home' link and a Notifications section; no email or password fields or sign-in button are present.
-- Current tab URL: http://localhost:3000/agency/auth/sign-in
-- Earlier steps included visiting the app root and clicking 'Sign In' in the header before attempting direct navigation.
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/ffdf90ac-7a09-4640-9e9e-a0d8443f1270/0932b379-4144-4112-a2c2-d7d7638796ad
+#### Test TC020 post api auth signin rate limit protection
+- **Test Code:** [TC020_post_api_auth_signin_rate_limit_protection.py](./TC020_post_api_auth_signin_rate_limit_protection.py)
+- **Test Error:** Traceback (most recent call last):
+  File "/var/task/handler.py", line 258, in run_with_retry
+    exec(code, exec_env)
+  File "<string>", line 33, in <module>
+  File "<string>", line 30, in test_post_api_auth_signin_rate_limit_protection
+AssertionError: Expected at least one 429 Too Many Requests response due to rate limiting
+
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/9e153332-3794-4dae-a650-09ba1cbedd9a/548fe78f-f12b-4a26-96b2-fc546a277523
 - **Status:** ❌ Failed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
@@ -133,7 +183,7 @@ Observations:
 
 ## 3️⃣ Coverage & Matching Metrics
 
-- **66.67** of tests passed
+- **80.00** of tests passed
 
 | Requirement        | Total Tests | ✅ Passed | ❌ Failed  |
 |--------------------|-------------|-----------|------------|

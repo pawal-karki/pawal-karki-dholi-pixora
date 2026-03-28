@@ -4,17 +4,17 @@
   "scope": "codebase",
   "localEndpoint": "http://localhost:3000",
   "backendAuthType": "Cookie",
-  "backendCredential": "auth_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJiZGY0YWJhNi1iMGFlLTQ4MTUtYWQ0Mi02Mzk1NWM2NTQzMDciLCJlbWFpbCI6InRlc3RfcGF3YWxAeW9wbWFpbC5jb20iLCJyb2xlIjoiQUdFTkNZX09XTkVSIiwiaWF0IjoxNzc0Njc4MjAxLCJleHAiOjE3NzUyODMwMDF9.JL99quoBT9pJJyeVx5DsoxD4d4U8TdkLGq5UsD8tYPE",
+  "backendCredential": "auth_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJiZGY0YWJhNi1iMGFlLTQ4MTUtYWQ0Mi02Mzk1NWM2NTQzMDciLCJlbWFpbCI6InRlc3RfcGF3YWxAeW9wbWFpbC5jb20iLCJyb2xlIjoiQUdFTkNZX09XTkVSIiwiaWF0IjoxNzc0Njg4MjU1LCJleHAiOjE3NzUyOTMwNTV9.LFtQEgaHNMtNyMuaVMA6aEj92lbRUs6UPJy0y4I3BI0",
   "executionArgs": {
     "projectName": "pixora",
     "projectPath": "c:\\Users\\Administrator\\Videos\\pixora",
     "testIds": [],
-    "additionalInstruction": "FRONTEND TEST INSTRUCTIONS:\n1. The app is a Next.js 15 app running at http://localhost:3000.\n2. The landing page is at /site (NOT /). Navigating to / redirects.\n3. For login tests, use credentials: email=test_pawal@yopmail.com password=Wlink123. The sign-in page is accessible from the site navigation.\n4. The theme uses Tailwind CSS dark mode with class-based toggling on the html element.\n5. Navigation links use anchor fragments like /site#pricing, /site#about, /site#contact.\n6. The contact form submits to POST /api/contact-messages.\n7. Currency is displayed in Rs (Nepali Rupees).\n8. Icons are Lucide React SVG icons.\n9. In development mode, limit to 12 high-priority tests.",
+    "additionalInstruction": "BACKEND API TEST INSTRUCTIONS:\n1. Authentication uses Cookie-based JWT. For authenticated requests, set cookie header: Cookie: auth_token=<JWT_VALUE>. Do NOT use Bearer token header except for GET /api/auth/me which uses Authorization: Bearer.\n2. To get a valid JWT, first POST /api/auth/signin with {email: test_pawal@yopmail.com, password: Wlink123} and extract the token from the response.\n3. POST /api/auth/signup returns HTTP 201 (not 200) on success.\n4. POST /api/auth/forgot-password returns 200 for BOTH known and unknown emails (anti-enumeration).\n5. GET /api/media returns {media: [...]} object, not a raw array.\n6. GET /api/auth/me uses Authorization: Bearer <token> header, not cookie.\n7. All /api/stripe/* endpoints that require auth use the auth_token cookie.\n8. Currency is in NPR (Nepali Rupees).\n9. The app is Next.js 15 with App Router.\n10. For role-based tests: our test user has role AGENCY_OWNER.",
     "serverMode": "development",
     "envs": {
       "API_KEY": "sk-user-eYu9pFk3WrnmegFKXvEZQHgSBH7eWTg9TRKZu6ZTPtJIHYvDCKHblsgfVSurfpM0ZfQY6NL-_OztO7p0Pre_2B3MO93iuEYa0U3JhCokhb5k1caXBxycED31dTfd2NupHDc"
     }
   },
-  "serverPort": 54870,
-  "proxy": "http://26ff14e9-faab-4d5a-aa15-6da0fb28a998:4VXRiZyQzRdrUKfHI7SwaAmmUHJ0k031@tun.testsprite.com:8080"
+  "serverPort": 50437,
+  "proxy": "http://036d7989-9351-41d9-bca9-613e72f5938e:pzSLtdJiqC7Nf3XcfUzH6N0iu4CPoApE@tun.testsprite.com:8080"
 }

@@ -1,54 +1,31 @@
 import requests
 
 BASE_URL = "http://localhost:3000"
-TIMEOUT = 30
-
+AUTH_COOKIE = {
+    "auth_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJiZGY0YWJhNi1iMGFlLTQ4MTUtYWQ0Mi02Mzk1NWM2NTQzMDciLCJlbWFpbCI6InRlc3RfcGF3YWxAeW9wbWFpbC5jb20iLCJyb2xlIjoiQUdFTkNZX09XTkVSIiwiaWF0IjoxNzc0Njg4MjU1LCJleHAiOjE3NzUyOTMwNTV9.LFtQEgaHNMtNyMuaVMA6aEj92lbRUs6UPJy0y4I3BI0"
+}
 
 def test_post_api_stripe_create_checkout_session_validation():
-    signin_url = f"{BASE_URL}/api/auth/signin"
-    checkout_session_url = f"{BASE_URL}/api/stripe/create-checkout-session"
+    url = f"{BASE_URL}/api/stripe/create-checkout-session"
+    headers = {"Content-Type": "application/json"}
+    cookies = AUTH_COOKIE
+    timeout = 30
 
-    signin_payload = {
-        "email": "test_pawal@yopmail.com",
-        "password": "Wlink123"
-    }
+    # Test case 1: Missing required fields (empty body)
+    response = requests.post(url, headers=headers, cookies=cookies, json={}, timeout=timeout)
+    assert response.status_code == 400, f"Expected status 400 for missing fields but got {response.status_code}"
 
-    # Sign in to get auth_token cookie
-    try:
-        signin_resp = requests.post(signin_url, json=signin_payload, timeout=TIMEOUT)
-        assert signin_resp.status_code == 200, f"Sign in failed with status code {signin_resp.status_code}"
-        token = signin_resp.json().get("token")
-        assert token, "No token found in signin response"
-    except requests.RequestException as e:
-        assert False, f"Sign in request failed: {e}"
-
-    headers = {
-        "Cookie": f"auth_token={token}",
-        "Content-Type": "application/json"
-    }
-
-    # Test 1: Missing required fields (empty body)
-    try:
-        resp = requests.post(checkout_session_url, json={}, headers=headers, timeout=TIMEOUT)
-        assert resp.status_code == 400, f"Expected 400 for missing fields, got {resp.status_code}"
-    except requests.RequestException as e:
-        assert False, f"Request failed for missing fields test: {e}"
-
-    # Test 2: Empty prices array (price array is part of items field or similarly named)
-    # According to PRD, the POST /api/stripe/create-checkout-session body schema is:
-    # { subAccountId: string, items: CartItem[], funnelPageId: string }
-    # For validation, test with empty items array should cause 400.
-
-    invalid_payload_empty_items = {
-        "subAccountId": "some-sub-account-id",
+    # Test case 2: Empty prices array in 'items'
+    # According to the PRD, body should have subAccountId, items (array), funnelPageId
+    # Provide valid subAccountId and funnelPageId with items as empty array to trigger validation error
+    payload = {
+        "subAccountId": "dummySubAccountId",
         "items": [],
-        "funnelPageId": "some-funnel-page-id"
+        "funnelPageId": "dummyFunnelPageId"
     }
-    try:
-        resp = requests.post(checkout_session_url, json=invalid_payload_empty_items, headers=headers, timeout=TIMEOUT)
-        assert resp.status_code == 400, f"Expected 400 for empty items array, got {resp.status_code}"
-    except requests.RequestException as e:
-        assert False, f"Request failed for empty items array test: {e}"
+    response2 = requests.post(url, headers=headers, cookies=cookies, json=payload, timeout=timeout)
+    # Expecting 400 for invalid cart items (empty prices array)
+    assert response2.status_code == 400, f"Expected status 400 for empty items array but got {response2.status_code}"
 
 
 test_post_api_stripe_create_checkout_session_validation()

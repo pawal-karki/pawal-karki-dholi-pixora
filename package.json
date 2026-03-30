@@ -18,7 +18,8 @@
     "clean": "rm -rf .next node_modules",
     "typecheck": "tsc --noEmit",
     "test": "bun test tests/unit",
-    "test:coverage": "bun test tests/unit --coverage"
+    "test:coverage": "bun test tests/unit --coverage",
+    "postman:generate": "node scripts/generate-postman-sprints.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.78.0",

@@ -1,0 +1,54 @@
+{
+  "info": {
+    "name": "Pixora Chat API",
+    "_postman_id": "pixora-chat-collection",
+    "description": "Chat send and AI reply. Requires session cookie (same as browser) for getCurrentUserEmail.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "token", "value": "" },
+    { "key": "conversationId", "value": "YOUR_CONVERSATION_UUID" }
+  ],
+  "item": [
+    {
+      "name": "Send message",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Cookie", "value": "auth_token={{token}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/chat/send",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "chat", "send"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"content\": \"Hello from Postman\",\n  \"conversationId\": \"{{conversationId}}\"\n}"
+        }
+      }
+    },
+    {
+      "name": "AI chat",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Cookie", "value": "auth_token={{token}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/chat/ai",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "chat", "ai"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"content\": \"Summarize this funnel in one sentence.\",\n  \"conversationId\": \"{{conversationId}}\"\n}"
+        },
+        "description": "Agency must have AI enabled and API keys in DB."
+      }
+    }
+  ]
+}

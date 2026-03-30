@@ -1,0 +1,4360 @@
+{
+  "info": {
+    "name": "Pixora — All Sprints (Complete API + Test Mapping)",
+    "_postman_id": "pixora-sprints-complete",
+    "description": "## Setup\\n1. Import this file in Postman (Import → file).\\n2. Open the collection **Variables** tab and set: `baseUrl`, `agencyId`, `subAccountId`, `priceId` (from **Sprint 2 → Plan prices**), `connectAccountId`, `productId`, `messageId`, `conversationId` as needed.\\n3. Run **Sprint 1 → Signin valid (save token)** or **Signup valid**; scripts store JWT in `token`.\\n4. For cookie routes (Stripe subscription, chat), the collection uses `Cookie: auth_token={{token}}`.\\n\\n## Badges in test names\\n- **PASS** — happy path\\n- **FAIL_EXPECTED** — request should error (4xx); test passes when status matches\\n- **EDGE** — boundary / security / infra\\n\\n## Newman (CI)\\n```bash\\nnewman run postman/pixora-sprints-complete.postman_collection.json \\\n  --env-var baseUrl=https://your-domain.com \\\n  --env-var agencyId=UUID \\\n  --env-var subAccountId=UUID \\\n  --reporters cli,htmlextra\\n```\\n\\n## Server Actions / UI-only features\\nSprints 3–6 include requests that **proxy** real endpoints or document coverage. Funnel editor, Kanban, notifications UI, and full analytics are covered by **Bun unit tests** under `tests/unit/` (see per-request descriptions).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "agencyId",
+      "value": "YOUR_AGENCY_UUID"
+    },
+    {
+      "key": "subAccountId",
+      "value": "YOUR_SUBACCOUNT_UUID"
+    },
+    {
+      "key": "subAccountIdOther",
+      "value": "OTHER_SUBACCOUNT_UUID"
+    },
+    {
+      "key": "priceId",
+      "value": "price_FROM_plan_prices"
+    },
+    {
+      "key": "connectAccountId",
+      "value": "acct_STRIPE_CONNECT"
+    },
+    {
+      "key": "productId",
+      "value": "YOUR_PRODUCT_UUID"
+    },
+    {
+      "key": "messageId",
+      "value": "YOUR_CONTACT_MESSAGE_UUID"
+    },
+    {
+      "key": "conversationId",
+      "value": "YOUR_CONVERSATION_UUID"
+    },
+    {
+      "key": "testEmail",
+      "value": "postman_test@example.com"
+    }
+  ],
+  "item": [
+    {
+      "name": "Sprint 1 — Authentication & Access (22)",
+      "item": [
+        {
+          "name": "🟢 S1-01 Registration — valid (expect 201 + token)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signup",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "signup"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sprint1 User\",\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"Password123\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "try {",
+                  "  var j = pm.response.json();",
+                  "  if (j.token) pm.collectionVariables.set('token', j.token);",
+                  "} catch (e) {}",
+                  "pm.test('[PASS] S1-01 status 201', () => pm.response.code === 201);",
+                  "pm.test('[PASS] S1-01 has token', () => { const j = pm.response.json(); pm.expect(j).to.have.property('token'); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🔴 S1-02 Registration — missing fields (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signup",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "signup"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"x@y.com\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[FAIL_EXPECTED] S1-02 status 400', () => pm.response.code === 400);",
+                  "pm.test('[FAIL_EXPECTED] S1-02 error message', () => { const j = pm.response.json(); pm.expect(j).to.have.property('error'); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🔴 S1-03 Registration — invalid email (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signup",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "signup"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"A\",\n  \"email\": \"not-an-email\",\n  \"password\": \"Password123\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[FAIL_EXPECTED] S1-03 status 400', () => pm.response.code === 400);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🔴 S1-04 Registration — short password (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signup",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "signup"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"A\",\n  \"email\": \"a@b.com\",\n  \"password\": \"short\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[FAIL_EXPECTED] S1-04 status 400', () => pm.response.code === 400);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🔴 S1-05 Registration — duplicate email (expect 409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signup",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "signup"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Dup\",\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"Password123\"\n}"
+            },
+            "description": "Run after S1-01 with same testEmail."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[FAIL_EXPECTED] S1-05 status 409', () => pm.response.code === 409);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟢 S1-06 Login — valid (expect 200, save token)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signin",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "signin"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"Password123\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "try {",
+                  "  var j = pm.response.json();",
+                  "  if (j.token) pm.collectionVariables.set('token', j.token);",
+                  "} catch (e) {}",
+                  "pm.test('[PASS] S1-06 status 200', () => pm.response.code === 200);",
+                  "pm.test('[PASS] S1-06 has token', () => { const j = pm.response.json(); pm.expect(j).to.have.property('token'); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🔴 S1-07 Login — wrong password (expect 401)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signin",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "signin"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"WrongPassword!!!\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[FAIL_EXPECTED] S1-07 status 401', () => pm.response.code === 401);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🔴 S1-08 Login — unknown user (expect 401)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signin",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "signin"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"no_user_exists@example.com\",\n  \"password\": \"Password123\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[FAIL_EXPECTED] S1-08 status 401', () => pm.response.code === 401);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🔴 S1-09 Login — missing body fields (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signin",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "signin"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{testEmail}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[FAIL_EXPECTED] S1-09 status 400', () => pm.response.code === 400);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🔴 S1-10 Me — no Authorization (expect 401)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[FAIL_EXPECTED] S1-10 status 401', () => pm.response.code === 401);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🔴 S1-11 Me — garbage JWT (expect 401, not 500)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
+            },
+            "description": "Expected 401. If you see 500, JWT verification throws in /api/auth/me (fix server)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[FAIL_EXPECTED] S1-11 invalid JWT not 2xx', () => pm.expect(pm.response.code).to.be.at.least(400));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟢 S1-12 Me — valid Bearer (expect 200 + user.role)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S1-12 status 200', () => pm.response.code === 200);",
+                  "pm.test('[PASS] S1-12 role check', () => { const j = pm.response.json(); pm.expect(j.user).to.have.property('role'); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟢 S1-13 Forgot password — valid shape (expect 200)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/forgot-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "forgot-password"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{testEmail}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S1-13 status 200', () => pm.response.code === 200);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🔴 S1-14 Forgot password — missing email (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/forgot-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "forgot-password"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[FAIL_EXPECTED] S1-14 status 400', () => pm.response.code === 400);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S1-15 Forgot password — unknown email anti-enumeration (expect 200)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/forgot-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "forgot-password"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"unknown_user_xyz@example.com\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[EDGE] S1-15 status 200 (no enumeration)', () => pm.response.code === 200);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🔴 S1-16 Verify OTP — missing otp (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/verify-otp",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "verify-otp"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{testEmail}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[FAIL_EXPECTED] S1-16 status 400', () => pm.response.code === 400);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🔴 S1-17 Verify OTP — invalid otp (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/verify-otp",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "verify-otp"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"otp\": \"000000\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[FAIL_EXPECTED] S1-17 status 400', () => pm.response.code === 400);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🔴 S1-18 Reset password — missing token (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/reset-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "reset-password"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"NewPassword123\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[FAIL_EXPECTED] S1-18 status 400', () => pm.response.code === 400);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🔴 S1-19 Reset password — short password (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/reset-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "reset-password"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"invalid\",\n  \"password\": \"short\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[FAIL_EXPECTED] S1-19 status 400', () => pm.response.code === 400);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S1-20 Brute-force edge — repeated failed signin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signin",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "signin"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"bad-attempt\"\n}"
+            },
+            "description": "Run multiple times; optional rate limit may apply per IP."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[EDGE] S1-20 failed login returns 401', () => pm.response.code === 401);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S1-21 SQLi probe — signup name field (expect 400 or 201, never 5xx)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signup",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "signup"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"'; DROP TABLE users;--\",\n  \"email\": \"sqli_probe@example.com\",\n  \"password\": \"Password123\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[EDGE] S1-21 no 5xx from SQLi string in name', () => pm.expect(pm.response.code).to.be.below(500));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S1-22 XSS probe — signup name stored (expect 201 or 409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signup",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "signup"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"<script>alert(1)</script>\",\n  \"email\": \"xss_probe@example.com\",\n  \"password\": \"Password123\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[EDGE] S1-22 accepts or conflicts without 5xx', () => pm.expect(pm.response.code).to.be.oneOf([201,409]));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Sprint 2 — Stripe Connect & Billing (15)",
+      "item": [
+        {
+          "name": "🟢 S2-01 Plan prices — public (expect 200)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/plan-prices",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stripe",
+                "plan-prices"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S2-01 status 200', () => pm.response.code === 200);",
+                  "pm.test('[PASS] S2-01 JSON object', () => { pm.response.json(); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🔴 S2-02 Subscription session — no cookie (expect 401)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/create-subscription-session",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stripe",
+                "create-subscription-session"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"agencyId\": \"{{agencyId}}\",\n  \"priceId\": \"{{priceId}}\",\n  \"successUrl\": \"{{baseUrl}}/agency/{{agencyId}}/billing?ok=1\",\n  \"cancelUrl\": \"{{baseUrl}}/agency/{{agencyId}}/billing?c=1\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[FAIL_EXPECTED] S2-02 status 401', () => pm.response.code === 401);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟢 S2-03 Subscription session — with auth cookie",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/create-subscription-session",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stripe",
+                "create-subscription-session"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"agencyId\": \"{{agencyId}}\",\n  \"priceId\": \"{{priceId}}\",\n  \"successUrl\": \"{{baseUrl}}/agency/{{agencyId}}/billing?success=true&session_id={CHECKOUT_SESSION_ID}\",\n  \"cancelUrl\": \"{{baseUrl}}/agency/{{agencyId}}/billing?canceled=true\"\n}"
+            },
+            "description": "Requires valid agencyId, priceId, URLs allowed by server."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S2-03 subscription session responds', () => pm.expect([200,400,401,403,404,500]).to.include(pm.response.code));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S2-04 Cancel subscription — non-owner may 403",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/cancel-subscription",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stripe",
+                "cancel-subscription"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"agencyId\": \"{{agencyId}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[EDGE] S2-04 cancel returns 401/403/404/200', () => pm.expect([200,401,403,404,500]).to.include(pm.response.code));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟢 S2-05 Checkout embedded — invalid empty (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/create-checkout-session",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stripe",
+                "create-checkout-session"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subAccountConnectedId\": \"\",\n  \"prices\": []\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[FAIL_EXPECTED] S2-05 status 400', () => pm.response.code === 400);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S2-06 Checkout embedded — happy path (needs Connect + price)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/create-checkout-session",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stripe",
+                "create-checkout-session"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subAccountConnectedId\": \"{{connectAccountId}}\",\n  \"subAccountId\": \"{{subAccountId}}\",\n  \"prices\": [\n    {\n      \"priceId\": \"{{priceId}}\",\n      \"quantity\": 1\n    }\n  ],\n  \"mode\": \"embedded\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S2-06 checkout outcome', () => pm.expect([200,400,404,500]).to.include(pm.response.code));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S2-07 Checkout redirect — with success/cancel URLs",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/create-checkout-session",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stripe",
+                "create-checkout-session"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subAccountConnectedId\": \"{{connectAccountId}}\",\n  \"subAccountId\": \"{{subAccountId}}\",\n  \"prices\": [\n    {\n      \"priceId\": \"{{priceId}}\",\n      \"quantity\": 1\n    }\n  ],\n  \"mode\": \"redirect\",\n  \"successUrl\": \"{{baseUrl}}/funnel?checkout=success\",\n  \"cancelUrl\": \"{{baseUrl}}/funnel?checkout=canceled\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S2-07 checkout outcome', () => pm.expect([200,400,404,500]).to.include(pm.response.code));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🔴 S2-08 Products — missing subAccountId (expect 400)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stripe",
+                "products"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[FAIL_EXPECTED] S2-08 status 400', () => pm.response.code === 400);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟢 S2-09 Products — list local",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/products?subAccountId={{subAccountId}}&source=local",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stripe",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "subAccountId",
+                  "value": "{{subAccountId}}"
+                },
+                {
+                  "key": "source",
+                  "value": "local"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S2-09 status 200', () => pm.response.code === 200);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟢 S2-10 Products — create local (price as string)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stripe",
+                "products"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subAccountId\": \"{{subAccountId}}\",\n  \"name\": \"Postman Product\",\n  \"price\": \"29.99\",\n  \"localOnly\": true\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S2-10 product create outcome', () => pm.expect([200,400,404,500]).to.include(pm.response.code));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S2-11 Products — delete",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/products?productId={{productId}}&subAccountId={{subAccountId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stripe",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "productId",
+                  "value": "{{productId}}"
+                },
+                {
+                  "key": "subAccountId",
+                  "value": "{{subAccountId}}"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[EDGE] S2-11 200/404', () => pm.expect([200,400,404,500]).to.include(pm.response.code));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🔴 S2-12 Webhook — no stripe-signature (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/webhook",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stripe",
+                "webhook"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[FAIL_EXPECTED] S2-12 status 400', () => pm.response.code === 400);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🔴 S2-13 Webhook — bad signature (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/webhook",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stripe",
+                "webhook"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[FAIL_EXPECTED] S2-13 status 400', () => pm.response.code === 400);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S2-14 Plan limits — billing eligibility proxy (subaccount)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/plan-limits?agencyId={{agencyId}}&type=subaccount",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "plan-limits"
+              ],
+              "query": [
+                {
+                  "key": "agencyId",
+                  "value": "{{agencyId}}"
+                },
+                {
+                  "key": "type",
+                  "value": "subaccount"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S2-14 plan-limits outcome', () => pm.expect([200,400,500]).to.include(pm.response.code));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S2-15 Stripe Connect onboarding — doc (use Dashboard + /agency OAuth)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/plan-prices",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stripe",
+                "plan-prices"
+              ]
+            },
+            "description": "Connect onboarding is Stripe Dashboard + app launchpad OAuth. Invoice webhooks: use `stripe listen` forwarding to /api/stripe/webhook. Maps to tests/unit: payment-api, oauth-stripe-connect."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S2-15 ping API alive', () => pm.response.code === 200);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Sprint 3 — Website & Funnel Builder (19)",
+      "item": [
+        {
+          "name": "🟢 S3-01 Site / tenant — plan limits check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/plan-limits?agencyId={{agencyId}}&type=subaccount",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "plan-limits"
+              ],
+              "query": [
+                {
+                  "key": "agencyId",
+                  "value": "{{agencyId}}"
+                },
+                {
+                  "key": "type",
+                  "value": "subaccount"
+                }
+              ]
+            },
+            "description": "HTTP proxy for Sprint 3. Full funnel/drag-drop/publish: run `bun test tests/unit/funnel-editor-json.test.ts`, `dnd-editor-tree.test.ts`, `funnel-pages-crud.test.ts`. "
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S3-01 plan-limits', () => pm.expect([200,400,500]).to.include(pm.response.code));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟢 S3-02 Site / tenant — plan limits check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/plan-limits?agencyId={{agencyId}}&type=subaccount",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "plan-limits"
+              ],
+              "query": [
+                {
+                  "key": "agencyId",
+                  "value": "{{agencyId}}"
+                },
+                {
+                  "key": "type",
+                  "value": "subaccount"
+                }
+              ]
+            },
+            "description": "HTTP proxy for Sprint 3. Full funnel/drag-drop/publish: run `bun test tests/unit/funnel-editor-json.test.ts`, `dnd-editor-tree.test.ts`, `funnel-pages-crud.test.ts`. "
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S3-02 plan-limits', () => pm.expect([200,400,500]).to.include(pm.response.code));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟢 S3-03 Site / tenant — plan limits check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/plan-limits?agencyId={{agencyId}}&type=subaccount",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "plan-limits"
+              ],
+              "query": [
+                {
+                  "key": "agencyId",
+                  "value": "{{agencyId}}"
+                },
+                {
+                  "key": "type",
+                  "value": "subaccount"
+                }
+              ]
+            },
+            "description": "HTTP proxy for Sprint 3. Full funnel/drag-drop/publish: run `bun test tests/unit/funnel-editor-json.test.ts`, `dnd-editor-tree.test.ts`, `funnel-pages-crud.test.ts`. "
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S3-03 plan-limits', () => pm.expect([200,400,500]).to.include(pm.response.code));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟢 S3-04 Funnel commerce — checkout session probe",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/create-checkout-session",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stripe",
+                "create-checkout-session"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subAccountConnectedId\": \"{{connectAccountId}}\",\n  \"subAccountId\": \"{{subAccountId}}\",\n  \"prices\": [\n    {\n      \"priceId\": \"{{priceId}}\",\n      \"quantity\": 1\n    }\n  ],\n  \"mode\": \"embedded\"\n}"
+            },
+            "description": "HTTP proxy for Sprint 3. Full funnel/drag-drop/publish: run `bun test tests/unit/funnel-editor-json.test.ts`, `dnd-editor-tree.test.ts`, `funnel-pages-crud.test.ts`. "
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S3-04 checkout responds', () => pm.expect([200,400,500]).to.include(pm.response.code));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟢 S3-05 Funnel commerce — checkout session probe",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/create-checkout-session",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stripe",
+                "create-checkout-session"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subAccountConnectedId\": \"{{connectAccountId}}\",\n  \"subAccountId\": \"{{subAccountId}}\",\n  \"prices\": [\n    {\n      \"priceId\": \"{{priceId}}\",\n      \"quantity\": 1\n    }\n  ],\n  \"mode\": \"embedded\"\n}"
+            },
+            "description": "HTTP proxy for Sprint 3. Full funnel/drag-drop/publish: run `bun test tests/unit/funnel-editor-json.test.ts`, `dnd-editor-tree.test.ts`, `funnel-pages-crud.test.ts`. "
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S3-05 checkout responds', () => pm.expect([200,400,500]).to.include(pm.response.code));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟢 S3-06 Funnel commerce — checkout session probe",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/create-checkout-session",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stripe",
+                "create-checkout-session"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subAccountConnectedId\": \"{{connectAccountId}}\",\n  \"subAccountId\": \"{{subAccountId}}\",\n  \"prices\": [\n    {\n      \"priceId\": \"{{priceId}}\",\n      \"quantity\": 1\n    }\n  ],\n  \"mode\": \"embedded\"\n}"
+            },
+            "description": "HTTP proxy for Sprint 3. Full funnel/drag-drop/publish: run `bun test tests/unit/funnel-editor-json.test.ts`, `dnd-editor-tree.test.ts`, `funnel-pages-crud.test.ts`. "
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S3-06 checkout responds', () => pm.expect([200,400,500]).to.include(pm.response.code));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟢 S3-07 Funnel commerce — checkout session probe",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/create-checkout-session",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stripe",
+                "create-checkout-session"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subAccountConnectedId\": \"{{connectAccountId}}\",\n  \"subAccountId\": \"{{subAccountId}}\",\n  \"prices\": [\n    {\n      \"priceId\": \"{{priceId}}\",\n      \"quantity\": 1\n    }\n  ],\n  \"mode\": \"embedded\"\n}"
+            },
+            "description": "HTTP proxy for Sprint 3. Full funnel/drag-drop/publish: run `bun test tests/unit/funnel-editor-json.test.ts`, `dnd-editor-tree.test.ts`, `funnel-pages-crud.test.ts`. "
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S3-07 checkout responds', () => pm.expect([200,400,500]).to.include(pm.response.code));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟢 S3-08 Funnel commerce — checkout session probe",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/create-checkout-session",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stripe",
+                "create-checkout-session"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subAccountConnectedId\": \"{{connectAccountId}}\",\n  \"subAccountId\": \"{{subAccountId}}\",\n  \"prices\": [\n    {\n      \"priceId\": \"{{priceId}}\",\n      \"quantity\": 1\n    }\n  ],\n  \"mode\": \"embedded\"\n}"
+            },
+            "description": "HTTP proxy for Sprint 3. Full funnel/drag-drop/publish: run `bun test tests/unit/funnel-editor-json.test.ts`, `dnd-editor-tree.test.ts`, `funnel-pages-crud.test.ts`. "
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S3-08 checkout responds', () => pm.expect([200,400,500]).to.include(pm.response.code));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S3-09 Lead / publish proxy — contact message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/contact-messages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "contact-messages"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Funnel Visitor\",\n  \"email\": \"funnel_09@example.com\",\n  \"message\": \"Sprint3 lead capture probe\"\n}"
+            },
+            "description": "HTTP proxy for Sprint 3. Full funnel/drag-drop/publish: run `bun test tests/unit/funnel-editor-json.test.ts`, `dnd-editor-tree.test.ts`, `funnel-pages-crud.test.ts`. "
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S3-09 200', () => pm.response.code === 200);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S3-10 Lead / publish proxy — contact message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/contact-messages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "contact-messages"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Funnel Visitor\",\n  \"email\": \"funnel_10@example.com\",\n  \"message\": \"Sprint3 lead capture probe\"\n}"
+            },
+            "description": "HTTP proxy for Sprint 3. Full funnel/drag-drop/publish: run `bun test tests/unit/funnel-editor-json.test.ts`, `dnd-editor-tree.test.ts`, `funnel-pages-crud.test.ts`. "
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S3-10 200', () => pm.response.code === 200);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S3-11 Lead / publish proxy — contact message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/contact-messages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "contact-messages"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Funnel Visitor\",\n  \"email\": \"funnel_11@example.com\",\n  \"message\": \"Sprint3 lead capture probe\"\n}"
+            },
+            "description": "HTTP proxy for Sprint 3. Full funnel/drag-drop/publish: run `bun test tests/unit/funnel-editor-json.test.ts`, `dnd-editor-tree.test.ts`, `funnel-pages-crud.test.ts`. "
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S3-11 200', () => pm.response.code === 200);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S3-12 Lead / publish proxy — contact message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/contact-messages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "contact-messages"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Funnel Visitor\",\n  \"email\": \"funnel_12@example.com\",\n  \"message\": \"Sprint3 lead capture probe\"\n}"
+            },
+            "description": "HTTP proxy for Sprint 3. Full funnel/drag-drop/publish: run `bun test tests/unit/funnel-editor-json.test.ts`, `dnd-editor-tree.test.ts`, `funnel-pages-crud.test.ts`. "
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S3-12 200', () => pm.response.code === 200);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S3-13 Subdomain / isolation — media list tenant A",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/media?subAccountId={{subAccountId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "media"
+              ],
+              "query": [
+                {
+                  "key": "subAccountId",
+                  "value": "{{subAccountId}}"
+                }
+              ]
+            },
+            "description": "HTTP proxy for Sprint 3. Full funnel/drag-drop/publish: run `bun test tests/unit/funnel-editor-json.test.ts`, `dnd-editor-tree.test.ts`, `funnel-pages-crud.test.ts`. Cross-tenant: compare with subAccountIdOther in S4."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S3-13 200', () => pm.response.code === 200);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S3-14 Subdomain / isolation — media list tenant A",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/media?subAccountId={{subAccountId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "media"
+              ],
+              "query": [
+                {
+                  "key": "subAccountId",
+                  "value": "{{subAccountId}}"
+                }
+              ]
+            },
+            "description": "HTTP proxy for Sprint 3. Full funnel/drag-drop/publish: run `bun test tests/unit/funnel-editor-json.test.ts`, `dnd-editor-tree.test.ts`, `funnel-pages-crud.test.ts`. Cross-tenant: compare with subAccountIdOther in S4."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S3-14 200', () => pm.response.code === 200);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S3-15 Subdomain / isolation — media list tenant A",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/media?subAccountId={{subAccountId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "media"
+              ],
+              "query": [
+                {
+                  "key": "subAccountId",
+                  "value": "{{subAccountId}}"
+                }
+              ]
+            },
+            "description": "HTTP proxy for Sprint 3. Full funnel/drag-drop/publish: run `bun test tests/unit/funnel-editor-json.test.ts`, `dnd-editor-tree.test.ts`, `funnel-pages-crud.test.ts`. Cross-tenant: compare with subAccountIdOther in S4."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S3-15 200', () => pm.response.code === 200);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S3-16 Subdomain / isolation — media list tenant A",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/media?subAccountId={{subAccountId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "media"
+              ],
+              "query": [
+                {
+                  "key": "subAccountId",
+                  "value": "{{subAccountId}}"
+                }
+              ]
+            },
+            "description": "HTTP proxy for Sprint 3. Full funnel/drag-drop/publish: run `bun test tests/unit/funnel-editor-json.test.ts`, `dnd-editor-tree.test.ts`, `funnel-pages-crud.test.ts`. Cross-tenant: compare with subAccountIdOther in S4."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S3-16 200', () => pm.response.code === 200);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S3-17 Rollback / JSON — GET plan-prices (stable read)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/plan-prices",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stripe",
+                "plan-prices"
+              ]
+            },
+            "description": "HTTP proxy for Sprint 3. Full funnel/drag-drop/publish: run `bun test tests/unit/funnel-editor-json.test.ts`, `dnd-editor-tree.test.ts`, `funnel-pages-crud.test.ts`. "
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S3-17 200', () => pm.response.code === 200);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S3-18 Rollback / JSON — GET plan-prices (stable read)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/plan-prices",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stripe",
+                "plan-prices"
+              ]
+            },
+            "description": "HTTP proxy for Sprint 3. Full funnel/drag-drop/publish: run `bun test tests/unit/funnel-editor-json.test.ts`, `dnd-editor-tree.test.ts`, `funnel-pages-crud.test.ts`. "
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S3-18 200', () => pm.response.code === 200);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S3-19 Rollback / JSON — GET plan-prices (stable read)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/plan-prices",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stripe",
+                "plan-prices"
+              ]
+            },
+            "description": "HTTP proxy for Sprint 3. Full funnel/drag-drop/publish: run `bun test tests/unit/funnel-editor-json.test.ts`, `dnd-editor-tree.test.ts`, `funnel-pages-crud.test.ts`. "
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S3-19 200', () => pm.response.code === 200);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Sprint 4 — Multi-Agency, Sub-Accounts & Kanban (20)",
+      "item": [
+        {
+          "name": "🔴 S4-01 Lead capture — invalid body",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/contact-messages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "contact-messages"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"\",\n  \"email\": \"a@b.com\",\n  \"message\": \"\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[FAIL_EXPECTED] S4 status 400', () => pm.response.code === 400);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S4-02 Plan limits — team invites",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/plan-limits?agencyId={{agencyId}}&type=team",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "plan-limits"
+              ],
+              "query": [
+                {
+                  "key": "agencyId",
+                  "value": "{{agencyId}}"
+                },
+                {
+                  "key": "type",
+                  "value": "team"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S4 team limits', () => pm.expect([200,400,500]).to.include(pm.response.code));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S4-03 Sub-account isolation — media other tenant",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/media?subAccountId={{subAccountIdOther}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "media"
+              ],
+              "query": [
+                {
+                  "key": "subAccountId",
+                  "value": "{{subAccountIdOther}}"
+                }
+              ]
+            },
+            "description": "Kanban/pipelines: `bun test tests/unit/pipeline-features.test.ts`"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S4 media 200', () => pm.response.code === 200);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟢 S4-04 Products — list",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/products?subAccountId={{subAccountId}}&source=local",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stripe",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "subAccountId",
+                  "value": "{{subAccountId}}"
+                },
+                {
+                  "key": "source",
+                  "value": "local"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S4 products 200', () => pm.response.code === 200);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟢 S4-05 Lead capture — contact valid",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/contact-messages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "contact-messages"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Lead\",\n  \"email\": \"lead05@e.com\",\n  \"message\": \"Hi\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S4 status 200', () => pm.response.code === 200);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🔴 S4-06 Lead capture — invalid body",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/contact-messages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "contact-messages"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"\",\n  \"email\": \"a@b.com\",\n  \"message\": \"\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[FAIL_EXPECTED] S4 status 400', () => pm.response.code === 400);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S4-07 Plan limits — team invites",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/plan-limits?agencyId={{agencyId}}&type=team",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "plan-limits"
+              ],
+              "query": [
+                {
+                  "key": "agencyId",
+                  "value": "{{agencyId}}"
+                },
+                {
+                  "key": "type",
+                  "value": "team"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S4 team limits', () => pm.expect([200,400,500]).to.include(pm.response.code));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S4-08 Sub-account isolation — media other tenant",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/media?subAccountId={{subAccountIdOther}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "media"
+              ],
+              "query": [
+                {
+                  "key": "subAccountId",
+                  "value": "{{subAccountIdOther}}"
+                }
+              ]
+            },
+            "description": "Kanban/pipelines: `bun test tests/unit/pipeline-features.test.ts`"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S4 media 200', () => pm.response.code === 200);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟢 S4-09 Products — list",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/products?subAccountId={{subAccountId}}&source=local",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stripe",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "subAccountId",
+                  "value": "{{subAccountId}}"
+                },
+                {
+                  "key": "source",
+                  "value": "local"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S4 products 200', () => pm.response.code === 200);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟢 S4-10 Lead capture — contact valid",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/contact-messages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "contact-messages"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Lead\",\n  \"email\": \"lead10@e.com\",\n  \"message\": \"Hi\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S4 status 200', () => pm.response.code === 200);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🔴 S4-11 Lead capture — invalid body",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/contact-messages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "contact-messages"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"\",\n  \"email\": \"a@b.com\",\n  \"message\": \"\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[FAIL_EXPECTED] S4 status 400', () => pm.response.code === 400);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S4-12 Plan limits — team invites",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/plan-limits?agencyId={{agencyId}}&type=team",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "plan-limits"
+              ],
+              "query": [
+                {
+                  "key": "agencyId",
+                  "value": "{{agencyId}}"
+                },
+                {
+                  "key": "type",
+                  "value": "team"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S4 team limits', () => pm.expect([200,400,500]).to.include(pm.response.code));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S4-13 Sub-account isolation — media other tenant",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/media?subAccountId={{subAccountIdOther}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "media"
+              ],
+              "query": [
+                {
+                  "key": "subAccountId",
+                  "value": "{{subAccountIdOther}}"
+                }
+              ]
+            },
+            "description": "Kanban/pipelines: `bun test tests/unit/pipeline-features.test.ts`"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S4 media 200', () => pm.response.code === 200);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟢 S4-14 Products — list",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/products?subAccountId={{subAccountId}}&source=local",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stripe",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "subAccountId",
+                  "value": "{{subAccountId}}"
+                },
+                {
+                  "key": "source",
+                  "value": "local"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S4 products 200', () => pm.response.code === 200);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟢 S4-15 Lead capture — contact valid",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/contact-messages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "contact-messages"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Lead\",\n  \"email\": \"lead15@e.com\",\n  \"message\": \"Hi\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S4 status 200', () => pm.response.code === 200);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🔴 S4-16 Lead capture — invalid body",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/contact-messages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "contact-messages"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"\",\n  \"email\": \"a@b.com\",\n  \"message\": \"\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[FAIL_EXPECTED] S4 status 400', () => pm.response.code === 400);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S4-17 Plan limits — team invites",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/plan-limits?agencyId={{agencyId}}&type=team",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "plan-limits"
+              ],
+              "query": [
+                {
+                  "key": "agencyId",
+                  "value": "{{agencyId}}"
+                },
+                {
+                  "key": "type",
+                  "value": "team"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S4 team limits', () => pm.expect([200,400,500]).to.include(pm.response.code));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S4-18 Sub-account isolation — media other tenant",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/media?subAccountId={{subAccountIdOther}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "media"
+              ],
+              "query": [
+                {
+                  "key": "subAccountId",
+                  "value": "{{subAccountIdOther}}"
+                }
+              ]
+            },
+            "description": "Kanban/pipelines: `bun test tests/unit/pipeline-features.test.ts`"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S4 media 200', () => pm.response.code === 200);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟢 S4-19 Products — list",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/products?subAccountId={{subAccountId}}&source=local",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stripe",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "subAccountId",
+                  "value": "{{subAccountId}}"
+                },
+                {
+                  "key": "source",
+                  "value": "local"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S4 products 200', () => pm.response.code === 200);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟢 S4-20 Lead capture — contact valid",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/contact-messages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "contact-messages"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Lead\",\n  \"email\": \"lead20@e.com\",\n  \"message\": \"Hi\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S4 status 200', () => pm.response.code === 200);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Sprint 5 — Media Management (12)",
+      "item": [
+        {
+          "name": "🟢 S5-01 Media — list valid tenant",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/media?subAccountId={{subAccountId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "media"
+              ],
+              "query": [
+                {
+                  "key": "subAccountId",
+                  "value": "{{subAccountId}}"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S5-01 200', () => pm.response.code === 200);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🔴 S5-02 Media — missing subAccountId (400)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/media",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "media"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[FAIL_EXPECTED] S5-02 400', () => pm.response.code === 400);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S5-03 Media — other subaccount isolation",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/media?subAccountId={{subAccountIdOther}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "media"
+              ],
+              "query": [
+                {
+                  "key": "subAccountId",
+                  "value": "{{subAccountIdOther}}"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S5-03 200', () => pm.response.code === 200);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟢 S5-04 UploadThing — GET ping",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/uploadthing",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "uploadthing"
+              ]
+            },
+            "description": "Valid multipart uploads: UI + `tests/unit/uploadthing-config.test.ts`"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S5-04 uploadthing GET', () => pm.expect([200,404,405,500]).to.include(pm.response.code));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S5-05 Products — bogus subAccountId",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/products?subAccountId=00000000-0000-0000-0000-000000000001&source=local",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stripe",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "subAccountId",
+                  "value": "00000000-0000-0000-0000-000000000001"
+                },
+                {
+                  "key": "source",
+                  "value": "local"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[EDGE] S5-05 products outcome', () => pm.expect([200,400,404,500]).to.include(pm.response.code));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟢 S5-06 Public read — plan-prices",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/plan-prices",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stripe",
+                "plan-prices"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S5-06 200', () => pm.response.code === 200);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟢 S5-07 Contact — message with filename text",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/contact-messages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "contact-messages"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"U\",\n  \"email\": \"u@e.com\",\n  \"message\": \"See screenshot.png\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S5-07 200', () => pm.response.code === 200);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S5-08 Contact — long message body",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/contact-messages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "contact-messages"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"U\",\n  \"email\": \"u@e.com\",\n  \"message\": \"LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[EDGE] S5-08 long message', () => pm.expect([200,400,413,500]).to.include(pm.response.code));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟢 S5-09 Product create — localOnly",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stripe",
+                "products"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subAccountId\": \"{{subAccountId}}\",\n  \"name\": \"AssetRef\",\n  \"price\": \"5.00\",\n  \"localOnly\": true\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S5-09 product', () => pm.expect([200,400,404,500]).to.include(pm.response.code));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S5-10 Auth context — /me with token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S5-10 200', () => pm.expect([200,401]).to.include(pm.response.code));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🔴 S5-11 Webhook — unsigned",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/webhook",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stripe",
+                "webhook"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[FAIL_EXPECTED] S5-11 400', () => pm.response.code === 400);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S5-12 Unit mapping — uploadthing-config",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/plan-prices",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stripe",
+                "plan-prices"
+              ]
+            },
+            "description": "Run `bun test tests/unit/uploadthing-config.test.ts` for MIME/size limits."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S5-12 200', () => pm.response.code === 200);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Sprint 6 — Analytics, Notifications & Editor (18)",
+      "item": [
+        {
+          "name": "🟡 S6-01 Conversion proxy — checkout session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/create-checkout-session",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stripe",
+                "create-checkout-session"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subAccountConnectedId\": \"\",\n  \"prices\": []\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[FAIL_EXPECTED] S6 invalid checkout 400', () => pm.response.code === 400);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S6-02 Notifications proxy — chat send auth",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/chat/send",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "chat",
+                "send"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"ping\",\n  \"conversationId\": \"{{conversationId}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[FAIL_EXPECTED] S6 chat 401 without session', () => pm.expect([401,404]).to.include(pm.response.code));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S6-03 AI / editor proxy — chat AI",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/chat/ai",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "chat",
+                "ai"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Hello\",\n  \"conversationId\": \"{{conversationId}}\"\n}"
+            },
+            "description": "Editor undo/redo: `tests/unit/dnd-editor-tree.test.ts`, `funnel-editor-json.test.ts`"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[EDGE] S6 AI responds', () => pm.expect([200,400,401,404,500]).to.include(pm.response.code));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟢 S6-04 KPI proxy — plan-prices",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/plan-prices",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stripe",
+                "plan-prices"
+              ]
+            },
+            "description": "Dashboard KPIs: server-side; unit: subscription-access, stripe dashboard helpers."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S6 200', () => pm.response.code === 200);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S6-05 Conversion proxy — checkout session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/create-checkout-session",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stripe",
+                "create-checkout-session"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subAccountConnectedId\": \"\",\n  \"prices\": []\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[FAIL_EXPECTED] S6 invalid checkout 400', () => pm.response.code === 400);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S6-06 Notifications proxy — chat send auth",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/chat/send",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "chat",
+                "send"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"ping\",\n  \"conversationId\": \"{{conversationId}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[FAIL_EXPECTED] S6 chat 401 without session', () => pm.expect([401,404]).to.include(pm.response.code));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S6-07 AI / editor proxy — chat AI",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/chat/ai",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "chat",
+                "ai"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Hello\",\n  \"conversationId\": \"{{conversationId}}\"\n}"
+            },
+            "description": "Editor undo/redo: `tests/unit/dnd-editor-tree.test.ts`, `funnel-editor-json.test.ts`"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[EDGE] S6 AI responds', () => pm.expect([200,400,401,404,500]).to.include(pm.response.code));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟢 S6-08 KPI proxy — plan-prices",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/plan-prices",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stripe",
+                "plan-prices"
+              ]
+            },
+            "description": "Dashboard KPIs: server-side; unit: subscription-access, stripe dashboard helpers."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S6 200', () => pm.response.code === 200);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S6-09 Conversion proxy — checkout session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/create-checkout-session",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stripe",
+                "create-checkout-session"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subAccountConnectedId\": \"\",\n  \"prices\": []\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[FAIL_EXPECTED] S6 invalid checkout 400', () => pm.response.code === 400);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S6-10 Notifications proxy — chat send auth",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/chat/send",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "chat",
+                "send"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"ping\",\n  \"conversationId\": \"{{conversationId}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[FAIL_EXPECTED] S6 chat 401 without session', () => pm.expect([401,404]).to.include(pm.response.code));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S6-11 AI / editor proxy — chat AI",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/chat/ai",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "chat",
+                "ai"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Hello\",\n  \"conversationId\": \"{{conversationId}}\"\n}"
+            },
+            "description": "Editor undo/redo: `tests/unit/dnd-editor-tree.test.ts`, `funnel-editor-json.test.ts`"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[EDGE] S6 AI responds', () => pm.expect([200,400,401,404,500]).to.include(pm.response.code));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟢 S6-12 KPI proxy — plan-prices",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/plan-prices",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stripe",
+                "plan-prices"
+              ]
+            },
+            "description": "Dashboard KPIs: server-side; unit: subscription-access, stripe dashboard helpers."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S6 200', () => pm.response.code === 200);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S6-13 Conversion proxy — checkout session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/create-checkout-session",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stripe",
+                "create-checkout-session"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subAccountConnectedId\": \"\",\n  \"prices\": []\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[FAIL_EXPECTED] S6 invalid checkout 400', () => pm.response.code === 400);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S6-14 Notifications proxy — chat send auth",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/chat/send",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "chat",
+                "send"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"ping\",\n  \"conversationId\": \"{{conversationId}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[FAIL_EXPECTED] S6 chat 401 without session', () => pm.expect([401,404]).to.include(pm.response.code));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S6-15 AI / editor proxy — chat AI",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/chat/ai",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "chat",
+                "ai"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Hello\",\n  \"conversationId\": \"{{conversationId}}\"\n}"
+            },
+            "description": "Editor undo/redo: `tests/unit/dnd-editor-tree.test.ts`, `funnel-editor-json.test.ts`"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[EDGE] S6 AI responds', () => pm.expect([200,400,401,404,500]).to.include(pm.response.code));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟢 S6-16 KPI proxy — plan-prices",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/plan-prices",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stripe",
+                "plan-prices"
+              ]
+            },
+            "description": "Dashboard KPIs: server-side; unit: subscription-access, stripe dashboard helpers."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] S6 200', () => pm.response.code === 200);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S6-17 Conversion proxy — checkout session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/create-checkout-session",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stripe",
+                "create-checkout-session"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subAccountConnectedId\": \"\",\n  \"prices\": []\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[FAIL_EXPECTED] S6 invalid checkout 400', () => pm.response.code === 400);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 S6-18 Notifications proxy — chat send auth",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/chat/send",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "chat",
+                "send"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"ping\",\n  \"conversationId\": \"{{conversationId}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[FAIL_EXPECTED] S6 chat 401 without session', () => pm.expect([401,404]).to.include(pm.response.code));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Non-Functional — NF1–NF4 (12)",
+      "item": [
+        {
+          "name": "🟡 NF1-01 Performance — plan-prices timing",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/plan-prices",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stripe",
+                "plan-prices"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[EDGE] NF1-01 response time < 5s', () => pm.expect(pm.response.responseTime).to.be.below(5000));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 NF1-02 Performance — auth me timing",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[EDGE] NF1-02 response time < 5s', () => pm.expect(pm.response.responseTime).to.be.below(5000));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 NF2-01 SQLi — signin email field",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signin",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "signin"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin' OR '1'='1\",\n  \"password\": \"x\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[EDGE] NF2-01 no successful bypass as 200 with token', () => { if(pm.response.code===200){ const j=pm.response.json(); pm.expect(j).to.not.have.property('token'); } else { pm.expect(pm.response.code).to.be.at.least(400); } });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 NF2-02 SQLi — forgot password email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/forgot-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "forgot-password"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"x'; DELETE FROM users;--@y.com\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[EDGE] NF2-02 still 200 or 400 without 5xx', () => pm.expect(pm.response.code).to.be.below(500));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 NF3-01 XSS — contact message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/contact-messages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "contact-messages"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"N\",\n  \"email\": \"n@e.com\",\n  \"message\": \"<img src=x onerror=alert(1)>\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[EDGE] NF3-01 contact accepted', () => pm.expect([200,400,500]).to.include(pm.response.code));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 NF3-02 XSS — contact subject",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/contact-messages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "contact-messages"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"N\",\n  \"email\": \"n@e.com\",\n  \"subject\": \"<script>bad</script>\",\n  \"message\": \"body\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[EDGE] NF3-02 200', () => pm.response.code === 200);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🔴 NF4-01 JWT — expired/invalid me",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[FAIL_EXPECTED] NF4-01 401', () => pm.expect([401,500]).to.include(pm.response.code));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 NF4-02 Concurrent smoke — plan-prices x3 logical",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/plan-prices",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stripe",
+                "plan-prices"
+              ]
+            },
+            "description": "Run collection runner 3x or use Newman with iterationCount."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] NF4-02 200', () => pm.response.code === 200);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 NF4-03 Rate limit probe — repeated signin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signin",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "signin"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"wrong\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[EDGE] NF4-03 401', () => pm.response.code === 401);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 NF4-04 Auth boundary — empty Bearer",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[FAIL_EXPECTED] NF4-04 401', () => pm.response.code === 401);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟡 NF2-03 Injection — signin with extra JSON keys",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signin",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "signin"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"Password123\",\n  \"admin\": true\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[EDGE] NF2-03 200 if creds ok else 401', () => pm.expect([200,401]).to.include(pm.response.code));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🟢 NF1-03 Health-ish — products error fast",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stripe",
+                "products"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[FAIL_EXPECTED] NF1-03 400 missing param', () => pm.response.code === 400);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

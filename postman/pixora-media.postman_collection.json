@@ -1,0 +1,27 @@
+{
+  "info": {
+    "name": "Pixora Media API",
+    "_postman_id": "pixora-media-collection",
+    "description": "List media for a subaccount. Uploads use UploadThing from the app UI.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "subAccountId", "value": "YOUR_SUBACCOUNT_UUID" }
+  ],
+  "item": [
+    {
+      "name": "List media",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/media?subAccountId={{subAccountId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "media"],
+          "query": [{ "key": "subAccountId", "value": "{{subAccountId}}" }]
+        }
+      }
+    }
+  ]
+}

@@ -41,7 +41,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate URLs are from our domain
-    const allowedHosts = ["localhost", process.env.NEXT_PUBLIC_DOMAIN].filter(Boolean);
+    const requestHost = req.headers.get("host")?.split(":")[0] || "";
+    const allowedHosts = [requestHost, "localhost", process.env.NEXT_PUBLIC_DOMAIN].filter(Boolean);
     
     for (const url of [successUrl, cancelUrl]) {
       try {

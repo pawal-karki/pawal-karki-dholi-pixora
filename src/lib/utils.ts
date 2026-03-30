@@ -10,7 +10,9 @@ export const getStripeOAuthLink = (
   accountType: "agency" | "subaccount",
   state: string
 ) => {
-  return `https://connect.stripe.com/oauth/authorize?response_type=code&client_id=${process.env.NEXT_PUBLIC_STRIPE_CLIENT_ID}&scope=read_write&state=${state}`
+  const baseUrl = process.env.NEXT_PUBLIC_URL || "https://pawal.dev";
+  const redirectUri = encodeURIComponent(`${baseUrl}/agency`);
+  return `https://connect.stripe.com/oauth/authorize?response_type=code&client_id=${process.env.NEXT_PUBLIC_STRIPE_CLIENT_ID}&scope=read_write&redirect_uri=${redirectUri}&state=${state}`
 }
 
 export const logger = (message: string, data?: unknown) => {
@@ -52,7 +54,7 @@ export function constructMetadata({
     },
     icons,
     metadataBase: new URL(
-      process.env.NEXT_PUBLIC_URL ?? "http://localhost:3000"
+      process.env.NEXT_PUBLIC_URL ?? "https://pawal.dev"
     ),
     ...(noIndex && {
       robots: {

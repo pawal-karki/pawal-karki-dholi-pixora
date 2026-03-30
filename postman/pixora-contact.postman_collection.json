@@ -1,0 +1,32 @@
+{
+  "info": {
+    "name": "Pixora Contact Messages API",
+    "_postman_id": "pixora-contact-collection",
+    "description": "Public contact submit and agency reply.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "messageId", "value": "CONTACT_MESSAGE_UUID" }
+  ],
+  "item": [
+    {
+      "name": "Submit contact message",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/api/contact-messages", "host": ["{{baseUrl}}"], "path": ["api", "contact-messages"] },
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"Site Visitor\",\n  \"email\": \"visitor@example.com\",\n  \"subject\": \"Hello\",\n  \"message\": \"More information please.\"\n}" }
+      }
+    },
+    {
+      "name": "Reply to contact",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/api/contact-messages/reply", "host": ["{{baseUrl}}"], "path": ["api", "contact-messages", "reply"] },
+        "body": { "mode": "raw", "raw": "{\n  \"messageId\": \"{{messageId}}\",\n  \"subject\": \"Re: Hello\",\n  \"replyBody\": \"Thanks for reaching out.\"\n}" }
+      }
+    }
+  ]
+}

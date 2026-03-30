@@ -69,7 +69,9 @@ const LaunchpadPage: React.FC<LaunchpadPageProps> = async ({
     subAccountDetails.zipCode;
 
   // Build the Stripe OAuth link
-  const stripeOAuthLink = `https://connect.stripe.com/oauth/authorize?response_type=code&client_id=${process.env.NEXT_PUBLIC_STRIPE_CLIENT_ID}&scope=read_write&state=subaccount___${subaccountId}`;
+  const baseUrl = process.env.NEXT_PUBLIC_URL || "https://pawal.dev";
+  const redirectUri = encodeURIComponent(`${baseUrl}/agency`);
+  const stripeOAuthLink = `https://connect.stripe.com/oauth/authorize?response_type=code&client_id=${process.env.NEXT_PUBLIC_STRIPE_CLIENT_ID}&scope=read_write&redirect_uri=${redirectUri}&state=subaccount___${subaccountId}`;
 
   return (
     <div className="flex flex-col justify-center items-center">

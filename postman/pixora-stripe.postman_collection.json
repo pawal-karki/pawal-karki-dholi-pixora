@@ -1,0 +1,103 @@
+{
+  "info": {
+    "name": "Pixora Stripe API",
+    "_postman_id": "pixora-stripe-collection",
+    "description": "Stripe plan prices, subscription session, cancel, checkout, products, webhook.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "token", "value": "" },
+    { "key": "agencyId", "value": "YOUR_AGENCY_UUID" },
+    { "key": "subAccountId", "value": "YOUR_SUBACCOUNT_UUID" },
+    { "key": "priceId", "value": "price_REPLACE" },
+    { "key": "connectAccountId", "value": "acct_REPLACE" },
+    { "key": "productId", "value": "YOUR_PRODUCT_UUID" }
+  ],
+  "item": [
+    {
+      "name": "Plan prices",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{baseUrl}}/api/stripe/plan-prices", "host": ["{{baseUrl}}"], "path": ["api", "stripe", "plan-prices"] }
+      }
+    },
+    {
+      "name": "Create subscription session",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Cookie", "value": "auth_token={{token}}" }
+        ],
+        "url": { "raw": "{{baseUrl}}/api/stripe/create-subscription-session", "host": ["{{baseUrl}}"], "path": ["api", "stripe", "create-subscription-session"] },
+        "body": { "mode": "raw", "raw": "{\n  \"agencyId\": \"{{agencyId}}\",\n  \"priceId\": \"{{priceId}}\",\n  \"successUrl\": \"{{baseUrl}}/agency/{{agencyId}}/billing?success=true&session_id={CHECKOUT_SESSION_ID}\",\n  \"cancelUrl\": \"{{baseUrl}}/agency/{{agencyId}}/billing?canceled=true\"\n}" }
+      }
+    },
+    {
+      "name": "Cancel subscription",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Cookie", "value": "auth_token={{token}}" }
+        ],
+        "url": { "raw": "{{baseUrl}}/api/stripe/cancel-subscription", "host": ["{{baseUrl}}"], "path": ["api", "stripe", "cancel-subscription"] },
+        "body": { "mode": "raw", "raw": "{\n  \"agencyId\": \"{{agencyId}}\"\n}" }
+      }
+    },
+    {
+      "name": "Checkout embedded",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/api/stripe/create-checkout-session", "host": ["{{baseUrl}}"], "path": ["api", "stripe", "create-checkout-session"] },
+        "body": { "mode": "raw", "raw": "{\n  \"subAccountConnectedId\": \"{{connectAccountId}}\",\n  \"subAccountId\": \"{{subAccountId}}\",\n  \"prices\": [{ \"priceId\": \"{{priceId}}\", \"quantity\": 1 }],\n  \"mode\": \"embedded\"\n}" }
+      }
+    },
+    {
+      "name": "Checkout redirect",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/api/stripe/create-checkout-session", "host": ["{{baseUrl}}"], "path": ["api", "stripe", "create-checkout-session"] },
+        "body": { "mode": "raw", "raw": "{\n  \"subAccountConnectedId\": \"{{connectAccountId}}\",\n  \"subAccountId\": \"{{subAccountId}}\",\n  \"prices\": [{ \"priceId\": \"{{priceId}}\", \"quantity\": 1 }],\n  \"mode\": \"redirect\",\n  \"successUrl\": \"{{baseUrl}}/funnel?checkout=success\",\n  \"cancelUrl\": \"{{baseUrl}}/funnel?checkout=canceled\"\n}" }
+      }
+    },
+    {
+      "name": "Products list",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{baseUrl}}/api/stripe/products?subAccountId={{subAccountId}}&source=local", "host": ["{{baseUrl}}"], "path": ["api", "stripe", "products"], "query": [{ "key": "subAccountId", "value": "{{subAccountId}}" }, { "key": "source", "value": "local" }] }
+      }
+    },
+    {
+      "name": "Products create local",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/api/stripe/products", "host": ["{{baseUrl}}"], "path": ["api", "stripe", "products"] },
+        "body": { "mode": "raw", "raw": "{\n  \"subAccountId\": \"{{subAccountId}}\",\n  \"name\": \"API Product\",\n  \"price\": \"19.99\",\n  \"localOnly\": true\n}" }
+      }
+    },
+    {
+      "name": "Products delete",
+      "request": {
+        "method": "DELETE",
+        "url": { "raw": "{{baseUrl}}/api/stripe/products?productId={{productId}}&subAccountId={{subAccountId}}", "host": ["{{baseUrl}}"], "path": ["api", "stripe", "products"], "query": [{ "key": "productId", "value": "{{productId}}" }, { "key": "subAccountId", "value": "{{subAccountId}}" }] }
+      }
+    },
+    {
+      "name": "Webhook placeholder",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "stripe-signature", "value": "use_stripe_cli" }
+        ],
+        "url": { "raw": "{{baseUrl}}/api/stripe/webhook", "host": ["{{baseUrl}}"], "path": ["api", "stripe", "webhook"] },
+        "body": { "mode": "raw", "raw": "{}" }
+      }
+    }
+  ]
+}

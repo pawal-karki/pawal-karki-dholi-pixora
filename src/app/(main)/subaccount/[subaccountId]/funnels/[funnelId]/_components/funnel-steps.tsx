@@ -74,7 +74,7 @@ const FunnelSteps: React.FC<FunnelStepsProps> = ({
     if (protocol.includes(':')) {
         protocol = protocol.split(':')[0];
     }
-    const domain = process.env.NEXT_PUBLIC_DOMAIN || 'localhost:3000';
+    const domain = process.env.NEXT_PUBLIC_DOMAIN || 'pawal.dev';
     const url = clickedPage
         ? `${protocol}://${funnel.subDomainName}.${domain}/${clickedPage.pathName}`
         : '#';

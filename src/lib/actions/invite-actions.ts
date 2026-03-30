@@ -43,7 +43,7 @@ export async function sendInvitationAction(formData: FormData) {
                 const client = await clerkClient();
                 await client.invitations.createInvitation({
                     emailAddress: email,
-                    redirectUrl: process.env.NEXT_PUBLIC_URL || "http://localhost:3000",
+                    redirectUrl: process.env.NEXT_PUBLIC_URL || "https://pawal.dev",
                     publicMetadata: {
                         throughInvitation: true,
                         role,

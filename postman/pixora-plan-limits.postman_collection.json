@@ -1,0 +1,28 @@
+{
+  "info": {
+    "name": "Pixora Plan Limits API",
+    "_postman_id": "pixora-plan-limits-collection",
+    "description": "Check subaccount and team invite limits for an agency plan.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "agencyId", "value": "YOUR_AGENCY_UUID" }
+  ],
+  "item": [
+    {
+      "name": "Can create subaccount",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{baseUrl}}/api/plan-limits?agencyId={{agencyId}}&type=subaccount", "host": ["{{baseUrl}}"], "path": ["api", "plan-limits"], "query": [{ "key": "agencyId", "value": "{{agencyId}}" }, { "key": "type", "value": "subaccount" }] }
+      }
+    },
+    {
+      "name": "Can invite team member",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{baseUrl}}/api/plan-limits?agencyId={{agencyId}}&type=team", "host": ["{{baseUrl}}"], "path": ["api", "plan-limits"], "query": [{ "key": "agencyId", "value": "{{agencyId}}" }, { "key": "type", "value": "team" }] }
+      }
+    }
+  ]
+}

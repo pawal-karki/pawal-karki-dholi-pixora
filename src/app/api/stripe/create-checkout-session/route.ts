@@ -62,7 +62,9 @@ export async function POST(req: NextRequest) {
       quantity: Number(p?.quantity ?? 1),
     }));
 
-    const baseUrl = process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
+    const host = req.headers.get("host") || "localhost:3000";
+    const proto = req.headers.get("x-forwarded-proto") || (host.includes("localhost") ? "http" : "https");
+    const baseUrl = process.env.NEXT_PUBLIC_URL || `${proto}://${host}`;
     const normalizedBaseUrl = baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
 
     if (mode === "redirect") {

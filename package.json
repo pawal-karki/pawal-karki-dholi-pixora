@@ -19,7 +19,10 @@
     "typecheck": "tsc --noEmit",
     "test": "bun test tests/unit",
     "test:coverage": "bun test tests/unit --coverage",
-    "postman:generate": "node scripts/generate-postman-sprints.mjs"
+    "postman:generate": "node scripts/generate-postman-sprints.mjs",
+    "postman:generate:tests": "node scripts/generate-postman-api-tests.mjs",
+    "postman:newman": "newman run postman/pixora-api-unit-tests.postman_collection.json --env-var baseUrl=http://localhost:3000",
+    "postman:newman:sprints": "newman run postman/pixora-sprints-complete.postman_collection.json --env-var baseUrl=http://localhost:3000"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.78.0",
@@ -118,6 +121,7 @@
     "autoprefixer": "^10.4.22",
     "eslint": "^9",
     "eslint-config-next": "15.1.0",
+    "newman": "^6.2.1",
     "postcss": "^8.5.6",
     "prettier": "^3.7.4",
     "prisma": "5.18.0",

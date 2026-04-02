@@ -2,12 +2,13 @@
   "info": {
     "name": "Pixora Auth API",
     "_postman_id": "pixora-auth-collection",
-    "description": "Authentication: signup, signin, current user, forgot/reset password, OTP. Set {{baseUrl}}. Signup/Signin tests auto-save {{token}} when present.",
+    "description": "Authentication + create agency (multipart). Signup/Signin save {{token}}; Create agency saves {{agencyId}}. POST /api/agency requires Bearer JWT and user without an existing agency.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     { "key": "baseUrl", "value": "http://localhost:3000" },
-    { "key": "token", "value": "" }
+    { "key": "token", "value": "" },
+    { "key": "agencyId", "value": "" }
   ],
   "item": [
     {
@@ -68,6 +69,55 @@
           "mode": "raw",
           "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"Password123\"\n}"
         }
+      }
+    },
+    {
+      "name": "Create agency (form-data)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "try {",
+              "  var j = pm.response.json();",
+              "  if (j.agency && j.agency.id) pm.collectionVariables.set('agencyId', j.agency.id);",
+              "} catch (e) {}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/agency",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "agency"]
+        },
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            { "key": "name", "value": "My Agency", "type": "text" },
+            { "key": "companyEmail", "value": "contact@myagency.com", "type": "text" },
+            { "key": "companyPhone", "value": "+15551234567", "type": "text" },
+            { "key": "address", "value": "123 Main Street Suite 100", "type": "text" },
+            { "key": "city", "value": "Kathmandu", "type": "text" },
+            { "key": "state", "value": "Bagmati", "type": "text" },
+            { "key": "zipCode", "value": "44600", "type": "text" },
+            { "key": "country", "value": "Nepal", "type": "text" },
+            {
+              "key": "agencyLogo",
+              "value": "https://api.dicebear.com/7.x/initials/svg?seed=Agency",
+              "type": "text"
+            },
+            { "key": "whiteLabel", "value": "true", "type": "text" },
+            { "key": "goal", "value": "5", "type": "text" }
+          ]
+        },
+        "description": "Run after Signin. Same fields as agency settings UI. agencyLogo must be a URL string (not a file upload)."
       }
     },
     {

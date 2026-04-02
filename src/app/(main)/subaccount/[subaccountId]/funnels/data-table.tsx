@@ -72,7 +72,7 @@ export default function FunnelsDataTable<TData, TValue>({
                             setOpen(
                                 <CustomModal
                                     title="Create a Funnel"
-                                    subTitle="Funnels are like websites, but better! Try creating one!"
+                                    subTitle="Pick a unique subdomain — that’s the address visitors use for your live funnel (e.g. offer.yourdomain.com)."
                                 >
                                     {modalChildren}
                                 </CustomModal>

@@ -2,7 +2,7 @@
 
 ## Postman collections
 
-**All sprints in one file (118 requests, 7 folders):** [pixora-sprints-complete.postman_collection.json](./pixora-sprints-complete.postman_collection.json) — Sprints 1–6 + NF1–NF4, emoji badges (🟢 pass / 🔴 expected failure / 🟡 edge), tests with `[PASS]` / `[FAIL_EXPECTED]` / `[EDGE]`, setup + Newman notes in collection description. Regenerate after edits (from repo root; **do not** type `postman:generate` alone in PowerShell):
+**All sprints in one file (24 requests):** [pixora-sprints-complete.postman_collection.json](./pixora-sprints-complete.postman_collection.json) — auth (incl. `POST /api/agency`), Stripe, contact, plan-limits, media, chat, webhook, plus **Sprint 5** `/api/funnel-tools/*` (template list/sample, DnD reorder JSON, parse editor content, published URL), **Sprint 6** `GET`/`POST /api/subaccount/:subAccountId/funnels` (Bearer JWT, subdomain funnel create/list). Optional env **`FUNNEL_TOOLS_SECRET`** + header `x-funnel-tools-secret` for funnel-tools only. Regenerate:
 
 ```powershell
 bun run postman:generate
@@ -36,6 +36,19 @@ export AGENCY_ID=""      # UUID
 export SUBACCOUNT_ID=""  # UUID
 export PRICE_ID=""       # Stripe price_... from /api/stripe/plan-prices
 ```
+
+### Troubleshooting: `POST /api/auth/signup` returns **500** (not a curl mistake)
+
+If the server log shows **Prisma**: `Can't reach database server at '...:5432'`, your **`DATABASE_URL`** in `.env` points to a PostgreSQL host the dev machine cannot reach (wrong host, firewall, VPN, expired cloud DB, or typo).
+
+**Fix for local API / Postman / curl testing:**
+
+1. Set `DATABASE_URL` to a running Postgres instance, for example the value in [`.env.example`](../.env.example) (`postgresql://...@localhost:5432/pixora`).
+2. Start Postgres (Docker, local install, or a cloud DB that allows your IP).
+3. Run `bunx prisma db push` (or `migrate`) so the schema exists.
+4. Restart `bun run dev` and retry the same curl.
+
+Until the DB connects, auth and most API routes will return **500** no matter how correct the HTTP request is.
 
 ---
 
@@ -81,6 +94,28 @@ curl -sS -w "\nHTTP:%{http_code}\n" -X POST "$BASE_URL/api/auth/signin" \
   -d '{"email":"YOUR_EMAIL","password":"WrongPassword!!!"}'
 ```
 
+### Create agency — `multipart/form-data` (after sign-in; expect `201`)
+
+Set `TOKEN` from sign-in JSON. `agencyLogo` must be a **URL string** (not a file), same as the app after upload.
+
+```bash
+curl -sS -w "\nHTTP:%{http_code}\n" -X POST "$BASE_URL/api/agency" \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "name=My Agency" \
+  -F "companyEmail=contact@myagency.com" \
+  -F "companyPhone=+15551234567" \
+  -F "address=123 Main Street Suite 100" \
+  -F "city=Kathmandu" \
+  -F "state=Bagmati" \
+  -F "zipCode=44600" \
+  -F "country=Nepal" \
+  -F "agencyLogo=https://api.dicebear.com/7.x/initials/svg?seed=Agency" \
+  -F "whiteLabel=true" \
+  -F "goal=5"
+```
+
+JSON alternative: `Content-Type: application/json` with the same field names.
+
 ### Me — expect `200` with `Authorization: Bearer`
 
 ```bash
@@ -123,6 +158,50 @@ curl -sS -w "\nHTTP:%{http_code}\n" -X POST "$BASE_URL/api/auth/verify-otp" \
 curl -sS -w "\nHTTP:%{http_code}\n" -X POST "$BASE_URL/api/auth/reset-password" \
   -H "Content-Type: application/json" \
   -d '{"password":"Password123!"}'
+```
+
+---
+
+## Funnel tools (templates, DnD JSON, editor parse)
+
+Test-only HTTP surface aligned with `tests/unit/funnel-editor-json.test.ts`, `dnd-editor-tree.test.ts`, `template-system.test.ts`. No database writes.
+
+If **`FUNNEL_TOOLS_SECRET`** is set in `.env`, add header `-H "x-funnel-tools-secret: YOUR_SECRET"` to every request below.
+
+### List template ids
+
+```bash
+curl -sS "$BASE_URL/api/funnel-tools/templates"
+```
+
+### Sample JSON for one template (`template__hero_gradient`, `template__modern_navbar`, …)
+
+```bash
+curl -sS "$BASE_URL/api/funnel-tools/templates/template__hero_gradient?device=Desktop"
+```
+
+### Reorder items (same as funnel step drag — `reorderByIndex` + `assignSequentialOrder`)
+
+```bash
+curl -sS -X POST "$BASE_URL/api/funnel-tools/dnd-reorder" \
+  -H "Content-Type: application/json" \
+  -d '{"items":[{"id":"a"},{"id":"b"},{"id":"c"}],"fromIndex":0,"toIndex":2,"assignOrder":true}'
+```
+
+### Parse funnel page `content` JSON (optional `findId`)
+
+```bash
+curl -sS -X POST "$BASE_URL/api/funnel-tools/parse-content" \
+  -H "Content-Type: application/json" \
+  -d '{"content":null,"findId":"__body"}'
+```
+
+### Build published subdomain URL
+
+```bash
+curl -sS -X POST "$BASE_URL/api/funnel-tools/published-url" \
+  -H "Content-Type: application/json" \
+  -d '{"subDomainName":"myfunnel","pathName":"landing","scheme":"https","domain":"pawal.dev"}'
 ```
 
 ---
@@ -305,6 +384,36 @@ BASE_URL=http://localhost:3000 AGENCY_ID=... SUBACCOUNT_ID=... ./postman/smoke-a
 
 ---
 
+## Subaccount funnels (REST — Bearer JWT)
+
+Same **subaccount access** rules as the app layout: user must have **Permissions** with `access: true` for that `subAccountId`, and must not be **SUBACCOUNT_GUEST**. Use the JWT from **Sign in** (`Authorization: Bearer $TOKEN`).
+
+### List funnels — expect `200`, body `.funnels` array
+
+```bash
+curl -sS -w "\nHTTP:%{http_code}\n" "$BASE_URL/api/subaccount/$SUBACCOUNT_ID/funnels" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Create funnel (subdomain) — expect `201`, body `.funnel` with `.publishedBaseUrl`
+
+`subDomainName` is validated like the dashboard form (lowercase slug, unique globally).
+
+```bash
+curl -sS -w "\nHTTP:%{http_code}\n" -X POST "$BASE_URL/api/subaccount/$SUBACCOUNT_ID/funnels" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d "{\"name\":\"API Funnel\",\"subDomainName\":\"my-offer-$(date +%s)\",\"description\":\"\",\"favicon\":\"\"}"
+```
+
+### Strict fail: no Bearer → `401`
+
+```bash
+curl -sS -w "\nHTTP:%{http_code}\n" "$BASE_URL/api/subaccount/$SUBACCOUNT_ID/funnels"
+```
+
+---
+
 ## Note on Server Actions
 
-Funnels, pipelines, Kanban, and many dashboard flows are **Next.js server actions**, not REST. Cover those with **Bun unit tests** under `tests/unit/` (e.g. `funnel-editor-json.test.ts`, `pipeline-features.test.ts`, `payment-api.test.ts`, `notification-receiving.test.ts`).
+Pipelines, Kanban, funnel **page** editor persistence, and many dashboard flows are still **Next.js server actions**, not REST. **Funnel shell + subdomain** can also be created via **`POST /api/subaccount/:subAccountId/funnels`** above. Cover shared logic with **Bun unit tests** under `tests/unit/` (e.g. `funnel-editor-json.test.ts`, `pipeline-features.test.ts`, `payment-api.test.ts`, `notification-receiving.test.ts`).

@@ -19,7 +19,7 @@ const CreateFunnelButton: React.FC<CreateFunnelButtonProps> = ({ subAccountId })
         setOpen(
             <CustomModal
                 title="Create a Funnel"
-                subTitle="Funnels are a great way to guide visitors through your sales process."
+                subTitle="Choose a subdomain for your published funnel URL, then add steps and pages."
             >
                 <FunnelDetails subAccountId={subAccountId} />
             </CustomModal>

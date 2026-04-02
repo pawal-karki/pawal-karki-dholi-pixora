@@ -1,0 +1,964 @@
+{
+  "info": {
+    "name": "Pixora — API unit tests (80 assertions)",
+    "_postman_id": "pixora-api-unit-tests",
+    "description": "## 80 automated `pm.test` checks\\nCovers **status codes**, **error JSON**, **headers**, **timing**, and **happy-path shapes** for real `src/app/api/*` routes.\\n\\n### Variables\\n- `baseUrl` — http://localhost:3000\\n- `agencyId`, `subAccountId`, `templateId` — UUIDs / ids from your env\\n- `funnelToolsSecret` — must match **FUNNEL_TOOLS_SECRET** when that env is set; leave empty if unset\\n\\n### Newman\\n```\\nnewman run postman/pixora-api-unit-tests.postman_collection.json --env-var baseUrl=http://localhost:3000\\n```\\n\\n**Note:** True **unit tests** for pure functions live in `bun test tests/unit`. This collection is **API contract / integration** testing via Postman.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "agencyId",
+      "value": "e4ac6e93-ee03-4dca-9f8d-b85d8d6d7f71"
+    },
+    {
+      "key": "subAccountId",
+      "value": "1b7e6677-8071-498a-8350-3184ed04198e"
+    },
+    {
+      "key": "templateId",
+      "value": "template__hero_gradient"
+    },
+    {
+      "key": "funnelToolsSecret",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "01 — Public / billing contract",
+      "item": [
+        {
+          "name": "GET /api/stripe/plan-prices",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/plan-prices",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "stripe", "plan-prices"]
+            },
+            "description": "Public catalog; copy priceId for checkout tests elsewhere."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('TC01 status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('TC02 responds within 15s', () => pm.expect(pm.response.responseTime).to.be.below(15000));",
+                  "pm.test('TC03 Content-Type is JSON', () => pm.expect(pm.response.headers.get('content-type')||'').to.match(/json/i));",
+                  "pm.test('TC04 body parses as object', () => pm.expect(pm.response.json()).to.be.an('object'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/subaccount/:id/funnels — no Authorization",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/subaccount/{{subAccountId}}/funnels",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "subaccount", "{{subAccountId}}", "funnels"]
+            },
+            "description": "Expect 401 — Bearer required."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('TC05 status is 401', () => pm.response.to.have.status(401));",
+                  "pm.test('TC06 JSON error body', () => pm.expect(pm.response.headers.get('content-type')||'').to.match(/json/i));",
+                  "pm.test('TC07 error mentions auth', () => { const j = pm.response.json(); pm.expect(j).to.have.property('error'); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 — Auth: signup validation",
+      "item": [
+        {
+          "name": "POST /api/auth/signup — empty object",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signup",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "signup"]
+            },
+            "description": "400 — required fields.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('TC08 status is 400', () => pm.response.to.have.status(400));",
+                  "pm.test('TC09 JSON with error', () => { const j = pm.response.json(); pm.expect(j).to.have.property('error'); });",
+                  "pm.test('TC10 error text mentions required', () => pm.expect(pm.response.json().error).to.match(/required/i));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/auth/signup — invalid email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signup",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "signup"]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"X\",\n  \"email\": \"not-an-email\",\n  \"password\": \"Password123\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('TC11 status is 400', () => pm.response.to.have.status(400));",
+                  "pm.test('TC12 has error string', () => pm.expect(pm.response.json().error).to.be.a('string'));",
+                  "pm.test('TC13 invalid email copy', () => pm.expect(pm.response.json().error).to.match(/email|Invalid/i));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/auth/signup — short password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signup",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "signup"]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"X\",\n  \"email\": \"shortpwd-test@example.com\",\n  \"password\": \"short\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('TC14 status is 400', () => pm.response.to.have.status(400));",
+                  "pm.test('TC15 error present', () => pm.expect(pm.response.json()).to.have.property('error'));",
+                  "pm.test('TC16 password length rule', () => pm.expect(pm.response.json().error).to.match(/8|characters/i));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/auth/signup — valid shape (201 or 409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signup",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "signup"]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"API Tester\",\n  \"email\": \"apitester-unit@example.com\",\n  \"password\": \"Password123\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('TC17 status 201 or 409', () => pm.expect([201,409]).to.include(pm.response.code));",
+                  "pm.test('TC18 JSON body', () => pm.expect(pm.response.json()).to.be.an('object'));",
+                  "pm.test('TC19 token on 201 or error on 409', () => { const j = pm.response.json(); if (pm.response.code===201) pm.expect(j).to.have.property('token'); else pm.expect(j).to.have.property('error'); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 — Auth: signin",
+      "item": [
+        {
+          "name": "POST /api/auth/signin — missing password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signin",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "signin"]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"anyone@example.com\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('TC20 status is 400', () => pm.response.to.have.status(400));",
+                  "pm.test('TC21 error key', () => pm.expect(pm.response.json()).to.have.property('error'));",
+                  "pm.test('TC22 required fields message', () => pm.expect(pm.response.json().error).to.match(/required/i));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/auth/signin — wrong password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signin",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "signin"]
+            },
+            "description": "401 if user exists; 401 invalid credentials.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"apitester-unit@example.com\",\n  \"password\": \"DefinitelyWrongPass999\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('TC23 status is 401', () => pm.response.to.have.status(401));",
+                  "pm.test('TC24 JSON error', () => pm.expect(pm.response.json()).to.have.property('error'));",
+                  "pm.test('TC25 generic invalid credentials', () => pm.expect(pm.response.json().error).to.match(/Invalid|password/i));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04 — Auth: me",
+      "item": [
+        {
+          "name": "GET /api/auth/me — no Authorization",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "me"]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('TC26 status is 401', () => pm.response.to.have.status(401));",
+                  "pm.test('TC27 JSON error', () => pm.expect(pm.response.json()).to.have.property('error'));",
+                  "pm.test('TC28 token required wording', () => pm.expect(pm.response.json().error).to.match(/token|Authorization/i));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/auth/me — invalid Bearer",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer not.a.valid.jwt"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "me"]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('TC29 status is 401', () => pm.response.to.have.status(401));",
+                  "pm.test('TC30 invalid or expired', () => pm.expect(pm.response.json().error).to.match(/Invalid|expired|token/i));",
+                  "pm.test('TC31 no user payload', () => pm.expect(pm.response.json()).to.not.have.property('user'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05 — Auth: password flow",
+      "item": [
+        {
+          "name": "POST /api/auth/forgot-password — no email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/forgot-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "forgot-password"]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('TC32 status is 400', () => pm.response.to.have.status(400));",
+                  "pm.test('TC33 error string', () => pm.expect(pm.response.json().error).to.be.a('string'));",
+                  "pm.test('TC34 email required', () => pm.expect(pm.response.json().error).to.match(/email|required/i));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/auth/forgot-password — valid email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/forgot-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "forgot-password"]
+            },
+            "description": "200 when email sends; 500 if SMTP fails; unknown email still 200 with message.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"apitester-unit@example.com\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('TC35 status 200 or 500', () => pm.expect([200,500]).to.include(pm.response.code));",
+                  "pm.test('TC36 message or error string', () => { const j = pm.response.json(); pm.expect(j.message || j.error).to.be.a('string'); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/auth/verify-otp — missing fields",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/verify-otp",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "verify-otp"]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"a@b.com\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('TC37 status is 400', () => pm.response.to.have.status(400));",
+                  "pm.test('TC38 error present', () => pm.expect(pm.response.json()).to.have.property('error'));",
+                  "pm.test('TC39 OTP required copy', () => pm.expect(pm.response.json().error).to.match(/OTP|required/i));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/auth/reset-password — missing token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/reset-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "reset-password"]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"Password123\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('TC40 status is 400', () => pm.response.to.have.status(400));",
+                  "pm.test('TC41 error key', () => pm.expect(pm.response.json()).to.have.property('error'));",
+                  "pm.test('TC42 token required', () => pm.expect(pm.response.json().error).to.match(/token|required/i));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "06 — Plan limits",
+      "item": [
+        {
+          "name": "GET /api/plan-limits — missing agencyId",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/plan-limits?type=subaccount",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "plan-limits"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "subaccount"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('TC43 status is 400', () => pm.response.to.have.status(400));",
+                  "pm.test('TC44 error string', () => pm.expect(pm.response.json().error).to.be.a('string'));",
+                  "pm.test('TC45 agency id required', () => pm.expect(pm.response.json().error).to.match(/Agency|agency/i));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/plan-limits — invalid type",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/plan-limits?agencyId={{agencyId}}&type=wrong",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "plan-limits"],
+              "query": [
+                {
+                  "key": "agencyId",
+                  "value": "{{agencyId}}"
+                },
+                {
+                  "key": "type",
+                  "value": "wrong"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('TC46 status is 400', () => pm.response.to.have.status(400));",
+                  "pm.test('TC47 invalid type message', () => pm.expect(pm.response.json().error).to.match(/subaccount|team|Invalid/i));",
+                  "pm.test('TC48 JSON body', () => pm.expect(pm.response.json()).to.be.an('object'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "07 — Contact messages",
+      "item": [
+        {
+          "name": "POST /api/contact-messages — empty object",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/contact-messages",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "contact-messages"]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('TC49 status is 400', () => pm.response.to.have.status(400));",
+                  "pm.test('TC50 error key', () => pm.expect(pm.response.json()).to.have.property('error'));",
+                  "pm.test('TC51 required fields', () => pm.expect(pm.response.json().error).to.match(/required|Name|email|message/i));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/contact-messages — missing message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/contact-messages",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "contact-messages"]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"A\",\n  \"email\": \"a@b.com\",\n  \"subject\": \"S\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('TC52 status is 400', () => pm.response.to.have.status(400));",
+                  "pm.test('TC53 error string', () => pm.expect(pm.response.json().error).to.be.a('string'));",
+                  "pm.test('TC54 validation copy', () => pm.expect(pm.response.json().error).to.match(/required|message/i));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/contact-messages — valid lead",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/contact-messages",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "contact-messages"]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman Lead\",\n  \"email\": \"lead@example.com\",\n  \"subject\": \"Unit test\",\n  \"message\": \"Hello from Newman.\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('TC55 status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('TC56 success true', () => pm.expect(pm.response.json().success).to.eql(true));",
+                  "pm.test('TC57 message object returned', () => pm.expect(pm.response.json().message).to.be.an('object'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "08 — Funnel tools (optional x-funnel-tools-secret)",
+      "item": [
+        {
+          "name": "GET /api/funnel-tools/templates",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-funnel-tools-secret",
+                "value": "{{funnelToolsSecret}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/funnel-tools/templates",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "funnel-tools", "templates"]
+            },
+            "description": "200 or 403 if FUNNEL_TOOLS_SECRET set and header wrong/empty."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('TC58 status 200 or 403', () => pm.expect([200,403]).to.include(pm.response.code));",
+                  "pm.test('TC59 JSON body', () => pm.expect(pm.response.json()).to.be.an('object'));",
+                  "pm.test('TC60 forbidden or list shape', () => { const j = pm.response.json(); if (pm.response.code===403) pm.expect(j).to.have.property('error'); else { pm.expect(j).to.have.property('templates'); pm.expect(j.templates).to.be.an('array'); } });",
+                  "pm.test('TC61 count is number when 200', () => { if (pm.response.code===200) pm.expect(pm.response.json().count).to.be.a('number'); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/funnel-tools/templates/:id — unknown",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-funnel-tools-secret",
+                "value": "{{funnelToolsSecret}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/funnel-tools/templates/__unknown_template_xyz__",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "funnel-tools",
+                "templates",
+                "__unknown_template_xyz__"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('TC62 status 404 or 403', () => pm.expect([404,403]).to.include(pm.response.code));",
+                  "pm.test('TC63 error when not 403', () => { if (pm.response.code===404) pm.expect(pm.response.json()).to.have.property('error'); });",
+                  "pm.test('TC64 unknown template copy', () => { if (pm.response.code===404) pm.expect(pm.response.json().error).to.match(/Unknown|template/i); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/funnel-tools/templates/:id — known",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-funnel-tools-secret",
+                "value": "{{funnelToolsSecret}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/funnel-tools/templates/{{templateId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "funnel-tools", "templates", "{{templateId}}"]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('TC65 status 200 or 403/404', () => pm.expect([200,403,404]).to.include(pm.response.code));",
+                  "pm.test('TC66 JSON when success', () => { if (pm.response.code===200) pm.expect(pm.response.json()).to.have.property('element'); });",
+                  "pm.test('TC67 device key when 200', () => { if (pm.response.code===200) pm.expect(pm.response.json().device).to.be.oneOf(['Desktop','Mobile','Tablet']); });",
+                  "pm.test('TC68 id echoed when 200', () => { if (pm.response.code===200) pm.expect(pm.response.json().id).to.be.a('string'); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/funnel-tools/dnd-reorder — items not array",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-funnel-tools-secret",
+                "value": "{{funnelToolsSecret}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/funnel-tools/dnd-reorder",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "funnel-tools", "dnd-reorder"]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": null,\n  \"fromIndex\": 0,\n  \"toIndex\": 0\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('TC69 status 400 or 403', () => pm.expect([400,403]).to.include(pm.response.code));",
+                  "pm.test('TC70 items validation when 400', () => { if (pm.response.code===400) pm.expect(pm.response.json().error).to.match(/array|items/i); });",
+                  "pm.test('TC71 JSON on error', () => { if (pm.response.code===400) pm.expect(pm.response.json()).to.have.property('error'); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/funnel-tools/dnd-reorder — success",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-funnel-tools-secret",
+                "value": "{{funnelToolsSecret}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/funnel-tools/dnd-reorder",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "funnel-tools", "dnd-reorder"]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"id\": \"a\",\n      \"order\": 0\n    },\n    {\n      \"id\": \"b\",\n      \"order\": 1\n    }\n  ],\n  \"fromIndex\": 0,\n  \"toIndex\": 1\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('TC72 status 200 or 403', () => pm.expect([200,403]).to.include(pm.response.code));",
+                  "pm.test('TC73 items array when 200', () => { if (pm.response.code===200) pm.expect(pm.response.json().items).to.be.an('array'); });",
+                  "pm.test('TC74 indices echoed when 200', () => { if (pm.response.code===200) { pm.expect(pm.response.json().fromIndex).to.eql(0); pm.expect(pm.response.json().toIndex).to.eql(1); } });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/funnel-tools/parse-content — null content",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-funnel-tools-secret",
+                "value": "{{funnelToolsSecret}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/funnel-tools/parse-content",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "funnel-tools", "parse-content"]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": null\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('TC75 status 200 or 403', () => pm.expect([200,403]).to.include(pm.response.code));",
+                  "pm.test('TC76 summary when 200', () => { if (pm.response.code===200) pm.expect(pm.response.json().summary).to.be.an('object'); });",
+                  "pm.test('TC77 elements array when 200', () => { if (pm.response.code===200) pm.expect(pm.response.json().elements).to.be.an('array'); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/funnel-tools/published-url — missing fields",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-funnel-tools-secret",
+                "value": "{{funnelToolsSecret}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/funnel-tools/published-url",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "funnel-tools", "published-url"]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subDomainName\": \"\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('TC78 status 400 or 403', () => pm.expect([400,403]).to.include(pm.response.code));",
+                  "pm.test('TC79 required fields when 400', () => { if (pm.response.code===400) pm.expect(pm.response.json().error).to.match(/required|pathName|subDomain/i); });",
+                  "pm.test('TC80 error object when 400', () => { if (pm.response.code===400) pm.expect(pm.response.json()).to.have.property('error'); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

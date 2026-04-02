@@ -18,6 +18,7 @@ import { useModal } from "@/hooks/use-modal";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -28,6 +29,13 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import FileUpload from "@/components/global/file-upload";
+import { buildPublishedFunnelPageUrl } from "@/lib/funnel-url";
+
+const publicDomain =
+  typeof process.env.NEXT_PUBLIC_DOMAIN === "string" &&
+  process.env.NEXT_PUBLIC_DOMAIN.length > 0
+    ? process.env.NEXT_PUBLIC_DOMAIN
+    : "localhost";
 
 interface FunnelDetailsProps {
   defaultData?: Funnel;
@@ -76,8 +84,6 @@ const FunnelDetails: React.FC<FunnelDetailsProps> = ({
       liveProducts: defaultData?.liveProducts || "[]",
     };
 
-    console.log("Submitting funnel data:", funnelData);
-
     try {
       const response = await upsertFunnel(
         subAccountId,
@@ -104,14 +110,23 @@ const FunnelDetails: React.FC<FunnelDetailsProps> = ({
       setClose();
       router.refresh();
     } catch (error) {
-      console.error("Error saving funnel:", error);
-      toast.error("Oops!", {
-        description: "Could not save funnel details",
-      });
+      const message =
+        error instanceof Error ? error.message : "Could not save funnel details";
+      toast.error("Oops!", { description: message });
     }
   };
 
   const isLoading = form.formState.isLoading || form.formState.isSubmitting;
+  const subPreview = form.watch("subDomainName")?.trim().toLowerCase();
+  const previewUrl =
+    subPreview && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(subPreview)
+      ? buildPublishedFunnelPageUrl({
+          subDomainName: subPreview,
+          pathName: "",
+          scheme: process.env.NEXT_PUBLIC_SCHEME,
+          domain: publicDomain,
+        }).replace(/\/$/, "")
+      : null;
 
   return (
     <Form {...form}>
@@ -172,15 +187,20 @@ const FunnelDetails: React.FC<FunnelDetailsProps> = ({
                 <FormControl>
                   <div className="flex items-center gap-2">
                     <Input
-                      placeholder="subdomain"
+                      placeholder="my-offer"
                       className="h-10 bg-muted/50 border-muted focus-visible:border-primary focus-visible:ring-primary/20"
                       {...field}
                     />
                     <span className="text-sm text-muted-foreground whitespace-nowrap font-medium">
-                      .pixora.com
+                      .{publicDomain}
                     </span>
                   </div>
                 </FormControl>
+                <FormDescription>
+                  {previewUrl
+                    ? `Live site base: ${previewUrl}/ (add funnel pages with their own paths)`
+                    : "Choose a unique subdomain. This becomes the hostname for your published funnel."}
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}

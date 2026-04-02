@@ -5,7 +5,12 @@ import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
 import { db } from "@/lib/db";
+import { getFunnelLiveSiteUrl, getFunnelSubdomainHost } from "@/lib/subdomain";
 import { type FunnelDetailsSchema } from "@/queries/validators";
+
+function normalizeFunnelSubdomain(name: string) {
+    return name.trim().toLowerCase();
+}
 
 export const getFunnels = async (subAccountId: string) => {
     const response = await db.funnel.findMany({
@@ -28,12 +33,51 @@ export const upsertFunnel = async (
     funnel: FunnelDetailsSchema & { liveProducts: string },
     funnelId: string
 ) => {
-    const response = await db.funnel.upsert({
-        where: { id: funnelId },
-        update: funnel,
-        create: { ...funnel, id: funnelId || v4(), subAccountId },
-    });
-    return response;
+    const payload = {
+        ...funnel,
+        subDomainName: normalizeFunnelSubdomain(funnel.subDomainName),
+    };
+    try {
+        const prior = await db.funnel.findUnique({
+            where: { id: funnelId },
+            select: { subDomainName: true },
+        });
+        const response = await db.funnel.upsert({
+            where: { id: funnelId },
+            update: payload,
+            create: { ...payload, id: funnelId || v4(), subAccountId },
+        });
+        const slug = response.subDomainName?.trim();
+        if (slug) {
+            const liveUrl = getFunnelLiveSiteUrl(slug);
+            const host = getFunnelSubdomainHost(slug);
+            if (!prior) {
+                console.log(`[subdomain] Subdomain create: reserved "${slug}" for funnel ${response.id}`);
+                console.log(`[subdomain] Now live on ${host} (${liveUrl})`);
+            } else if (prior.subDomainName !== slug) {
+                console.log(
+                    `[subdomain] Subdomain update: "${prior.subDomainName}" → "${slug}" — public host ${host} (${liveUrl})`,
+                );
+            } else {
+                console.log(`[subdomain] Funnel saved (${response.id}); public URL ${liveUrl}`);
+            }
+        }
+        return response;
+    } catch (e) {
+        if (
+            e instanceof Prisma.PrismaClientKnownRequestError &&
+            e.code === "P2002"
+        ) {
+            const target = e.meta?.target;
+            const fields = Array.isArray(target) ? target : target ? [target] : [];
+            if (fields.some((f) => String(f).includes("subDomainName"))) {
+                throw new Error(
+                    "That subdomain is already taken. Choose a different one."
+                );
+            }
+        }
+        throw e;
+    }
 };
 
 export const upsertFunnelPage = async (

@@ -37,10 +37,24 @@ export type TicketDetailsSchema = z.infer<typeof TicketDetailsValidator>;
 
 // ─── Funnel ───────────────────────────────────────────────────────────────────
 
+const funnelSubdomainRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
 export const FunnelDetailsValidator = z.object({
     name: z.string().min(1, { message: "Funnel name is required" }),
     description: z.string().optional(),
-    subDomainName: z.string().optional(),
+    subDomainName: z
+        .string()
+        .transform((s) => s.trim().toLowerCase())
+        .pipe(
+            z
+                .string()
+                .min(1, { message: "Subdomain is required for your live funnel URL" })
+                .max(63, { message: "Subdomain must be at most 63 characters" })
+                .regex(funnelSubdomainRegex, {
+                    message:
+                        "Use lowercase letters, numbers, and hyphens only (no spaces or underscores)",
+                })
+        ),
     favicon: z.string().optional(),
 });
 export type FunnelDetailsSchema = z.infer<typeof FunnelDetailsValidator>;

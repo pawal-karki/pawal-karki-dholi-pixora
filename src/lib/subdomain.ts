@@ -1,3 +1,37 @@
+import { buildPublishedFunnelPageUrl } from "@/lib/funnel-url";
+
+/** Default public hostname for published funnels (`{slug}.pawal.dev`). Override with `NEXT_PUBLIC_DOMAIN`. */
+export const DEFAULT_FUNNEL_PUBLIC_DOMAIN = "pawal.dev";
+
+/**
+ * Apex domain used when building `*.pawal.dev` (or custom) URLs for published funnels.
+ */
+export function getFunnelBaseDomain(): string {
+  const fromEnv = process.env.NEXT_PUBLIC_DOMAIN?.trim();
+  if (fromEnv) return fromEnv;
+  return DEFAULT_FUNNEL_PUBLIC_DOMAIN;
+}
+
+/**
+ * Full host for a funnel slug, e.g. `offer` → `offer.pawal.dev`.
+ */
+export function getFunnelSubdomainHost(slug: string): string {
+  const s = slug.trim().toLowerCase();
+  return `${s}.${getFunnelBaseDomain()}`;
+}
+
+/**
+ * Canonical browser URL for the funnel root (trailing slash stripped).
+ */
+export function getFunnelLiveSiteUrl(slug: string): string {
+  return buildPublishedFunnelPageUrl({
+    subDomainName: slug,
+    pathName: "",
+    scheme: process.env.NEXT_PUBLIC_SCHEME,
+    domain: getFunnelBaseDomain(),
+  }).replace(/\/$/, "");
+}
+
 /**
  * Resolves the funnel / tenant subdomain segment from the HTTP Host header.
  * Mirrors middleware behaviour so it can be unit-tested without NextRequest.

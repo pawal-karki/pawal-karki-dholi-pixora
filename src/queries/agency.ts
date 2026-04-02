@@ -5,6 +5,7 @@ import { Agency } from "@prisma/client";
 
 import { db } from "@/lib/db";
 import { getCurrentUserEmail } from "@/queries/auth";
+import { getDefaultAgencySidebarOptions } from "@/lib/agency-default-sidebar";
 
 // ─── getAgencyDetails ─────────────────────────────────────────────────────────
 
@@ -137,17 +138,7 @@ export const upsertAgency = async (agency: UpsertAgencyInput) => {
                 customerId: agency.customerId,
                 users: { connect: { email: userEmail } },
                 SidebarOptions: {
-                    create: [
-                        { name: "Dashboard", icon: "category", link: `/agency/${agency.id}` },
-                        { name: "Launchpad", icon: "clipboardIcon", link: `/agency/${agency.id}/launchpad` },
-                        { name: "Billing", icon: "payment", link: `/agency/${agency.id}/billing` },
-                        { name: "Contact Messages", icon: "messages", link: `/agency/${agency.id}/contact-messages` },
-                        { name: "Settings", icon: "settings", link: `/agency/${agency.id}/settings` },
-                        { name: "Sub Accounts", icon: "person", link: `/agency/${agency.id}/all-subaccounts` },
-                        { name: "Team", icon: "shield", link: `/agency/${agency.id}/team` },
-                        { name: "Chat", icon: "messages", link: `/agency/${agency.id}/chat` },
-                        { name: "AI Settings", icon: "chip", link: `/agency/${agency.id}/ai-settings` },
-                    ],
+                    create: getDefaultAgencySidebarOptions(agency.id),
                 },
             },
         });

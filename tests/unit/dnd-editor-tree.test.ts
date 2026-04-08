@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import { reorderByIndex, assignSequentialOrder } from "@/lib/dnd-reorder";
 
 type EditorElement = {
@@ -86,25 +86,25 @@ describe("Drag and drop editor tree operations", () => {
   }];
 
   describe("within-container reorder via reorderByIndex", () => {
-    test("move first child to last position", () => {
+    it("move first child to last position", () => {
       const children = [mkText("a", "A"), mkText("b", "B"), mkText("c", "C")];
       const reordered = reorderByIndex(children, 0, 2);
       expect(reordered.map((c) => c.id)).toEqual(["b", "c", "a"]);
     });
 
-    test("move last child to first position", () => {
+    it("move last child to first position", () => {
       const children = [mkText("a", "A"), mkText("b", "B"), mkText("c", "C")];
       const reordered = reorderByIndex(children, 2, 0);
       expect(reordered.map((c) => c.id)).toEqual(["c", "a", "b"]);
     });
 
-    test("swap adjacent items", () => {
+    it("swap adjacent items", () => {
       const children = [mkText("a", "A"), mkText("b", "B")];
       const reordered = reorderByIndex(children, 0, 1);
       expect(reordered.map((c) => c.id)).toEqual(["b", "a"]);
     });
 
-    test("preserves element data during reorder", () => {
+    it("preserves element data during reorder", () => {
       const children = [
         { ...mkText("a", "A"), styles: { color: "red" } },
         mkText("b", "B"),
@@ -115,7 +115,7 @@ describe("Drag and drop editor tree operations", () => {
   });
 
   describe("cross-container element move", () => {
-    test("moves text from section A to section B", () => {
+    it("moves text from section A to section B", () => {
       const tree = mkBody(
         mkSection("s1", "Section 1", [mkText("t1", "Hello"), mkText("t2", "World")]),
         mkSection("s2", "Section 2", []),
@@ -128,7 +128,7 @@ describe("Drag and drop editor tree operations", () => {
       expect((s2.content as EditorElement[]).map((c) => c.id)).toEqual(["t1"]);
     });
 
-    test("moves section from body to another section", () => {
+    it("moves section from body to another section", () => {
       const innerSection = mkSection("inner", "Inner", [mkText("t", "text")]);
       const outerSection = mkSection("outer", "Outer", []);
       const tree = mkBody(innerSection, outerSection);
@@ -140,7 +140,7 @@ describe("Drag and drop editor tree operations", () => {
       expect((outer.content as EditorElement[]).map((c) => c.id)).toEqual(["inner"]);
     });
 
-    test("inserts at specific index in destination", () => {
+    it("inserts at specific index in destination", () => {
       const tree = mkBody(
         mkSection("s1", "S1", [mkText("t1", "Hello")]),
         mkSection("s2", "S2", [mkText("x1", "A"), mkText("x2", "B")]),
@@ -151,7 +151,7 @@ describe("Drag and drop editor tree operations", () => {
       expect((s2.content as EditorElement[]).map((c) => c.id)).toEqual(["x1", "t1", "x2"]);
     });
 
-    test("move to body root level", () => {
+    it("move to body root level", () => {
       const tree = mkBody(
         mkSection("s1", "S1", [mkText("t1", "Deep text")]),
       );
@@ -165,19 +165,19 @@ describe("Drag and drop editor tree operations", () => {
   });
 
   describe("move safety guards", () => {
-    test("__body cannot be moved", () => {
+    it("__body cannot be moved", () => {
       const tree = mkBody(mkText("t1", "text"));
       const updated = moveElement(tree, "__body", "t1", 0);
       expect(updated).toEqual(tree);
     });
 
-    test("moving element into itself is no-op", () => {
+    it("moving element into itself is no-op", () => {
       const tree = mkBody(mkSection("s1", "S1", [mkText("t1", "text")]));
       const updated = moveElement(tree, "s1", "s1", 0);
       expect(updated).toEqual(tree);
     });
 
-    test("moving nonexistent element is no-op", () => {
+    it("moving nonexistent element is no-op", () => {
       const tree = mkBody(mkText("t1", "text"));
       const updated = moveElement(tree, "nope", "__body", 0);
       expect(flattenElements(updated)).toEqual(flattenElements(tree));
@@ -193,27 +193,27 @@ describe("Drag and drop editor tree operations", () => {
       { id: "p4", name: "Thank You", order: 3 },
     ];
 
-    test("drag page 4 to position 1 and re-index", () => {
+    it("drag page 4 to position 1 and re-index", () => {
       const reordered = reorderByIndex(pages, 3, 0);
       const indexed = assignSequentialOrder(reordered);
       expect(indexed.map((p) => p.id)).toEqual(["p4", "p1", "p2", "p3"]);
       expect(indexed.map((p) => p.order)).toEqual([0, 1, 2, 3]);
     });
 
-    test("drag page 1 to position 3 and re-index", () => {
+    it("drag page 1 to position 3 and re-index", () => {
       const reordered = reorderByIndex(pages, 0, 2);
       const indexed = assignSequentialOrder(reordered);
       expect(indexed.map((p) => p.id)).toEqual(["p2", "p3", "p1", "p4"]);
       expect(indexed.map((p) => p.order)).toEqual([0, 1, 2, 3]);
     });
 
-    test("no-op reorder preserves order", () => {
+    it("no-op reorder preserves order", () => {
       const reordered = reorderByIndex(pages, 2, 2);
       const indexed = assignSequentialOrder(reordered);
       expect(indexed.map((p) => p.id)).toEqual(["p1", "p2", "p3", "p4"]);
     });
 
-    test("two pages swap correctly", () => {
+    it("two pages swap correctly", () => {
       const twoPages = [pages[0]!, pages[1]!];
       const reordered = reorderByIndex(twoPages, 0, 1);
       expect(reordered.map((p) => p.id)).toEqual(["p2", "p1"]);
@@ -221,7 +221,7 @@ describe("Drag and drop editor tree operations", () => {
   });
 
   describe("flatten and count helpers", () => {
-    test("flattenElements returns all IDs depth-first", () => {
+    it("flattenElements returns all IDs depth-first", () => {
       const tree = mkBody(
         mkSection("s1", "S1", [mkText("t1", "A"), mkText("t2", "B")]),
         mkText("t3", "C"),
@@ -229,7 +229,7 @@ describe("Drag and drop editor tree operations", () => {
       expect(flattenElements(tree)).toEqual(["__body", "s1", "t1", "t2", "t3"]);
     });
 
-    test("empty body has single ID", () => {
+    it("empty body has single ID", () => {
       expect(flattenElements(mkBody())).toEqual(["__body"]);
     });
   });

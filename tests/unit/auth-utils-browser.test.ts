@@ -1,4 +1,4 @@
-import { describe, expect, test, beforeEach, afterEach } from "bun:test";
+import { describe, expect, it, beforeEach, afterEach } from "bun:test";
 
 const JWT_COOKIE_NAME = "auth_token";
 const AUTH_METHOD_KEY = "auth_method";
@@ -57,17 +57,17 @@ describe("Auth utils (browser-simulated)", () => {
   });
 
   describe("setJwtAuth", () => {
-    test("stores token in localStorage", () => {
+    it("stores token in localStorage", () => {
       setJwtAuth("my-jwt-token");
       expect(mockLocalStorage.getItem(JWT_COOKIE_NAME)).toBe("my-jwt-token");
     });
 
-    test("sets auth method to jwt", () => {
+    it("sets auth method to jwt", () => {
       setJwtAuth("token123");
       expect(mockLocalStorage.getItem(AUTH_METHOD_KEY)).toBe("jwt");
     });
 
-    test("sets cookie with 7-day expiry", () => {
+    it("sets cookie with 7-day expiry", () => {
       setJwtAuth("tok");
       expect(cookieJar).toContain("auth_token=tok");
       expect(cookieJar).toContain("max-age=604800");
@@ -75,19 +75,19 @@ describe("Auth utils (browser-simulated)", () => {
   });
 
   describe("clearJwtAuth", () => {
-    test("removes token from localStorage", () => {
+    it("removes token from localStorage", () => {
       setJwtAuth("tok");
       clearJwtAuth();
       expect(mockLocalStorage.getItem(JWT_COOKIE_NAME)).toBeNull();
     });
 
-    test("removes auth method", () => {
+    it("removes auth method", () => {
       setJwtAuth("tok");
       clearJwtAuth();
       expect(mockLocalStorage.getItem(AUTH_METHOD_KEY)).toBeNull();
     });
 
-    test("clears cookie with max-age=0", () => {
+    it("clears cookie with max-age=0", () => {
       setJwtAuth("tok");
       clearJwtAuth();
       expect(cookieJar).toContain("max-age=0");
@@ -95,27 +95,27 @@ describe("Auth utils (browser-simulated)", () => {
   });
 
   describe("getJwtToken", () => {
-    test("returns token when set", () => {
+    it("returns token when set", () => {
       setJwtAuth("abc");
       expect(getJwtToken()).toBe("abc");
     });
 
-    test("returns null when not set", () => {
+    it("returns null when not set", () => {
       expect(getJwtToken()).toBeNull();
     });
   });
 
   describe("isJwtAuthenticated", () => {
-    test("true when token exists", () => {
+    it("true when token exists", () => {
       setJwtAuth("tok");
       expect(isJwtAuthenticated()).toBe(true);
     });
 
-    test("false when no token", () => {
+    it("false when no token", () => {
       expect(isJwtAuthenticated()).toBe(false);
     });
 
-    test("false after clear", () => {
+    it("false after clear", () => {
       setJwtAuth("tok");
       clearJwtAuth();
       expect(isJwtAuthenticated()).toBe(false);
@@ -123,39 +123,39 @@ describe("Auth utils (browser-simulated)", () => {
   });
 
   describe("getAuthMethod", () => {
-    test("returns jwt when set to jwt", () => {
+    it("returns jwt when set to jwt", () => {
       setJwtAuth("tok");
       expect(getAuthMethod()).toBe("jwt");
     });
 
-    test("returns clerk when set to clerk", () => {
+    it("returns clerk when set to clerk", () => {
       setClerkAuth();
       expect(getAuthMethod()).toBe("clerk");
     });
 
-    test("returns none when nothing set", () => {
+    it("returns none when nothing set", () => {
       expect(getAuthMethod()).toBe("none");
     });
 
-    test("returns none for invalid method value", () => {
+    it("returns none for invalid method value", () => {
       mockLocalStorage.setItem(AUTH_METHOD_KEY, "magic");
       expect(getAuthMethod()).toBe("none");
     });
   });
 
   describe("setClerkAuth", () => {
-    test("sets auth method to clerk", () => {
+    it("sets auth method to clerk", () => {
       setClerkAuth();
       expect(mockLocalStorage.getItem(AUTH_METHOD_KEY)).toBe("clerk");
     });
 
-    test("removes any JWT token", () => {
+    it("removes any JWT token", () => {
       setJwtAuth("tok");
       setClerkAuth();
       expect(mockLocalStorage.getItem(JWT_COOKIE_NAME)).toBeNull();
     });
 
-    test("clears JWT cookie", () => {
+    it("clears JWT cookie", () => {
       setJwtAuth("tok");
       setClerkAuth();
       expect(cookieJar).toContain("max-age=0");
@@ -163,25 +163,25 @@ describe("Auth utils (browser-simulated)", () => {
   });
 
   describe("clearAllAuth", () => {
-    test("clears JWT token", () => {
+    it("clears JWT token", () => {
       setJwtAuth("tok");
       clearAllAuth();
       expect(getJwtToken()).toBeNull();
     });
 
-    test("clears auth method", () => {
+    it("clears auth method", () => {
       setJwtAuth("tok");
       clearAllAuth();
       expect(getAuthMethod()).toBe("none");
     });
 
-    test("clears Clerk auth method too", () => {
+    it("clears Clerk auth method too", () => {
       setClerkAuth();
       clearAllAuth();
       expect(getAuthMethod()).toBe("none");
     });
 
-    test("is safe to call when nothing is set", () => {
+    it("is safe to call when nothing is set", () => {
       clearAllAuth();
       expect(getAuthMethod()).toBe("none");
       expect(getJwtToken()).toBeNull();

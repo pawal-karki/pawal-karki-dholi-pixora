@@ -1,10 +1,4 @@
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  test,
-} from "bun:test";
+import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 
 import {
   AUTH_METHOD_KEY,
@@ -84,21 +78,21 @@ function installBrowserMocks(): BrowserMockCtx {
  */
 describe("Authentication", () => {
   describe("constants", () => {
-    test("JWT cookie name is stable for middleware parity", () => {
+    it("JWT cookie name is stable for middleware parity", () => {
       expect(JWT_COOKIE_NAME).toBe("auth_token");
     });
 
-    test("auth method storage key is stable", () => {
+    it("auth method storage key is stable", () => {
       expect(AUTH_METHOD_KEY).toBe("auth_method");
     });
   });
 
   describe("without browser (SSR / unit)", () => {
-    test("isJwtAuthenticated is false when localStorage is unavailable", () => {
+    it("isJwtAuthenticated is false when localStorage is unavailable", () => {
       expect(isJwtAuthenticated()).toBe(false);
     });
 
-    test("getAuthMethod returns none when localStorage is unavailable", () => {
+    it("getAuthMethod returns none when localStorage is unavailable", () => {
       expect(getAuthMethod()).toBe("none");
     });
   });
@@ -114,7 +108,7 @@ describe("Authentication", () => {
       ctx.restore();
     });
 
-    test("setJwtAuth stores token, method, and cookie", () => {
+    it("setJwtAuth stores token, method, and cookie", () => {
       setJwtAuth("my-jwt-token");
       expect(getJwtToken()).toBe("my-jwt-token");
       expect(getAuthMethod()).toBe("jwt");
@@ -122,14 +116,14 @@ describe("Authentication", () => {
       expect(ctx.lastCookie()).toContain("max-age=604800");
     });
 
-    test("clearJwtAuth removes storage and expires cookie", () => {
+    it("clearJwtAuth removes storage and expires cookie", () => {
       setJwtAuth("tok");
       clearJwtAuth();
       expect(getJwtToken()).toBeNull();
       expect(ctx.lastCookie()).toContain("max-age=0");
     });
 
-    test("isJwtAuthenticated reflects token presence", () => {
+    it("isJwtAuthenticated reflects token presence", () => {
       expect(isJwtAuthenticated()).toBe(false);
       setJwtAuth("x");
       expect(isJwtAuthenticated()).toBe(true);
@@ -137,14 +131,14 @@ describe("Authentication", () => {
       expect(isJwtAuthenticated()).toBe(false);
     });
 
-    test("getAuthMethod returns clerk and none for invalid stored value", () => {
+    it("getAuthMethod returns clerk and none for invalid stored value", () => {
       setClerkAuth();
       expect(getAuthMethod()).toBe("clerk");
       ctx.setStorageItem(AUTH_METHOD_KEY, "magic");
       expect(getAuthMethod()).toBe("none");
     });
 
-    test("setClerkAuth clears JWT storage and cookie", () => {
+    it("setClerkAuth clears JWT storage and cookie", () => {
       setJwtAuth("tok");
       setClerkAuth();
       expect(getJwtToken()).toBeNull();
@@ -152,7 +146,7 @@ describe("Authentication", () => {
       expect(ctx.lastCookie()).toContain("max-age=0");
     });
 
-    test("clearAllAuth clears jwt and clerk paths", () => {
+    it("clearAllAuth clears jwt and clerk paths", () => {
       setJwtAuth("tok");
       clearAllAuth();
       expect(getAuthMethod()).toBe("none");

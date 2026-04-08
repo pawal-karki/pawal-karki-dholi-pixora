@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import { sumTicketValues } from "@/lib/pipeline-metrics";
 import { reorderByIndex, assignSequentialOrder } from "@/lib/dnd-reorder";
 
@@ -39,28 +39,28 @@ function moveTicketBetweenLanes(
 
 describe("Pipeline features", () => {
   describe("ticket value normalization", () => {
-    test("null stays null", () => {
+    it("null stays null", () => {
       expect(normalizePipelineTicketValue(null)).toBeNull();
     });
-    test("undefined becomes null", () => {
+    it("undefined becomes null", () => {
       expect(normalizePipelineTicketValue(undefined)).toBeNull();
     });
-    test("empty string becomes null", () => {
+    it("empty string becomes null", () => {
       expect(normalizePipelineTicketValue("")).toBeNull();
     });
-    test("number is stringified", () => {
+    it("number is stringified", () => {
       expect(normalizePipelineTicketValue(1500)).toBe("1500");
     });
-    test("string number passes through", () => {
+    it("string number passes through", () => {
       expect(normalizePipelineTicketValue("2500")).toBe("2500");
     });
-    test("Decimal object is stringified", () => {
+    it("Decimal object is stringified", () => {
       expect(normalizePipelineTicketValue({ toString: () => "99.99" })).toBe("99.99");
     });
   });
 
   describe("lane totals aggregation", () => {
-    test("sums all ticket values in a lane", () => {
+    it("sums all ticket values in a lane", () => {
       const tickets = [
         { value: "1000" },
         { value: "2500" },
@@ -69,16 +69,16 @@ describe("Pipeline features", () => {
       expect(computeLaneTotal(tickets)).toBe(4000);
     });
 
-    test("ignores null values", () => {
+    it("ignores null values", () => {
       const tickets = [{ value: "1000" }, { value: null }, { value: "500" }];
       expect(computeLaneTotal(tickets)).toBe(1500);
     });
 
-    test("empty lane totals to 0", () => {
+    it("empty lane totals to 0", () => {
       expect(computeLaneTotal([])).toBe(0);
     });
 
-    test("handles decimal values", () => {
+    it("handles decimal values", () => {
       const tickets = [{ value: "99.50" }, { value: "0.50" }];
       expect(computeLaneTotal(tickets)).toBe(100);
     });
@@ -92,26 +92,26 @@ describe("Pipeline features", () => {
       { id: "l4", name: "Won", order: 3, tickets: [] },
     ];
 
-    test("sortLanesByOrder returns ascending order", () => {
+    it("sortLanesByOrder returns ascending order", () => {
       const shuffled = [lanes[2]!, lanes[0]!, lanes[3]!, lanes[1]!];
       const sorted = sortLanesByOrder(shuffled);
       expect(sorted.map((l) => l.id)).toEqual(["l1", "l2", "l3", "l4"]);
     });
 
-    test("moveLane reorders and re-indexes", () => {
+    it("moveLane reorders and re-indexes", () => {
       const result = moveLane(lanes, 3, 0);
       expect(result.map((l) => l.id)).toEqual(["l4", "l1", "l2", "l3"]);
       expect(result.map((l) => l.order)).toEqual([0, 1, 2, 3]);
     });
 
-    test("moveLane no-op preserves order", () => {
+    it("moveLane no-op preserves order", () => {
       const result = moveLane(lanes, 1, 1);
       expect(result.map((l) => l.id)).toEqual(["l1", "l2", "l3", "l4"]);
     });
   });
 
   describe("cross-lane ticket movement", () => {
-    test("moves ticket from source to destination", () => {
+    it("moves ticket from source to destination", () => {
       const src: Lane = {
         id: "l1", name: "Lead", order: 0,
         tickets: [
@@ -131,7 +131,7 @@ describe("Pipeline features", () => {
       expect(result.destLane.tickets[0]!.laneId).toBe("l2");
     });
 
-    test("no-op when ticket not found", () => {
+    it("no-op when ticket not found", () => {
       const src: Lane = { id: "l1", name: "Lead", order: 0, tickets: [] };
       const dest: Lane = { id: "l2", name: "Won", order: 1, tickets: [] };
       const result = moveTicketBetweenLanes(src, dest, "nonexistent");

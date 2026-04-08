@@ -1,0 +1,60 @@
+Project Technologies and Stack for Pixora
+
+1. Core Framework & Language
+- Next.js 15
+- React 19
+- TypeScript
+
+2. Database & Data Modeling
+- PostgreSQL (Primary Database)
+- Prisma (ORM)
+
+3. Styling & UI Components
+- Tailwind CSS
+- Radix UI Primitives (Accordion, Dialog, Hover Card, Menubar, etc.)
+- Framer Motion (Animations)
+- Tremor React (Dashboards/UI components)
+- Recharts (Charting/Data Visualization)
+- Lucide React (Icons)
+- Embla Carousel React (Carousels)
+
+4. Authentication & Security
+- Clerk (@clerk/nextjs) for Authentication and User Management
+- bcryptjs (for manual local password hashing if applicable)
+- jsonwebtoken (for manual JWT tokens)
+
+5. Payments & E-commerce
+- Stripe (@stripe/react-stripe-js, @stripe/stripe-js)
+
+6. AI & Machine Learning Integrations
+- OpenAI API (@openai)
+- Anthropic SDK (@anthropic-ai/sdk)
+- Google Generative AI SDK (@google/generative-ai)
+- Groq SDK (groq-sdk)
+
+7. State Management & Forms
+- React Hook Form
+- Zod (Schema Validation)
+- Yup (Alternative Validation used alongside Zod)
+
+8. Real-time & WebSockets
+- Pusher (pusher, pusher-js for real-time events like chat)
+
+9. File Uploads & Storage
+- UploadThing (@uploadthing/react, uploadthing)
+
+10. Drag and Drop Functionality
+- @dnd-kit (core, modifiers, sortable, utilities)
+- React Beautiful DnD
+
+11. Emails & Communications
+- Nodemailer (Automated email sending)
+
+12. API Testing & Automation
+- Postman API / Newman (Unit/Sprint API Testing)
+
+13. Build & Development Tools
+- Bun (Package manager and test runner)
+- ESLint, Prettier (Code linting and formatting)
+- PostCSS, Autoprefixer (CSS processing)
+- Docker (Dockerfile / docker-compose.yml present for containerization)

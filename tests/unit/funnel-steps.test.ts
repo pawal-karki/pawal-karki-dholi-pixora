@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, it } from "bun:test";
 
 import {
   assignSequentialOrder,
@@ -14,7 +14,7 @@ import {
  */
 describe("Funnel steps", () => {
   describe("published URL builder", () => {
-    test("builds https URL with clean path", () => {
+    it("builds https URL with clean path", () => {
       const url = buildPublishedFunnelPageUrl({
         subDomainName: "sale",
         pathName: "/checkout",
@@ -24,19 +24,19 @@ describe("Funnel steps", () => {
       expect(url).toBe("https://sale.example.com/checkout");
     });
 
-    test("normalizes scheme with colon", () => {
+    it("normalizes scheme with colon", () => {
       expect(normalizeScheme("https:")).toBe("https");
     });
   });
 
   describe("step reorder (drag end)", () => {
-    test("moves first item to end", () => {
+    it("moves first item to end", () => {
       const pages = [{ id: "a" }, { id: "b" }, { id: "c" }];
       const next = reorderByIndex(pages, 0, 2);
       expect(next.map((p) => p.id)).toEqual(["b", "c", "a"]);
     });
 
-    test("assignSequentialOrder sets 0..n-1", () => {
+    it("assignSequentialOrder sets 0..n-1", () => {
       const ordered = assignSequentialOrder([
         { name: "x", order: 99 },
         { name: "y" },

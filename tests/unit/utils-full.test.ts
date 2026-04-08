@@ -1,39 +1,56 @@
-import { describe, expect, test, beforeEach } from "bun:test";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+} from "bun:test";
 import { cn, getStripeOAuthLink, formatPrice, constructMetadata, logger } from "@/lib/utils";
 
 describe("Utility functions — full coverage", () => {
   describe("cn (class name merge)", () => {
-    test("merges basic classes", () => {
+    it("merges basic classes", () => {
       expect(cn("px-4", "py-2")).toBe("px-4 py-2");
     });
 
-    test("deduplicates conflicting tailwind classes", () => {
+    it("deduplicates conflicting tailwind classes", () => {
       expect(cn("px-4", "px-6")).toBe("px-6");
     });
 
-    test("handles conditional classes", () => {
+    it("handles conditional classes", () => {
       expect(cn("base", false && "hidden", true && "visible")).toBe("base visible");
     });
 
-    test("handles undefined and null inputs", () => {
+    it("handles undefined and null inputs", () => {
       expect(cn("base", undefined, null)).toBe("base");
     });
 
-    test("handles array input", () => {
+    it("handles array input", () => {
       expect(cn(["px-4", "py-2"])).toBe("px-4 py-2");
     });
 
-    test("returns empty string for no args", () => {
+    it("returns empty string for no args", () => {
       expect(cn()).toBe("");
     });
   });
 
   describe("getStripeOAuthLink", () => {
+    let savedStripeClientId: string | undefined;
+
     beforeEach(() => {
+      savedStripeClientId = process.env.NEXT_PUBLIC_STRIPE_CLIENT_ID;
       process.env.NEXT_PUBLIC_STRIPE_CLIENT_ID = "ca_test_123";
     });
 
-    test("builds correct URL for agency", () => {
+    afterEach(() => {
+      if (savedStripeClientId === undefined) {
+        delete process.env.NEXT_PUBLIC_STRIPE_CLIENT_ID;
+      } else {
+        process.env.NEXT_PUBLIC_STRIPE_CLIENT_ID = savedStripeClientId;
+      }
+    });
+
+    it("builds correct URL for agency", () => {
       const url = getStripeOAuthLink("agency", "state-1");
       expect(url).toContain("connect.stripe.com/oauth/authorize");
       expect(url).toContain("response_type=code");
@@ -42,20 +59,20 @@ describe("Utility functions — full coverage", () => {
       expect(url).toContain("state=state-1");
     });
 
-    test("builds correct URL for subaccount", () => {
+    it("builds correct URL for subaccount", () => {
       const url = getStripeOAuthLink("subaccount", "state-2");
       expect(url).toContain("state=state-2");
       expect(url).toContain("client_id=ca_test_123");
     });
 
-    test("encodes state parameter in URL", () => {
+    it("encodes state parameter in URL", () => {
       const url = getStripeOAuthLink("agency", "my-agency-id");
       expect(url).toContain("state=my-agency-id");
     });
   });
 
   describe("logger", () => {
-    test("does not throw in any environment", () => {
+    it("does not throw in any environment", () => {
       const originalEnv = process.env.NODE_ENV;
       process.env.NODE_ENV = "development";
       expect(() => logger("test message")).not.toThrow();
@@ -67,112 +84,120 @@ describe("Utility functions — full coverage", () => {
   });
 
   describe("constructMetadata", () => {
-    test("returns defaults when no args", () => {
+    let savedPublicUrl: string | undefined;
+
+    beforeEach(() => {
+      savedPublicUrl = process.env.NEXT_PUBLIC_URL;
       process.env.NEXT_PUBLIC_URL = "https://pixora.app";
+    });
+
+    afterEach(() => {
+      if (savedPublicUrl === undefined) {
+        delete process.env.NEXT_PUBLIC_URL;
+      } else {
+        process.env.NEXT_PUBLIC_URL = savedPublicUrl;
+      }
+    });
+
+    it("returns defaults when no args", () => {
       const meta = constructMetadata();
       expect(meta.title).toBe("Pixora - Agency Management Platform");
       expect(meta.description).toBe("All in one Agency Solution");
     });
 
-    test("overrides title and description", () => {
-      process.env.NEXT_PUBLIC_URL = "https://pixora.app";
+    it("overrides title and description", () => {
       const meta = constructMetadata({ title: "My Page", description: "My desc" });
       expect(meta.title).toBe("My Page");
       expect(meta.description).toBe("My desc");
     });
 
-    test("sets openGraph data", () => {
-      process.env.NEXT_PUBLIC_URL = "https://pixora.app";
+    it("sets openGraph data", () => {
       const meta = constructMetadata({ title: "OG Title" });
-      expect((meta.openGraph as any)?.title).toBe("OG Title");
+      expect((meta.openGraph as { title?: string })?.title).toBe("OG Title");
     });
 
-    test("sets twitter card data", () => {
-      process.env.NEXT_PUBLIC_URL = "https://pixora.app";
+    it("sets twitter card data", () => {
       const meta = constructMetadata({ title: "Twitter Title" });
-      expect((meta.twitter as any)?.title).toBe("Twitter Title");
-      expect((meta.twitter as any)?.card).toBe("summary_large_image");
+      const tw = meta.twitter as { title?: string; card?: string };
+      expect(tw?.title).toBe("Twitter Title");
+      expect(tw?.card).toBe("summary_large_image");
     });
 
-    test("sets metadataBase from env", () => {
-      process.env.NEXT_PUBLIC_URL = "https://pixora.app";
+    it("sets metadataBase from env", () => {
       const meta = constructMetadata();
       expect(meta.metadataBase?.toString()).toContain("pixora.app");
     });
 
-    test("falls back to localhost for metadataBase", () => {
-      const original = process.env.NEXT_PUBLIC_URL;
+    it("falls back to default public URL for metadataBase when env unset", () => {
       delete process.env.NEXT_PUBLIC_URL;
       const meta = constructMetadata();
-      expect(meta.metadataBase?.toString()).toContain("localhost:3000");
-      process.env.NEXT_PUBLIC_URL = original;
+      expect(meta.metadataBase?.toString()).toContain("pawal.dev");
     });
 
-    test("noIndex sets robots to noindex", () => {
-      process.env.NEXT_PUBLIC_URL = "https://pixora.app";
+    it("noIndex sets robots to noindex", () => {
       const meta = constructMetadata({ noIndex: true });
-      expect((meta as any).robots?.index).toBe(false);
-      expect((meta as any).robots?.follow).toBe(false);
+      const robots = meta as { robots?: { index: boolean; follow: boolean } };
+      expect(robots.robots?.index).toBe(false);
+      expect(robots.robots?.follow).toBe(false);
     });
 
-    test("noIndex false does not set robots", () => {
-      process.env.NEXT_PUBLIC_URL = "https://pixora.app";
+    it("noIndex false does not set robots", () => {
       const meta = constructMetadata({ noIndex: false });
-      expect((meta as any).robots).toBeUndefined();
+      expect((meta as { robots?: unknown }).robots).toBeUndefined();
     });
 
-    test("custom image is used in OG and Twitter", () => {
-      process.env.NEXT_PUBLIC_URL = "https://pixora.app";
+    it("custom image is used in OG and Twitter", () => {
       const meta = constructMetadata({ image: "/custom-og.png" });
-      expect((meta.openGraph as any)?.images?.[0]?.url).toBe("/custom-og.png");
-      expect((meta.twitter as any)?.images?.[0]).toBe("/custom-og.png");
+      const og = meta.openGraph as { images?: { url: string }[] };
+      const tw = meta.twitter as { images?: string[] };
+      expect(og?.images?.[0]?.url).toBe("/custom-og.png");
+      expect(tw?.images?.[0]).toBe("/custom-og.png");
     });
 
-    test("custom icons", () => {
-      process.env.NEXT_PUBLIC_URL = "https://pixora.app";
+    it("custom icons", () => {
       const meta = constructMetadata({ icons: "/custom-icon.png" });
       expect(meta.icons).toBe("/custom-icon.png");
     });
   });
 
   describe("formatPrice", () => {
-    test("formats integer price with Rs prefix", () => {
+    it("formats integer price with Rs prefix", () => {
       const result = formatPrice(1000);
       expect(result.startsWith("Rs")).toBe(true);
       expect(result.replace(/\s/g, "")).toContain("1,000");
     });
 
-    test("formats decimal price", () => {
+    it("formats decimal price", () => {
       const result = formatPrice(99.5);
       expect(result.startsWith("Rs")).toBe(true);
       expect(result).toContain("99");
     });
 
-    test("formats zero", () => {
+    it("formats zero", () => {
       const result = formatPrice(0);
       expect(result.startsWith("Rs")).toBe(true);
       expect(result).toContain("0");
     });
 
-    test("NaN returns Rs 0", () => {
+    it("NaN returns Rs 0", () => {
       const result = formatPrice(NaN);
       expect(result.startsWith("Rs")).toBe(true);
       expect(result).toContain("0");
     });
 
-    test("negative price formatted", () => {
+    it("negative price formatted", () => {
       const result = formatPrice(-500);
       expect(result).toContain("Rs");
       expect(result).toContain("500");
     });
 
-    test("large number formatted with commas", () => {
+    it("large number formatted with commas", () => {
       const result = formatPrice(1000000);
       expect(result).toContain("Rs");
       expect(result.replace(/[^0-9]/g, "")).toContain("1000000");
     });
 
-    test("small decimal", () => {
+    it("small decimal", () => {
       const result = formatPrice(0.5);
       expect(result).toContain("Rs");
       expect(result).toContain("0.5");

@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, it } from "bun:test";
 
 import { parseContactMessageBody } from "@/lib/contact-payload";
 
@@ -6,7 +6,7 @@ import { parseContactMessageBody } from "@/lib/contact-payload";
  * Feature: Contact form — comprehensive validation (frontend + API parity).
  */
 describe("Contact form validation — comprehensive", () => {
-  test("all fields present and trimmed", () => {
+  it("all fields present and trimmed", () => {
     const r = parseContactMessageBody({
       name: "  Pawal  ",
       email: " pawal@test.com ",
@@ -22,7 +22,7 @@ describe("Contact form validation — comprehensive", () => {
     }
   });
 
-  test("subject is optional", () => {
+  it("subject is optional", () => {
     const r = parseContactMessageBody({
       name: "A",
       email: "a@b.com",
@@ -32,7 +32,7 @@ describe("Contact form validation — comprehensive", () => {
     if (r.ok) expect(r.data.subject).toBeUndefined();
   });
 
-  test("empty subject string is treated as absent", () => {
+  it("empty subject string is treated as absent", () => {
     const r = parseContactMessageBody({
       name: "A",
       email: "a@b.com",
@@ -43,25 +43,25 @@ describe("Contact form validation — comprehensive", () => {
     if (r.ok) expect(r.data.subject).toBeUndefined();
   });
 
-  test("whitespace-only name fails", () => {
+  it("whitespace-only name fails", () => {
     expect(
       parseContactMessageBody({ name: "   ", email: "a@b.com", message: "x" }).ok,
     ).toBe(false);
   });
 
-  test("whitespace-only email fails", () => {
+  it("whitespace-only email fails", () => {
     expect(
       parseContactMessageBody({ name: "A", email: "   ", message: "x" }).ok,
     ).toBe(false);
   });
 
-  test("whitespace-only message fails", () => {
+  it("whitespace-only message fails", () => {
     expect(
       parseContactMessageBody({ name: "A", email: "a@b.com", message: "   " }).ok,
     ).toBe(false);
   });
 
-  test("numeric values are coerced to strings", () => {
+  it("numeric values are coerced to strings", () => {
     const r = parseContactMessageBody({
       name: 123,
       email: 456,
@@ -73,11 +73,11 @@ describe("Contact form validation — comprehensive", () => {
     }
   });
 
-  test("array body fails", () => {
+  it("array body fails", () => {
     expect(parseContactMessageBody([1, 2]).ok).toBe(false);
   });
 
-  test("undefined body fails", () => {
+  it("undefined body fails", () => {
     expect(parseContactMessageBody(undefined).ok).toBe(false);
   });
 });

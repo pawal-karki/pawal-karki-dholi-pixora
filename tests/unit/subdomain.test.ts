@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 
 import {
   DEFAULT_FUNNEL_PUBLIC_DOMAIN,
@@ -8,57 +8,97 @@ import {
   resolveCustomSubdomain,
 } from "@/lib/subdomain";
 
-/**
- * Feature: Custom funnel subdomains (middleware rewrite targets)
- */
-describe("Subdomain routing", () => {
-  describe("NEXT_PUBLIC_DOMAIN set (production-style)", () => {
-    test("extracts tenant from host under base domain", () => {
-      const base = "myapp.vercel.app";
-      expect(
-        resolveCustomSubdomain("acme.myapp.vercel.app", base),
-      ).toBe("acme");
+describe("subdomain", () => {
+  describe("resolveCustomSubdomain", () => {
+    describe("when NEXT_PUBLIC_DOMAIN is set (production-style)", () => {
+      it("extracts single-label tenant from host under base domain", () => {
+        const base = "myapp.vercel.app";
+        const result = resolveCustomSubdomain("acme.myapp.vercel.app", base);
+        expect(result).toBe("acme");
+      });
+
+      it("extracts multi-label prefix when base is a suffix of the host", () => {
+        const base = "myapp.vercel.app";
+        const result = resolveCustomSubdomain(
+          "deep.sub.myapp.vercel.app",
+          base,
+        );
+        expect(result).toBe("deep.sub");
+      });
+
+      it("returns null for apex host equal to base", () => {
+        expect(
+          resolveCustomSubdomain("myapp.vercel.app", "myapp.vercel.app"),
+        ).toBeNull();
+      });
+
+      it("strips port on host and base before comparing", () => {
+        const base = "pixora.test:3000";
+        const result = resolveCustomSubdomain("foo.pixora.test:3000", base);
+        expect(result).toBe("foo");
+      });
+
+      it("normalises tenant segment to lowercase", () => {
+        const result = resolveCustomSubdomain("Acme.myapp.com", "myapp.com");
+        expect(result).toBe("acme");
+      });
+
+      it("returns null for empty host", () => {
+        expect(resolveCustomSubdomain("", "myapp.com")).toBeNull();
+      });
+
+      it("handles host with trailing dot after base strip", () => {
+        const result = resolveCustomSubdomain("tenant.myapp.com.", "myapp.com");
+        expect(result).not.toBeNull();
+        expect(result).toContain("tenant");
+      });
     });
 
-    test("returns null for apex host", () => {
-      expect(resolveCustomSubdomain("myapp.vercel.app", "myapp.vercel.app")).toBe(
-        null,
-      );
-    });
+    describe("when NEXT_PUBLIC_DOMAIN is unset (localhost + heuristic)", () => {
+      it("returns first label for sub.localhost with port", () => {
+        const result = resolveCustomSubdomain("acme.localhost:3000", undefined);
+        expect(result).toBe("acme");
+      });
 
-    test("strips port before comparing", () => {
-      const base = "pixora.test:3000";
-      expect(resolveCustomSubdomain("foo.pixora.test:3000", base)).toBe("foo");
+      it("returns null for plain localhost with port", () => {
+        expect(resolveCustomSubdomain("localhost:3000", undefined)).toBeNull();
+      });
+
+      it("returns tenant for generic 3+ label host when first label is not blocked", () => {
+        const result = resolveCustomSubdomain(
+          "client.project.example.com",
+          undefined,
+        );
+        expect(result).toBe("client");
+      });
+
+      it("returns null for www prefix on three-part public host", () => {
+        expect(
+          resolveCustomSubdomain("www.example.com", undefined),
+        ).toBeNull();
+      });
+
+      for (const prefix of ["api", "app", "admin"] as const) {
+        it(`returns null for blocked prefix ${prefix}`, () => {
+          const result = resolveCustomSubdomain(
+            `${prefix}.example.com`,
+            undefined,
+          );
+          expect(result).toBeNull();
+        });
+      }
+
+      it("returns null for two-label non-localhost host (no subdomain heuristic)", () => {
+        expect(resolveCustomSubdomain("example.com", undefined)).toBeNull();
+      });
+
+      it("returns null for empty host", () => {
+        expect(resolveCustomSubdomain("", undefined)).toBeNull();
+      });
     });
   });
 
-  describe("localhost fallback (no base domain env)", () => {
-    test("sub.localhost yields sub", () => {
-      expect(resolveCustomSubdomain("acme.localhost:3000", undefined)).toBe(
-        "acme",
-      );
-    });
-
-    test("plain localhost has no subdomain", () => {
-      expect(resolveCustomSubdomain("localhost:3000", undefined)).toBe(null);
-    });
-  });
-
-  describe("generic multi-part host", () => {
-    test("first label is tenant when 3+ parts and not blocked prefix", () => {
-      expect(
-        resolveCustomSubdomain("client.project.example.com", undefined),
-      ).toBe("client");
-    });
-
-    test("www is not treated as tenant subdomain", () => {
-      expect(
-        resolveCustomSubdomain("www.example.com", undefined),
-      ).toBe(null);
-    });
-  });
-
-  describe("published funnel host (*.pawal.dev)", () => {
+  describe("published funnel URLs (env-dependent)", () => {
     let savedDomain: string | undefined;
     let savedScheme: string | undefined;
 
@@ -76,21 +116,31 @@ describe("Subdomain routing", () => {
       else process.env.NEXT_PUBLIC_SCHEME = savedScheme;
     });
 
-    test("defaults to pawal.dev when NEXT_PUBLIC_DOMAIN is unset", () => {
+    it("getFunnelBaseDomain defaults when NEXT_PUBLIC_DOMAIN is unset", () => {
       expect(getFunnelBaseDomain()).toBe(DEFAULT_FUNNEL_PUBLIC_DOMAIN);
-      expect(getFunnelSubdomainHost("my-offer")).toBe(
-        `my-offer.${DEFAULT_FUNNEL_PUBLIC_DOMAIN}`,
-      );
-      expect(getFunnelLiveSiteUrl("my-offer")).toBe(
-        `http://my-offer.${DEFAULT_FUNNEL_PUBLIC_DOMAIN}`,
-      );
     });
 
-    test("respects NEXT_PUBLIC_DOMAIN and scheme", () => {
+    it("getFunnelSubdomainHost trims slug and lowercases", () => {
+      const host = getFunnelSubdomainHost("  My-Offer  ");
+      expect(host).toBe(`my-offer.${DEFAULT_FUNNEL_PUBLIC_DOMAIN}`);
+    });
+
+    it("getFunnelLiveSiteUrl uses http by default and strips trailing slash on empty path", () => {
+      const url = getFunnelLiveSiteUrl("my-offer");
+      expect(url).toBe(`http://my-offer.${DEFAULT_FUNNEL_PUBLIC_DOMAIN}`);
+      expect(url.endsWith("/")).toBe(false);
+    });
+
+    it("respects NEXT_PUBLIC_DOMAIN and NEXT_PUBLIC_SCHEME", () => {
       process.env.NEXT_PUBLIC_DOMAIN = "custom.test";
       process.env.NEXT_PUBLIC_SCHEME = "https";
       expect(getFunnelSubdomainHost("x")).toBe("x.custom.test");
       expect(getFunnelLiveSiteUrl("x")).toBe("https://x.custom.test");
+    });
+
+    it("getFunnelBaseDomain trims NEXT_PUBLIC_DOMAIN", () => {
+      process.env.NEXT_PUBLIC_DOMAIN = "  trimmed.test  ";
+      expect(getFunnelBaseDomain()).toBe("trimmed.test");
     });
   });
 });

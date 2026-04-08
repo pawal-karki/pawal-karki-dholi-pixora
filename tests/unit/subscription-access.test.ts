@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, it } from "bun:test";
 
 type SubscriptionState = {
   active: boolean;
@@ -32,11 +32,11 @@ describe("Subscription access control", () => {
   const futureDate = new Date("2030-12-31");
 
   describe("shouldBlockSubaccountAccess", () => {
-    test("no subscription → not blocked (free tier)", () => {
+    it("no subscription → not blocked (free tier)", () => {
       expect(shouldBlockSubaccountAccess(null, "sa-1", "sa-1")).toBe(false);
     });
 
-    test("active subscription → not blocked", () => {
+    it("active subscription → not blocked", () => {
       expect(shouldBlockSubaccountAccess(
         { active: true, currentPeriodEndDate: pastDate },
         "sa-2",
@@ -44,7 +44,7 @@ describe("Subscription access control", () => {
       )).toBe(false);
     });
 
-    test("inactive but within billing period → not blocked", () => {
+    it("inactive but within billing period → not blocked", () => {
       expect(shouldBlockSubaccountAccess(
         { active: false, currentPeriodEndDate: futureDate },
         "sa-2",
@@ -52,7 +52,7 @@ describe("Subscription access control", () => {
       )).toBe(false);
     });
 
-    test("expired + first subaccount → not blocked", () => {
+    it("expired + first subaccount → not blocked", () => {
       expect(shouldBlockSubaccountAccess(
         { active: false, currentPeriodEndDate: pastDate },
         "sa-1",
@@ -60,7 +60,7 @@ describe("Subscription access control", () => {
       )).toBe(false);
     });
 
-    test("expired + non-first subaccount → blocked", () => {
+    it("expired + non-first subaccount → blocked", () => {
       expect(shouldBlockSubaccountAccess(
         { active: false, currentPeriodEndDate: pastDate },
         "sa-2",
@@ -68,7 +68,7 @@ describe("Subscription access control", () => {
       )).toBe(true);
     });
 
-    test("expired + no currentSubAccountId → blocked", () => {
+    it("expired + no currentSubAccountId → blocked", () => {
       expect(shouldBlockSubaccountAccess(
         { active: false, currentPeriodEndDate: pastDate },
         undefined,
@@ -76,7 +76,7 @@ describe("Subscription access control", () => {
       )).toBe(true);
     });
 
-    test("expired + no first subaccount found → blocked", () => {
+    it("expired + no first subaccount found → blocked", () => {
       expect(shouldBlockSubaccountAccess(
         { active: false, currentPeriodEndDate: pastDate },
         "sa-1",
@@ -86,31 +86,31 @@ describe("Subscription access control", () => {
   });
 
   describe("remaining resource computation", () => {
-    test("3 used out of 5 → 2 remaining", () => {
+    it("3 used out of 5 → 2 remaining", () => {
       expect(computeRemainingResources(3, 5)).toBe(2);
     });
-    test("at limit → 0 remaining", () => {
+    it("at limit → 0 remaining", () => {
       expect(computeRemainingResources(5, 5)).toBe(0);
     });
-    test("over limit → still 0 (clamped)", () => {
+    it("over limit → still 0 (clamped)", () => {
       expect(computeRemainingResources(7, 5)).toBe(0);
     });
-    test("infinity max → large remaining", () => {
+    it("infinity max → large remaining", () => {
       expect(computeRemainingResources(100, Infinity)).toBe(Infinity);
     });
   });
 
   describe("limit message formatting", () => {
-    test("singular for 1 item", () => {
+    it("singular for 1 item", () => {
       const msg = formatLimitMessage("sub-account", 1, "Starter");
       expect(msg).toContain("1 sub-account on");
       expect(msg).not.toContain("sub-accounts");
     });
-    test("plural for multiple items", () => {
+    it("plural for multiple items", () => {
       const msg = formatLimitMessage("team member", 5, "Pro");
       expect(msg).toContain("5 team members on");
     });
-    test("includes plan name", () => {
+    it("includes plan name", () => {
       const msg = formatLimitMessage("sub-account", 5, "Pro");
       expect(msg).toContain("Pro plan");
     });

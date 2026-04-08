@@ -1,4 +1,5 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, it } from "bun:test";
+
 import { formatActivityNotification } from "@/lib/notification-format";
 
 type Notification = {
@@ -66,6 +67,18 @@ function markAllAsRead(notifications: Notification[]): Notification[] {
   return notifications.map((n) => ({ ...n, read: true }));
 }
 
+describe("formatActivityNotification", () => {
+  it("joins actor and description with pipe separator", () => {
+    expect(formatActivityNotification("Ada", "closed deal | Acme")).toBe(
+      "Ada | closed deal | Acme",
+    );
+  });
+
+  it("preserves empty description after separator", () => {
+    expect(formatActivityNotification("Ada", "")).toBe("Ada | ");
+  });
+});
+
 describe("Notification receiving & display", () => {
   const now = new Date();
   const notifs: Notification[] = [
@@ -77,37 +90,37 @@ describe("Notification receiving & display", () => {
   ];
 
   describe("role-based filtering", () => {
-    test("AGENCY_OWNER sees all notifications", () => {
+    it("AGENCY_OWNER sees all notifications", () => {
       expect(filterNotificationsForRole(notifs, "AGENCY_OWNER", "sa-1", "u-1")).toHaveLength(5);
     });
 
-    test("AGENCY_ADMIN sees all notifications", () => {
+    it("AGENCY_ADMIN sees all notifications", () => {
       expect(filterNotificationsForRole(notifs, "AGENCY_ADMIN", "sa-1", "u-1")).toHaveLength(5);
     });
 
-    test("SUBACCOUNT_USER sees only own in current subaccount", () => {
+    it("SUBACCOUNT_USER sees only own in current subaccount", () => {
       const filtered = filterNotificationsForRole(notifs, "SUBACCOUNT_USER", "sa-1", "u-1");
       expect(filtered).toHaveLength(1);
       expect(filtered[0]!.id).toBe("n1");
     });
 
-    test("SUBACCOUNT_GUEST sees only own in current subaccount", () => {
+    it("SUBACCOUNT_GUEST sees only own in current subaccount", () => {
       const filtered = filterNotificationsForRole(notifs, "SUBACCOUNT_GUEST", "sa-1", "u-2");
       expect(filtered).toHaveLength(1);
       expect(filtered[0]!.id).toBe("n2");
     });
 
-    test("SUBACCOUNT_USER with no matching notifications gets empty", () => {
+    it("SUBACCOUNT_USER with no matching notifications gets empty", () => {
       const filtered = filterNotificationsForRole(notifs, "SUBACCOUNT_USER", "sa-3", "u-1");
       expect(filtered).toHaveLength(0);
     });
   });
 
   describe("subaccount toggle filter", () => {
-    test("showAll=true returns everything", () => {
+    it("showAll=true returns everything", () => {
       expect(toggleSubAccountFilter(notifs, true, "sa-1")).toHaveLength(5);
     });
-    test("showAll=false filters to subaccount", () => {
+    it("showAll=false filters to subaccount", () => {
       const filtered = toggleSubAccountFilter(notifs, false, "sa-1");
       expect(filtered).toHaveLength(3);
       expect(filtered.every((n) => n.subAccountId === "sa-1")).toBe(true);
@@ -115,37 +128,37 @@ describe("Notification receiving & display", () => {
   });
 
   describe("unread count & badge", () => {
-    test("counts unread correctly", () => {
+    it("counts unread correctly", () => {
       expect(getUnreadCount(notifs)).toBe(3);
     });
-    test("all read → 0", () => {
+    it("all read → 0", () => {
       expect(getUnreadCount(markAllAsRead(notifs))).toBe(0);
     });
-    test("badge shows number for 1-9", () => {
+    it("badge shows number for 1-9", () => {
       expect(formatUnreadBadge(3)).toBe("3");
     });
-    test("badge shows 9+ for 10+", () => {
+    it("badge shows 9+ for 10+", () => {
       expect(formatUnreadBadge(15)).toBe("9+");
     });
-    test("badge empty for 0", () => {
+    it("badge empty for 0", () => {
       expect(formatUnreadBadge(0)).toBe("");
     });
   });
 
   describe("notification text parsing", () => {
-    test("parses actor and message", () => {
+    it("parses actor and message", () => {
       const result = parseNotificationText("Ada | assigned ticket #42");
       expect(result).toEqual({ actor: "Ada", message: "assigned ticket #42" });
     });
-    test("handles no pipe → null", () => {
+    it("handles no pipe → null", () => {
       expect(parseNotificationText("plain text")).toBeNull();
     });
-    test("handles multiple pipes", () => {
+    it("handles multiple pipes", () => {
       const result = parseNotificationText("Bob | deal | worth Rs 5000");
       expect(result!.actor).toBe("Bob");
       expect(result!.message).toBe("deal | worth Rs 5000");
     });
-    test("formatActivityNotification roundtrips with parse", () => {
+    it("formatActivityNotification roundtrips with parse", () => {
       const text = formatActivityNotification("Charlie", "created a new funnel");
       const parsed = parseNotificationText(text);
       expect(parsed!.actor).toBe("Charlie");
@@ -154,34 +167,34 @@ describe("Notification receiving & display", () => {
   });
 
   describe("sorting by newest first", () => {
-    test("most recent notification comes first", () => {
+    it("most recent notification comes first", () => {
       const sorted = sortByNewest(notifs);
       expect(sorted[0]!.id).toBe("n4");
     });
-    test("oldest comes last", () => {
+    it("oldest comes last", () => {
       const sorted = sortByNewest(notifs);
       expect(sorted[sorted.length - 1]!.id).toBe("n3");
     });
   });
 
   describe("mark as read operations", () => {
-    test("markAsRead updates single notification", () => {
+    it("markAsRead updates single notification", () => {
       const updated = markAsRead(notifs, "n1");
       expect(updated.find((n) => n.id === "n1")!.read).toBe(true);
       expect(updated.find((n) => n.id === "n2")!.read).toBe(false);
     });
 
-    test("markAsRead for non-existent ID is no-op", () => {
+    it("markAsRead for non-existent ID is no-op", () => {
       const updated = markAsRead(notifs, "nonexistent");
       expect(updated).toEqual(notifs);
     });
 
-    test("markAllAsRead sets all to read", () => {
+    it("markAllAsRead sets all to read", () => {
       const updated = markAllAsRead(notifs);
       expect(updated.every((n) => n.read)).toBe(true);
     });
 
-    test("markAllAsRead does not mutate original", () => {
+    it("markAllAsRead does not mutate original", () => {
       markAllAsRead(notifs);
       expect(notifs[0]!.read).toBe(false);
     });

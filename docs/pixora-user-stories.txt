@@ -1,0 +1,19 @@
+Pixora — user stories (aligned with current implementation)
+
+• As an Agency Owner, I want to register with my name, email, and password so I can create an account in Pixora (or sign up with Google or Apple via Clerk).
+
+• As an Agency Owner, I want to submit my agency’s business details (company contact, address, branding, and related fields) after I am authenticated so my agency is created in the database and I am linked as agency owner.
+
+• As a user who forgot my password, I want to request a one-time passcode sent to my email, enter that OTP to verify my identity, then complete the reset using the short-lived reset token so I can set a new password safely.
+
+• As an Agency Owner, I want to sign in with email and password (JWT issued by the app) or with Clerk OAuth so I can access the agency area and manage agencies, subaccounts, and related resources.
+
+• As an Agency Owner, I want to invite team members with an assigned role (and optional subaccount scope in the invitation record) so they receive a Clerk invitation and join the agency with the right collaboration setup.
+
+• As a Sub-Account User, I want to use the subaccount experience I am granted (funnels, pipelines, media, contacts, and related tools) so my work stays scoped to my client’s subaccount and not others.
+
+• As a team member, I want my role and per-subaccount permission flags enforced on API requests so guests and users without access cannot read or change data outside their allowed subaccounts.
+
+• As a user signed in with the JWT flow, I want my session token kept in localStorage and a browser cookie with a multi-day expiry so I stay signed in across page refreshes during normal work; OAuth users rely on Clerk’s session for the same outcome.
+
+• As any user of protected APIs, I want authentication and authorization enforced on the server (Bearer JWT verification plus role and subaccount checks where implemented) so client-side state alone cannot grant access to data or actions I am not allowed to perform.

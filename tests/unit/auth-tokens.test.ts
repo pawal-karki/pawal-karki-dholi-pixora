@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, it } from "bun:test";
 
 import {
   generateToken,
@@ -19,7 +19,7 @@ describe("Auth tokens", () => {
   };
 
   describe("generateToken + verifyToken round-trip", () => {
-    test("generates a valid JWT that can be verified", () => {
+    it("generates a valid JWT that can be verified", () => {
       const token = generateToken(payload);
       expect(typeof token).toBe("string");
       expect(token.split(".")).toHaveLength(3);
@@ -31,7 +31,7 @@ describe("Auth tokens", () => {
       expect(decoded!.role).toBe(payload.role);
     });
 
-    test("includes standard JWT claims (iat, exp)", () => {
+    it("includes standard JWT claims (iat, exp)", () => {
       const token = generateToken(payload);
       const decoded = verifyToken(token) as JWTPayload & {
         iat: number;
@@ -44,15 +44,15 @@ describe("Auth tokens", () => {
   });
 
   describe("verifyToken negative cases", () => {
-    test("returns null for garbage string", () => {
+    it("returns null for garbage string", () => {
       expect(verifyToken("not.a.jwt")).toBeNull();
     });
 
-    test("returns null for empty string", () => {
+    it("returns null for empty string", () => {
       expect(verifyToken("")).toBeNull();
     });
 
-    test("returns null for tampered token", () => {
+    it("returns null for tampered token", () => {
       const token = generateToken(payload);
       const tampered = token.slice(0, -5) + "XXXXX";
       expect(verifyToken(tampered)).toBeNull();
@@ -60,23 +60,23 @@ describe("Auth tokens", () => {
   });
 
   describe("password hashing", () => {
-    test("hashPassword produces bcrypt hash", async () => {
+    it("hashPassword produces bcrypt hash", async () => {
       const hash = await hashPassword("Secret123");
       expect(hash).toMatch(/^\$2[aby]?\$/);
       expect(hash.length).toBeGreaterThan(50);
     });
 
-    test("verifyPassword matches correct password", async () => {
+    it("verifyPassword matches correct password", async () => {
       const hash = await hashPassword("MyPass!");
       expect(await verifyPassword("MyPass!", hash)).toBe(true);
     });
 
-    test("verifyPassword rejects wrong password", async () => {
+    it("verifyPassword rejects wrong password", async () => {
       const hash = await hashPassword("Correct");
       expect(await verifyPassword("Wrong", hash)).toBe(false);
     });
 
-    test("same password produces different hashes (salt)", async () => {
+    it("same password produces different hashes (salt)", async () => {
       const h1 = await hashPassword("Same");
       const h2 = await hashPassword("Same");
       expect(h1).not.toBe(h2);

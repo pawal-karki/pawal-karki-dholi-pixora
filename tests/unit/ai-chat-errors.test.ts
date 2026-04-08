@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, it } from "bun:test";
 
 import {
   isAiAuthError,
@@ -11,27 +11,29 @@ import {
  */
 describe("AI chat errors", () => {
   describe("rate limit", () => {
-    test("detects HTTP 429", () => {
+    it("detects HTTP 429", () => {
       expect(isAiRateLimitedError({ status: 429 })).toBe(true);
     });
 
-    test("detects quota messages", () => {
+    it("detects quota messages", () => {
       expect(
         isAiRateLimitedError({ message: "You exceeded your quota" }),
       ).toBe(true);
     });
 
-    test("statusCode alias", () => {
+    it("statusCode alias", () => {
       expect(isAiRateLimitedError({ statusCode: 429 })).toBe(true);
     });
   });
 
   describe("auth", () => {
-    test.each([401, 403] as const)("status %p", (code) => {
-      expect(isAiAuthError({ status: code })).toBe(true);
-    });
+    for (const code of [401, 403] as const) {
+      it(`treats HTTP ${code} as auth error`, () => {
+        expect(isAiAuthError({ status: code })).toBe(true);
+      });
+    }
 
-    test("message heuristics", () => {
+    it("message heuristics", () => {
       expect(isAiAuthError({ message: "Unauthorized: invalid API key" })).toBe(
         true,
       );
@@ -39,13 +41,13 @@ describe("AI chat errors", () => {
   });
 
   describe("model availability", () => {
-    test("model not found", () => {
+    it("model not found", () => {
       expect(
         isAiModelNotFoundError({ message: "model abc does not exist" }),
       ).toBe(true);
     });
 
-    test("unrelated message", () => {
+    it("unrelated message", () => {
       expect(isAiModelNotFoundError({ message: "network error" })).toBe(false);
     });
   });

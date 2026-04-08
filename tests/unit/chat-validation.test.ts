@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, it } from "bun:test";
 
 /**
  * Feature: Chat send route request validation (mirrors /api/chat/send logic).
@@ -18,7 +18,7 @@ function validateChatSendBody(body: unknown): { ok: true; data: { content: strin
 }
 
 describe("Chat send validation", () => {
-  test("valid body passes", () => {
+  it("valid body passes", () => {
     const r = validateChatSendBody({ content: "Hello", conversationId: "conv-1" });
     expect(r.ok).toBe(true);
     if (r.ok) {
@@ -27,23 +27,23 @@ describe("Chat send validation", () => {
     }
   });
 
-  test("missing content fails", () => {
+  it("missing content fails", () => {
     expect(validateChatSendBody({ conversationId: "x" }).ok).toBe(false);
   });
 
-  test("missing conversationId fails", () => {
+  it("missing conversationId fails", () => {
     expect(validateChatSendBody({ content: "hi" }).ok).toBe(false);
   });
 
-  test("empty strings fail", () => {
+  it("empty strings fail", () => {
     expect(validateChatSendBody({ content: "  ", conversationId: "  " }).ok).toBe(false);
   });
 
-  test("null body fails", () => {
+  it("null body fails", () => {
     expect(validateChatSendBody(null).ok).toBe(false);
   });
 
-  test("wrong field name (message instead of content) fails", () => {
+  it("wrong field name (message instead of content) fails", () => {
     expect(validateChatSendBody({ message: "hi", conversationId: "c1" }).ok).toBe(false);
   });
 });

@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import { buildPublishedFunnelPageUrl, normalizeScheme } from "@/lib/funnel-url";
 import { assignSequentialOrder } from "@/lib/dnd-reorder";
 
@@ -68,56 +68,56 @@ function validatePathName(path: string): { ok: boolean; error?: string } {
 
 describe("Funnel pages CRUD helpers", () => {
   describe("content resolution", () => {
-    test("null content gets default body", () => {
+    it("null content gets default body", () => {
       const content = resolveContent(null);
       const parsed = JSON.parse(content);
       expect(parsed[0].type).toBe("__body");
       expect(parsed[0].id).toBe("__body");
     });
 
-    test("undefined content gets default body", () => {
+    it("undefined content gets default body", () => {
       const content = resolveContent(undefined);
       expect(JSON.parse(content)[0].type).toBe("__body");
     });
 
-    test("existing content preserved", () => {
+    it("existing content preserved", () => {
       const custom = JSON.stringify([{ id: "custom-body", type: "__body", content: [{ id: "t1" }] }]);
       expect(resolveContent(custom)).toBe(custom);
     });
 
-    test("empty string gets default body", () => {
+    it("empty string gets default body", () => {
       const content = resolveContent("");
       expect(JSON.parse(content)[0].id).toBe("__body");
     });
   });
 
   describe("checkout page generation", () => {
-    test("generates correct name", () => {
+    it("generates correct name", () => {
       const page = generateCheckoutPage("Pro Plan", "{}", "abcdef12-3456-7890");
       expect(page.name).toBe("Checkout - Pro Plan");
     });
 
-    test("generates lowercase slug with uuid slice", () => {
+    it("generates lowercase slug with uuid slice", () => {
       const page = generateCheckoutPage("My Product", "{}", "abcdef12-3456-7890");
       expect(page.pathName).toBe("checkout-my-product-abcd");
     });
 
-    test("collapses multiple spaces in product name", () => {
+    it("collapses multiple spaces in product name", () => {
       const page = generateCheckoutPage("Super  Mega  Plan", "{}", "xyz12345");
       expect(page.pathName).toBe("checkout-super-mega-plan-xyz1");
     });
 
-    test("order is always 99", () => {
+    it("order is always 99", () => {
       const page = generateCheckoutPage("Test", "{}", "1234");
       expect(page.order).toBe(99);
     });
 
-    test("visits start at 0", () => {
+    it("visits start at 0", () => {
       const page = generateCheckoutPage("Test", "{}", "1234");
       expect(page.visits).toBe(0);
     });
 
-    test("preserves provided content", () => {
+    it("preserves provided content", () => {
       const content = JSON.stringify([{ id: "__body", type: "__body" }]);
       const page = generateCheckoutPage("X", content, "aaaa");
       expect(page.content).toBe(content);
@@ -129,22 +129,22 @@ describe("Funnel pages CRUD helpers", () => {
       id: "p1", name: "Landing", pathName: "landing", order: 0, visits: 5, content: null,
     };
 
-    test("increments by 1", () => {
+    it("increments by 1", () => {
       expect(incrementVisits(page).visits).toBe(6);
     });
 
-    test("does not mutate original", () => {
+    it("does not mutate original", () => {
       incrementVisits(page);
       expect(page.visits).toBe(5);
     });
 
-    test("works from 0", () => {
+    it("works from 0", () => {
       expect(incrementVisits({ ...page, visits: 0 }).visits).toBe(1);
     });
   });
 
   describe("page sorting by order", () => {
-    test("sorts ascending", () => {
+    it("sorts ascending", () => {
       const pages: FunnelPage[] = [
         { id: "p3", name: "C", pathName: "c", order: 2, visits: 0, content: null },
         { id: "p1", name: "A", pathName: "a", order: 0, visits: 0, content: null },
@@ -154,7 +154,7 @@ describe("Funnel pages CRUD helpers", () => {
       expect(sorted.map((p) => p.id)).toEqual(["p1", "p2", "p3"]);
     });
 
-    test("checkout page (order 99) comes last", () => {
+    it("checkout page (order 99) comes last", () => {
       const pages: FunnelPage[] = [
         { id: "checkout", name: "Checkout", pathName: "checkout", order: 99, visits: 0, content: null },
         { id: "landing", name: "Landing", pathName: "landing", order: 0, visits: 0, content: null },
@@ -166,7 +166,7 @@ describe("Funnel pages CRUD helpers", () => {
   });
 
   describe("page reorder with sequential order assignment", () => {
-    test("after drag-drop assigns 0-based sequential order", () => {
+    it("after drag-drop assigns 0-based sequential order", () => {
       const pages = [
         { id: "p1", name: "A", order: 0 },
         { id: "p2", name: "B", order: 1 },
@@ -179,21 +179,21 @@ describe("Funnel pages CRUD helpers", () => {
   });
 
   describe("published URL construction", () => {
-    test("builds full public URL", () => {
+    it("builds full public URL", () => {
       process.env.NEXT_PUBLIC_SCHEME = "https";
       process.env.NEXT_PUBLIC_DOMAIN = "pixora.app";
       const url = getPublicUrl("my-funnel", "landing");
       expect(url).toBe("https://my-funnel.pixora.app/landing");
     });
 
-    test("strips leading slash from path", () => {
+    it("strips leading slash from path", () => {
       process.env.NEXT_PUBLIC_SCHEME = "https";
       process.env.NEXT_PUBLIC_DOMAIN = "pixora.app";
       const url = getPublicUrl("sale", "/checkout");
       expect(url).toBe("https://sale.pixora.app/checkout");
     });
 
-    test("falls back to http + localhost when env not set", () => {
+    it("falls back to http + localhost when env not set", () => {
       delete process.env.NEXT_PUBLIC_SCHEME;
       delete process.env.NEXT_PUBLIC_DOMAIN;
       const url = getPublicUrl("test", "page1");
@@ -202,40 +202,40 @@ describe("Funnel pages CRUD helpers", () => {
   });
 
   describe("page name validation", () => {
-    test("valid name passes", () => {
+    it("valid name passes", () => {
       expect(validateFunnelPageName("Landing Page").ok).toBe(true);
     });
-    test("empty name fails", () => {
+    it("empty name fails", () => {
       expect(validateFunnelPageName("").ok).toBe(false);
     });
-    test("whitespace-only name fails", () => {
+    it("whitespace-only name fails", () => {
       expect(validateFunnelPageName("   ").ok).toBe(false);
     });
-    test("100+ char name fails", () => {
+    it("100+ char name fails", () => {
       expect(validateFunnelPageName("x".repeat(101)).ok).toBe(false);
     });
-    test("exactly 100 chars passes", () => {
+    it("exactly 100 chars passes", () => {
       expect(validateFunnelPageName("x".repeat(100)).ok).toBe(true);
     });
   });
 
   describe("pathName validation", () => {
-    test("empty path is allowed (optional)", () => {
+    it("empty path is allowed (optional)", () => {
       expect(validatePathName("").ok).toBe(true);
     });
-    test("lowercase slug passes", () => {
+    it("lowercase slug passes", () => {
       expect(validatePathName("my-page").ok).toBe(true);
     });
-    test("underscore slug passes", () => {
+    it("underscore slug passes", () => {
       expect(validatePathName("my_page").ok).toBe(true);
     });
-    test("uppercase fails", () => {
+    it("uppercase fails", () => {
       expect(validatePathName("My-Page").ok).toBe(false);
     });
-    test("spaces fail", () => {
+    it("spaces fail", () => {
       expect(validatePathName("my page").ok).toBe(false);
     });
-    test("special chars fail", () => {
+    it("special chars fail", () => {
       expect(validatePathName("page!@#").ok).toBe(false);
     });
   });

@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import { reorderByIndex, assignSequentialOrder } from "@/lib/dnd-reorder";
 import { buildPublishedFunnelPageUrl, normalizeScheme } from "@/lib/funnel-url";
 
@@ -110,7 +110,7 @@ function generateCheckoutSlug(productName: string, uuidSlice: string): string {
 
 describe("Funnel editor JSON content", () => {
   describe("default body content", () => {
-    test("default content is valid JSON array with __body", () => {
+    it("default content is valid JSON array with __body", () => {
       const raw = makeDefaultContent();
       const parsed = JSON.parse(raw);
       expect(Array.isArray(parsed)).toBe(true);
@@ -120,7 +120,7 @@ describe("Funnel editor JSON content", () => {
       expect(parsed[0].content).toEqual([]);
     });
 
-    test("default body has white background", () => {
+    it("default body has white background", () => {
       const raw = makeDefaultContent();
       const parsed = JSON.parse(raw);
       expect(parsed[0].styles.backgroundColor).toBe("white");
@@ -128,31 +128,31 @@ describe("Funnel editor JSON content", () => {
   });
 
   describe("page content parsing (LOAD_DATA)", () => {
-    test("null content returns default body", () => {
+    it("null content returns default body", () => {
       const elements = parsePageContent(null);
       expect(elements).toHaveLength(1);
       expect(elements[0]!.type).toBe("__body");
     });
 
-    test("empty string returns default body", () => {
+    it("empty string returns default body", () => {
       const elements = parsePageContent("");
       expect(elements).toHaveLength(1);
       expect(elements[0]!.type).toBe("__body");
     });
 
-    test("invalid JSON returns default body", () => {
+    it("invalid JSON returns default body", () => {
       const elements = parsePageContent("{broken json}");
       expect(elements).toHaveLength(1);
       expect(elements[0]!.type).toBe("__body");
     });
 
-    test("empty array returns default body", () => {
+    it("empty array returns default body", () => {
       const elements = parsePageContent("[]");
       expect(elements).toHaveLength(1);
       expect(elements[0]!.type).toBe("__body");
     });
 
-    test("valid content round-trips through stringify + parse", () => {
+    it("valid content round-trips through stringify + parse", () => {
       const tree: EditorElement[] = [{
         id: "__body", name: "Body", type: "__body",
         styles: { backgroundColor: "white" },
@@ -184,30 +184,30 @@ describe("Funnel editor JSON content", () => {
       ],
     }];
 
-    test("findElement returns nested element", () => {
+    it("findElement returns nested element", () => {
       expect(findElement(tree, "txt-1")!.name).toBe("Title");
     });
 
-    test("findElement returns null for missing id", () => {
+    it("findElement returns null for missing id", () => {
       expect(findElement(tree, "nonexistent")).toBeNull();
     });
 
-    test("countElements counts all nodes recursively", () => {
+    it("countElements counts all nodes recursively", () => {
       expect(countElements(tree)).toBe(5);
     });
 
-    test("removeElement deletes from nested tree", () => {
+    it("removeElement deletes from nested tree", () => {
       const updated = removeElement(tree, "txt-1");
       expect(findElement(updated, "txt-1")).toBeNull();
       expect(countElements(updated)).toBe(4);
     });
 
-    test("removeElement keeps siblings", () => {
+    it("removeElement keeps siblings", () => {
       const updated = removeElement(tree, "txt-1");
       expect(findElement(updated, "img-1")).not.toBeNull();
     });
 
-    test("removeElement at root level works", () => {
+    it("removeElement at root level works", () => {
       const multiRoot = [
         { id: "a", name: "A", type: "text" as EditorBtns, styles: {}, content: { innerText: "a" } },
         { id: "b", name: "B", type: "text" as EditorBtns, styles: {}, content: { innerText: "b" } },
@@ -225,14 +225,14 @@ describe("Funnel editor JSON content", () => {
       id: "new-1", name: "CTA", type: "text", styles: {}, content: { innerText: "Click me" },
     };
 
-    test("adds element to body container", () => {
+    it("adds element to body container", () => {
       const updated = addElement(tree, "__body", newEl);
       const body = updated[0]!;
       expect((body.content as EditorElement[])).toHaveLength(1);
       expect((body.content as EditorElement[])[0]!.id).toBe("new-1");
     });
 
-    test("adds to nested container", () => {
+    it("adds to nested container", () => {
       const nestedTree: EditorElement[] = [{
         id: "__body", name: "Body", type: "__body", styles: {},
         content: [{
@@ -245,7 +245,7 @@ describe("Funnel editor JSON content", () => {
       expect((sec.content as EditorElement[])).toHaveLength(1);
     });
 
-    test("no-op when containerId not found", () => {
+    it("no-op when containerId not found", () => {
       const updated = addElement(tree, "nonexistent", newEl);
       expect(countElements(updated)).toBe(1);
     });
@@ -263,14 +263,14 @@ describe("Funnel editor JSON content", () => {
       id: "b", name: "B", type: "text", styles: {}, content: { innerText: "B" },
     };
 
-    test("inserts at index 1 between A and C", () => {
+    it("inserts at index 1 between A and C", () => {
       const updated = insertElement(tree, "__body", newEl, 1);
       const body = updated[0]!;
       const children = body.content as EditorElement[];
       expect(children.map((c) => c.id)).toEqual(["a", "b", "c"]);
     });
 
-    test("inserts at index 0 prepends", () => {
+    it("inserts at index 0 prepends", () => {
       const updated = insertElement(tree, "__body", newEl, 0);
       const children = updated[0]!.content as EditorElement[];
       expect(children[0]!.id).toBe("b");
@@ -288,25 +288,25 @@ describe("Funnel editor JSON content", () => {
       }],
     }];
 
-    test("__body cannot be moved", () => {
+    it("__body cannot be moved", () => {
       expect("__body" === "__body").toBe(true);
     });
 
-    test("cannot move element into its own descendant (cycle)", () => {
+    it("cannot move element into its own descendant (cycle)", () => {
       expect(isDescendant(tree, "parent", "child")).toBe(true);
     });
 
-    test("non-descendant relationship returns false", () => {
+    it("non-descendant relationship returns false", () => {
       expect(isDescendant(tree, "child", "parent")).toBe(false);
     });
 
-    test("isDescendant false for non-container", () => {
+    it("isDescendant false for non-container", () => {
       expect(isDescendant(tree, "child", "something")).toBe(false);
     });
   });
 
   describe("serialization (save)", () => {
-    test("JSON.stringify preserves all element types", () => {
+    it("JSON.stringify preserves all element types", () => {
       const tree: EditorElement[] = [{
         id: "__body", name: "Body", type: "__body", styles: {},
         content: [
@@ -324,7 +324,7 @@ describe("Funnel editor JSON content", () => {
       expect(types).toEqual(["text", "image", "video", "link", "customHtml"]);
     });
 
-    test("nested sections are preserved", () => {
+    it("nested sections are preserved", () => {
       const tree: EditorElement[] = [{
         id: "__body", name: "Body", type: "__body", styles: {},
         content: [{
@@ -346,17 +346,17 @@ describe("Funnel editor JSON content", () => {
   });
 
   describe("checkout page slug generation", () => {
-    test("simple product name", () => {
+    it("simple product name", () => {
       const slug = generateCheckoutSlug("Pro Plan", "a1b2");
       expect(slug).toBe("checkout-pro-plan-a1b2");
     });
 
-    test("multi-space product name", () => {
+    it("multi-space product name", () => {
       const slug = generateCheckoutSlug("My  Great  Product", "x9y0");
       expect(slug).toBe("checkout-my-great-product-x9y0");
     });
 
-    test("single word product", () => {
+    it("single word product", () => {
       const slug = generateCheckoutSlug("Starter", "zzzz");
       expect(slug).toBe("checkout-starter-zzzz");
     });

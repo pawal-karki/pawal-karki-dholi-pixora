@@ -3,9 +3,9 @@ import {
   beforeEach,
   describe,
   expect,
+  it,
   mock,
   spyOn,
-  test,
 } from "bun:test";
 
 import {
@@ -201,41 +201,41 @@ describe("Stripe payment integration", () => {
     });
 
     describe("getAgencyPlan", () => {
-      test("no active subscription → Starter", async () => {
+      it("no active subscription → Starter", async () => {
         subscriptionFindFirst.mockResolvedValue(null);
         await expect(getAgencyPlan("ag-1")).resolves.toBe("Starter");
       });
-      test("subscription without plan field → Starter", async () => {
+      it("subscription without plan field → Starter", async () => {
         subscriptionFindFirst.mockResolvedValue({ plan: null });
         await expect(getAgencyPlan("ag-1")).resolves.toBe("Starter");
       });
-      test("PRO / AGENCY price strings", async () => {
+      it("PRO / AGENCY price strings", async () => {
         subscriptionFindFirst.mockResolvedValueOnce({ plan: "price_PRO_PLAN" });
         await expect(getAgencyPlan("ag-1")).resolves.toBe("Pro");
         subscriptionFindFirst.mockResolvedValueOnce({ plan: "price_AGENCY_PLAN" });
         await expect(getAgencyPlan("ag-1")).resolves.toBe("Agency");
       });
-      test("unknown plan id → Starter", async () => {
+      it("unknown plan id → Starter", async () => {
         subscriptionFindFirst.mockResolvedValue({ plan: "price_other" });
         await expect(getAgencyPlan("ag-1")).resolves.toBe("Starter");
       });
     });
 
-    test("getAgencyPlanLimits follows tier", async () => {
+    it("getAgencyPlanLimits follows tier", async () => {
       subscriptionFindFirst.mockResolvedValue({ plan: "price_PRO_PLAN" });
       const limits = await getAgencyPlanLimits("ag-1");
       expect(limits.maxSubAccounts).toBe(5);
     });
 
     describe("canCreateSubAccount", () => {
-      test("under limit → allowed", async () => {
+      it("under limit → allowed", async () => {
         subscriptionFindFirst.mockResolvedValue({ plan: "price_PRO_PLAN" });
         subAccountCount.mockResolvedValue(2);
         const r = await canCreateSubAccount("ag-1");
         expect(r.allowed).toBe(true);
         expect(r.message).toBeUndefined();
       });
-      test("at Starter limit → blocked with singular message", async () => {
+      it("at Starter limit → blocked with singular message", async () => {
         subscriptionFindFirst.mockResolvedValue({ plan: "price_other" });
         subAccountCount.mockResolvedValue(1);
         const r = await canCreateSubAccount("ag-1");
@@ -243,7 +243,7 @@ describe("Stripe payment integration", () => {
         expect(r.message).toContain("1 sub-account");
         expect(r.message).not.toContain("sub-accounts");
       });
-      test("at Pro limit → plural message", async () => {
+      it("at Pro limit → plural message", async () => {
         subscriptionFindFirst.mockResolvedValue({ plan: "price_PRO_PLAN" });
         subAccountCount.mockResolvedValue(5);
         const r = await canCreateSubAccount("ag-1");
@@ -253,20 +253,20 @@ describe("Stripe payment integration", () => {
     });
 
     describe("canInviteTeamMember", () => {
-      test("under limit → allowed", async () => {
+      it("under limit → allowed", async () => {
         subscriptionFindFirst.mockResolvedValue({ plan: "price_PRO_PLAN" });
         userCount.mockResolvedValue(1);
         const r = await canInviteTeamMember("ag-1");
         expect(r.allowed).toBe(true);
       });
-      test("Starter at ceiling → singular team member message", async () => {
+      it("Starter at ceiling → singular team member message", async () => {
         subscriptionFindFirst.mockResolvedValue({ plan: "price_other" });
         userCount.mockResolvedValue(1);
         const r = await canInviteTeamMember("ag-1");
         expect(r.allowed).toBe(false);
         expect(r.message).toContain("1 team member");
       });
-      test("Pro at ceiling → plural", async () => {
+      it("Pro at ceiling → plural", async () => {
         subscriptionFindFirst.mockResolvedValue({ plan: "price_PRO_PLAN" });
         userCount.mockResolvedValue(5);
         const r = await canInviteTeamMember("ag-1");
@@ -275,7 +275,7 @@ describe("Stripe payment integration", () => {
       });
     });
 
-    test("getAgencyUsageStats aggregates counts and limits", async () => {
+    it("getAgencyUsageStats aggregates counts and limits", async () => {
       subscriptionFindFirst.mockResolvedValue({ plan: "price_PRO_PLAN" });
       subAccountCount.mockResolvedValue(2);
       userCount.mockResolvedValue(3);
@@ -294,13 +294,13 @@ describe("Stripe payment integration", () => {
     });
 
     describe("isSubscriptionRequiredForSubaccountAccess", () => {
-      test("no subscription row → not blocked", async () => {
+      it("no subscription row → not blocked", async () => {
         subscriptionFindUnique.mockResolvedValue(null);
         await expect(
           isSubscriptionRequiredForSubaccountAccess("ag-1"),
         ).resolves.toBe(false);
       });
-      test("active subscription → not blocked", async () => {
+      it("active subscription → not blocked", async () => {
         subscriptionFindUnique.mockResolvedValue({
           active: true,
           currentPeriodEndDate: new Date(0),
@@ -309,7 +309,7 @@ describe("Stripe payment integration", () => {
           isSubscriptionRequiredForSubaccountAccess("ag-1"),
         ).resolves.toBe(false);
       });
-      test("inactive but period not ended → not blocked", async () => {
+      it("inactive but period not ended → not blocked", async () => {
         const future = new Date(Date.now() + 86400000);
         subscriptionFindUnique.mockResolvedValue({
           active: false,
@@ -319,7 +319,7 @@ describe("Stripe payment integration", () => {
           isSubscriptionRequiredForSubaccountAccess("ag-1"),
         ).resolves.toBe(false);
       });
-      test("inactive after period, no sub id → blocked", async () => {
+      it("inactive after period, no sub id → blocked", async () => {
         subscriptionFindUnique.mockResolvedValue({
           active: false,
           currentPeriodEndDate: new Date(0),
@@ -328,7 +328,7 @@ describe("Stripe payment integration", () => {
           isSubscriptionRequiredForSubaccountAccess("ag-1"),
         ).resolves.toBe(true);
       });
-      test("inactive after period, first sub only allowed", async () => {
+      it("inactive after period, first sub only allowed", async () => {
         subscriptionFindUnique.mockResolvedValue({
           active: false,
           currentPeriodEndDate: new Date(0),
@@ -341,7 +341,7 @@ describe("Stripe payment integration", () => {
           isSubscriptionRequiredForSubaccountAccess("ag-1", "sub-other"),
         ).resolves.toBe(true);
       });
-      test("inactive, no subaccounts → blocked", async () => {
+      it("inactive, no subaccounts → blocked", async () => {
         subscriptionFindUnique.mockResolvedValue({
           active: false,
           currentPeriodEndDate: new Date(0),
@@ -353,7 +353,7 @@ describe("Stripe payment integration", () => {
       });
     });
 
-    test("getFirstCreatedSubAccountId", async () => {
+    it("getFirstCreatedSubAccountId", async () => {
       subAccountFindFirst.mockResolvedValue(null);
       await expect(getFirstCreatedSubAccountId("ag-1")).resolves.toBeNull();
       subAccountFindFirst.mockResolvedValue({ id: "first-id" });
@@ -363,72 +363,72 @@ describe("Stripe payment integration", () => {
 
   describe("plans & subscription limits", () => {
     describe("plan derivation from Stripe subscription item", () => {
-      test("null or undefined → Starter", () => {
+      it("null or undefined → Starter", () => {
         expect(derivePlanName(null)).toBe("Starter");
         expect(derivePlanName(undefined)).toBe("Starter");
       });
-      test("PRO / AGENCY price ids map to tiers", () => {
+      it("PRO / AGENCY price ids map to tiers", () => {
         expect(derivePlanName("price_PRO_PLAN")).toBe("Pro");
         expect(derivePlanName("price_AGENCY_PLAN")).toBe("Agency");
       });
-      test("unknown id → Starter; substring PRO still Pro", () => {
+      it("unknown id → Starter; substring PRO still Pro", () => {
         expect(derivePlanName("some_random_plan")).toBe("Starter");
         expect(derivePlanName("my_PRO_plan")).toBe("Pro");
       });
     });
 
     describe("PLAN_LIMITS", () => {
-      test("Starter: 1 subaccount, 1 team member", () => {
+      it("Starter: 1 subaccount, 1 team member", () => {
         expect(PLAN_LIMITS.Starter.maxSubAccounts).toBe(1);
         expect(PLAN_LIMITS.Starter.maxTeamMembers).toBe(1);
       });
-      test("Pro: 5 / 5", () => {
+      it("Pro: 5 / 5", () => {
         expect(PLAN_LIMITS.Pro.maxSubAccounts).toBe(5);
         expect(PLAN_LIMITS.Pro.maxTeamMembers).toBe(5);
       });
-      test("Agency: unlimited", () => {
+      it("Agency: unlimited", () => {
         expect(PLAN_LIMITS.Agency.maxSubAccounts).toBe(Infinity);
         expect(PLAN_LIMITS.Agency.maxTeamMembers).toBe(Infinity);
       });
     });
 
     describe("plan allowance checks", () => {
-      test("Starter at capacity blocks new subaccounts", () => {
+      it("Starter at capacity blocks new subaccounts", () => {
         const r = checkPlanAllowance("Starter", 1, "maxSubAccounts");
         expect(r.allowed).toBe(false);
         expect(r.message).toContain("Limit reached");
       });
-      test("Starter under limit allows", () => {
+      it("Starter under limit allows", () => {
         const r = checkPlanAllowance("Starter", 0, "maxSubAccounts");
         expect(r.allowed).toBe(true);
         expect(r.maxAllowed).toBe(1);
       });
-      test("Pro team member ceiling", () => {
+      it("Pro team member ceiling", () => {
         expect(checkPlanAllowance("Pro", 4, "maxTeamMembers").allowed).toBe(true);
         expect(checkPlanAllowance("Pro", 5, "maxTeamMembers").allowed).toBe(false);
       });
-      test("Agency never blocked; unknown plan → Starter limits", () => {
+      it("Agency never blocked; unknown plan → Starter limits", () => {
         expect(checkPlanAllowance("Agency", 999, "maxSubAccounts").allowed).toBe(true);
         expect(checkPlanAllowance("Unknown", 0, "maxSubAccounts").maxAllowed).toBe(1);
       });
     });
 
     describe("internal plan key → Stripe price id", () => {
-      test("PRO / AGENCY", () => {
+      it("PRO / AGENCY", () => {
         expect(mapPlanKeyToStripePlan("PRO")).toBe("price_PRO_PLAN");
         expect(mapPlanKeyToStripePlan("AGENCY")).toBe("price_AGENCY_PLAN");
       });
-      test("STARTER → null", () => {
+      it("STARTER → null", () => {
         expect(mapPlanKeyToStripePlan("STARTER")).toBeNull();
       });
     });
 
     describe("billing period end from Stripe unix timestamp", () => {
-      test("valid timestamp", () => {
+      it("valid timestamp", () => {
         const ts = 1700000000;
         expect(computePeriodEndDate(ts).getTime()).toBe(ts * 1000);
       });
-      test("null → ~30 days ahead", () => {
+      it("null → ~30 days ahead", () => {
         const d = computePeriodEndDate(null);
         const diff = d.getTime() - Date.now();
         expect(diff).toBeGreaterThan(29 * 24 * 60 * 60 * 1000);
@@ -439,47 +439,47 @@ describe("Stripe payment integration", () => {
 
   describe("checkout & session helpers", () => {
     describe("line items", () => {
-      test("extractPriceIds prefers priceId", () => {
+      it("extractPriceIds prefers priceId", () => {
         expect(extractPriceIds([{ priceId: "price_1", id: "fallback" }])).toEqual([
           "price_1",
         ]);
       });
-      test("extractPriceIds falls back to id", () => {
+      it("extractPriceIds falls back to id", () => {
         expect(extractPriceIds([{ id: "prod_2" }])).toEqual(["prod_2"]);
       });
-      test("buildLineItems default quantity 1", () => {
+      it("buildLineItems default quantity 1", () => {
         expect(buildLineItems([{ priceId: "p1" }])).toEqual([
           { price: "p1", quantity: 1 },
         ]);
       });
-      test("buildLineItems respects quantity", () => {
+      it("buildLineItems respects quantity", () => {
         expect(buildLineItems([{ priceId: "p1", quantity: 3 }])[0]!.quantity).toBe(3);
       });
     });
 
     describe("success / cancel URL normalization & allowlist", () => {
-      test("normalizeBaseUrl strips trailing slash", () => {
+      it("normalizeBaseUrl strips trailing slash", () => {
         expect(normalizeBaseUrl("https://pixora.app/")).toBe("https://pixora.app");
         expect(normalizeBaseUrl("https://pixora.app")).toBe("https://pixora.app");
       });
       const hosts = ["localhost", "pixora.vercel.app"];
-      test("allows trusted hosts", () => {
+      it("allows trusted hosts", () => {
         expect(isUrlAllowed("http://localhost:3000/success", hosts)).toBe(true);
         expect(isUrlAllowed("https://pixora.vercel.app/billing", hosts)).toBe(true);
       });
-      test("rejects other hosts and garbage", () => {
+      it("rejects other hosts and garbage", () => {
         expect(isUrlAllowed("https://evil.com/steal", hosts)).toBe(false);
         expect(isUrlAllowed("not-a-url", hosts)).toBe(false);
       });
     });
 
     describe("cart agency consistency", () => {
-      test("single agency → valid", () => {
+      it("single agency → valid", () => {
         expect(
           checkCartAgencyConsistency([{ agencyId: "a1" }, { agencyId: "a1" }], "a1"),
         ).toEqual({ valid: true });
       });
-      test("mixed agencies → invalid", () => {
+      it("mixed agencies → invalid", () => {
         const r = checkCartAgencyConsistency(
           [{ agencyId: "a1" }, { agencyId: "a2" }],
           "a1",
@@ -487,25 +487,29 @@ describe("Stripe payment integration", () => {
         expect(r.valid).toBe(false);
         expect(r.error).toContain("different agencies");
       });
-      test("empty cart → valid", () => {
+      it("empty cart → valid", () => {
         expect(checkCartAgencyConsistency([], "a1")).toEqual({ valid: true });
       });
     });
   });
 
   describe("subscription status mapping", () => {
-    test.each(["active", "trialing"])("'%s' counts as active", (s) => {
-      expect(isSubscriptionActive(s)).toBe(true);
-    });
-    test.each([
+    for (const s of ["active", "trialing"] as const) {
+      it(`'${s}' counts as active`, () => {
+        expect(isSubscriptionActive(s)).toBe(true);
+      });
+    }
+    for (const s of [
       "canceled",
       "past_due",
       "unpaid",
       "incomplete",
       "incomplete_expired",
-    ])("'%s' is not active", (s) => {
-      expect(isSubscriptionActive(s)).toBe(false);
-    });
+    ] as const) {
+      it(`'${s}' is not active`, () => {
+        expect(isSubscriptionActive(s)).toBe(false);
+      });
+    }
   });
 
   describe("Stripe Connect OAuth", () => {
@@ -530,7 +534,7 @@ describe("Stripe payment integration", () => {
       }
     });
 
-    test("getStripeOAuthLink: agency flow uses env client id and state", () => {
+    it("getStripeOAuthLink: agency flow uses env client id and state", () => {
       process.env.NEXT_PUBLIC_STRIPE_CLIENT_ID = "ca_test_abc";
       process.env.NEXT_PUBLIC_URL = "https://billing.example.com";
       const url = getStripeOAuthLink("agency", "my-state");
@@ -544,14 +548,14 @@ describe("Stripe payment integration", () => {
       );
     });
 
-    test("getStripeOAuthLink: subaccount flow", () => {
+    it("getStripeOAuthLink: subaccount flow", () => {
       process.env.NEXT_PUBLIC_STRIPE_CLIENT_ID = "ca_test_xyz";
       const url = getStripeOAuthLink("subaccount", "sub-state");
       expect(url).toContain("ca_test_xyz");
       expect(url).toContain("state=sub-state");
     });
 
-    test("OAuth callback query parsing", () => {
+    it("OAuth callback query parsing", () => {
       const result = parseOAuthCallbackParams(
         "http://localhost:3000/agency?code=ac_ABC123&state=launchpad___id-1&scope=read_write",
       );
@@ -567,7 +571,7 @@ describe("Stripe payment integration", () => {
       );
     });
 
-    test("OAuth state payload page___agencyId", () => {
+    it("OAuth state payload page___agencyId", () => {
       expect(
         parseOAuthState("launchpad___5264d960-4f4b-4ce9-860d-c3116a9ff92a"),
       ).toEqual({
@@ -578,7 +582,7 @@ describe("Stripe payment integration", () => {
       expect(parseOAuthState("a___b___c")).toBeNull();
     });
 
-    test("connected account id acct_* validation", () => {
+    it("connected account id acct_* validation", () => {
       expect(validateStripeUserId("acct_1234567890")).toBe(true);
       expect(validateStripeUserId(null)).toBe(false);
       expect(validateStripeUserId(undefined)).toBe(false);
@@ -589,11 +593,11 @@ describe("Stripe payment integration", () => {
   });
 
   describe("utils shared with billing UI", () => {
-    test("cn merges tailwind classes", () => {
+    it("cn merges tailwind classes", () => {
       expect(cn("px-2", "px-4")).toBe("px-4");
     });
 
-    test("logger logs in development only", () => {
+    it("logger logs in development only", () => {
       const prev = process.env.NODE_ENV;
       const logSpy = spyOn(console, "log").mockImplementation(() => {});
       process.env.NODE_ENV = "development";
@@ -605,7 +609,7 @@ describe("Stripe payment integration", () => {
       process.env.NODE_ENV = prev;
     });
 
-    test("constructMetadata defaults and noIndex", () => {
+    it("constructMetadata defaults and noIndex", () => {
       const base = constructMetadata();
       expect(base.title).toBe("Pixora - Agency Management Platform");
       expect(base.metadataBase?.toString()).toMatch(/pawal\.dev/);
@@ -623,7 +627,7 @@ describe("Stripe payment integration", () => {
   });
 
   describe("pricing display & Stripe metadata", () => {
-    test("formatPrice NPR-style label", () => {
+    it("formatPrice NPR-style label", () => {
       expect(formatPrice(999)).toContain("999");
       expect(formatPrice(999)).toMatch(/^Rs/);
       expect(formatPrice(Number.NaN)).toBe("Rs 0");
@@ -633,14 +637,14 @@ describe("Stripe payment integration", () => {
       expect(big).toMatch(/12[,.]?999/);
     });
 
-    test("amounts for Stripe (cents)", () => {
+    it("amounts for Stripe (cents)", () => {
       expect(toCents("100")).toBe(10000);
       expect(toCents("19.99")).toBe(1999);
       expect(toCents("0")).toBe(0);
       expect(toCents(49.5)).toBe(4950);
     });
 
-    test("product description length cap", () => {
+    it("product description length cap", () => {
       expect(truncateDescription("Short")).toBe("Short");
       expect(truncateDescription("x".repeat(1500)).length).toBe(1000);
       expect(truncateDescription("y".repeat(1000)).length).toBe(1000);

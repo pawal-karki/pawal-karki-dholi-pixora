@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import { TEMPLATE_GENERATORS } from "@/lib/editor/template-definitions";
 
 type TemplateCategory =
@@ -48,44 +48,31 @@ function filterTemplates(
 
 describe("Template system", () => {
   describe("TEMPLATE_GENERATORS registry", () => {
-    test("has 14 registered generators", () => {
+    it("has 14 registered generators", () => {
       expect(TEMPLATE_IDS).toHaveLength(14);
     });
 
-    test("all registered IDs start with template__", () => {
+    it("all registered IDs start with template__", () => {
       for (const id of TEMPLATE_IDS) {
         expect(id.startsWith("template__")).toBe(true);
       }
     });
 
-    test("every generator is a function", () => {
+    it("every generator is a function", () => {
       for (const id of TEMPLATE_IDS) {
         expect(typeof TEMPLATE_GENERATORS[id]).toBe("function");
       }
     });
 
-    test.each([
-      "template__modern_navbar",
-      "template__modern_footer",
-      "template__hero_gradient",
-      "template__hero_dark",
-      "template__features_grid",
-      "template__pricing_table",
-      "template__testimonials",
-      "template__cta_banner",
-      "template__team_cards",
-      "template__faq_section",
-      "template__stats_row",
-      "template__about_story",
-      "template__modern_products",
-      "template__shop_section",
-    ])("generator '%s' exists in registry", (id) => {
-      expect(TEMPLATE_GENERATORS[id]).toBeDefined();
-    });
+    for (const id of TEMPLATE_IDS) {
+      it(`generator '${id}' exists in registry`, () => {
+        expect(TEMPLATE_GENERATORS[id]).toBeDefined();
+      });
+    }
   });
 
   describe("template generation output", () => {
-    test("each generator returns valid EditorElement for Desktop", () => {
+    it("each generator returns valid EditorElement for Desktop", () => {
       for (const id of TEMPLATE_IDS) {
         const el = TEMPLATE_GENERATORS[id]!("Desktop");
         expect(el.id).toBeTruthy();
@@ -97,7 +84,7 @@ describe("Template system", () => {
       }
     });
 
-    test("each generator returns valid EditorElement for Mobile", () => {
+    it("each generator returns valid EditorElement for Mobile", () => {
       for (const id of TEMPLATE_IDS) {
         const el = TEMPLATE_GENERATORS[id]!("Mobile");
         expect(el.id).toBeTruthy();
@@ -105,7 +92,7 @@ describe("Template system", () => {
       }
     });
 
-    test("each generator returns valid EditorElement for Tablet", () => {
+    it("each generator returns valid EditorElement for Tablet", () => {
       for (const id of TEMPLATE_IDS) {
         const el = TEMPLATE_GENERATORS[id]!("Tablet");
         expect(el.id).toBeTruthy();
@@ -113,26 +100,26 @@ describe("Template system", () => {
       }
     });
 
-    test("generated elements use section or container type at root", () => {
+    it("generated elements use section or container type at root", () => {
       for (const id of TEMPLATE_IDS) {
         const el = TEMPLATE_GENERATORS[id]!("Desktop");
         expect(["section", "container"].includes(el.type as string)).toBe(true);
       }
     });
 
-    test("hero_gradient has nested child content", () => {
+    it("hero_gradient has nested child content", () => {
       const el = TEMPLATE_GENERATORS["template__hero_gradient"]!("Desktop");
       expect(Array.isArray(el.content)).toBe(true);
       expect((el.content as any[]).length).toBeGreaterThan(0);
     });
 
-    test("pricing_table has nested child content", () => {
+    it("pricing_table has nested child content", () => {
       const el = TEMPLATE_GENERATORS["template__pricing_table"]!("Desktop");
       expect(Array.isArray(el.content)).toBe(true);
       expect((el.content as any[]).length).toBeGreaterThan(0);
     });
 
-    test("generated IDs are unique across two calls", () => {
+    it("generated IDs are unique across two calls", () => {
       const el1 = TEMPLATE_GENERATORS["template__hero_gradient"]!("Desktop");
       const el2 = TEMPLATE_GENERATORS["template__hero_gradient"]!("Desktop");
       expect(el1.id).not.toBe(el2.id);
@@ -140,50 +127,50 @@ describe("Template system", () => {
   });
 
   describe("template filtering", () => {
-    test("All category shows everything", () => {
+    it("All category shows everything", () => {
       expect(filterTemplates(TEMPLATES, "All", "")).toHaveLength(14);
     });
 
-    test("Hero category filters correctly", () => {
+    it("Hero category filters correctly", () => {
       const results = filterTemplates(TEMPLATES, "Hero", "");
       expect(results.every((t) => t.category === "Hero")).toBe(true);
       expect(results).toHaveLength(2);
     });
 
-    test("Layout category includes navbar, footer, products, shop", () => {
+    it("Layout category includes navbar, footer, products, shop", () => {
       const results = filterTemplates(TEMPLATES, "Layout", "");
       expect(results).toHaveLength(4);
     });
 
-    test("search by name (case insensitive)", () => {
+    it("search by name (case insensitive)", () => {
       const results = filterTemplates(TEMPLATES, "All", "hero");
       expect(results).toHaveLength(2);
     });
 
-    test("search by description", () => {
+    it("search by description", () => {
       const results = filterTemplates(TEMPLATES, "All", "navigation");
       expect(results).toHaveLength(1);
       expect(results[0]!.id).toBe("template__modern_navbar");
     });
 
-    test("combined category + search", () => {
+    it("combined category + search", () => {
       const results = filterTemplates(TEMPLATES, "Hero", "gradient");
       expect(results).toHaveLength(1);
       expect(results[0]!.id).toBe("template__hero_gradient");
     });
 
-    test("no match returns empty", () => {
+    it("no match returns empty", () => {
       expect(filterTemplates(TEMPLATES, "All", "zzzznonexistent")).toHaveLength(0);
     });
 
-    test("category mismatch with matching search returns empty", () => {
+    it("category mismatch with matching search returns empty", () => {
       const results = filterTemplates(TEMPLATES, "FAQ", "hero");
       expect(results).toHaveLength(0);
     });
   });
 
   describe("customHtml element structure", () => {
-    test("raw HTML insert creates correct shape", () => {
+    it("raw HTML insert creates correct shape", () => {
       const element = {
         content: { html: "<h1>Hello</h1>", css: "h1 { color: red; }" },
         id: "custom-1",
@@ -196,7 +183,7 @@ describe("Template system", () => {
       expect((element.content as any).css).toContain("color: red");
     });
 
-    test("JS is appended to html for raw mode", () => {
+    it("JS is appended to html for raw mode", () => {
       const html = "<div>content</div>";
       const js = "console.log('init')";
       const fullHtml = `${html}<script>${js}<\/script>`;

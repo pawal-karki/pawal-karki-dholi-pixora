@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import {
   isAiRateLimitedError,
   isAiAuthError,
@@ -60,7 +60,7 @@ function buildAiSenderPayload() {
 
 describe("Chat API — multi-provider & Gemini", () => {
   describe("Gemini history format", () => {
-    test("maps assistant to model role", () => {
+    it("maps assistant to model role", () => {
       const history: HistoryMessage[] = [
         { role: "user", content: "Hello" },
         { role: "assistant", content: "Hi there!" },
@@ -71,18 +71,18 @@ describe("Chat API — multi-provider & Gemini", () => {
       expect(mapped[0]!.parts[0]!.text).toBe("Hello");
     });
 
-    test("wraps content in parts array", () => {
+    it("wraps content in parts array", () => {
       const mapped = mapHistoryToGeminiFormat([{ role: "user", content: "test" }]);
       expect(mapped[0]!.parts).toEqual([{ text: "test" }]);
     });
 
-    test("empty history returns empty array", () => {
+    it("empty history returns empty array", () => {
       expect(mapHistoryToGeminiFormat([])).toEqual([]);
     });
   });
 
   describe("OpenAI history format", () => {
-    test("prepends system prompt", () => {
+    it("prepends system prompt", () => {
       const messages = mapHistoryToOpenAIFormat("You are helpful", [
         { role: "user", content: "hi" },
       ]);
@@ -90,7 +90,7 @@ describe("Chat API — multi-provider & Gemini", () => {
       expect(messages[1]).toEqual({ role: "user", content: "hi" });
     });
 
-    test("maps assistant role correctly", () => {
+    it("maps assistant role correctly", () => {
       const messages = mapHistoryToOpenAIFormat("sys", [
         { role: "assistant", content: "response" },
       ]);
@@ -99,7 +99,7 @@ describe("Chat API — multi-provider & Gemini", () => {
   });
 
   describe("Anthropic history format", () => {
-    test("maps roles to user/assistant only", () => {
+    it("maps roles to user/assistant only", () => {
       const mapped = mapHistoryToAnthropicFormat([
         { role: "user", content: "q" },
         { role: "assistant", content: "a" },
@@ -112,70 +112,70 @@ describe("Chat API — multi-provider & Gemini", () => {
   });
 
   describe("provider resolution", () => {
-    test("null defaults to openai", () => {
+    it("null defaults to openai", () => {
       expect(resolveProvider(null)).toBe("openai");
     });
-    test("gemini stays gemini", () => {
+    it("gemini stays gemini", () => {
       expect(resolveProvider("gemini")).toBe("gemini");
     });
-    test("anthropic stays anthropic", () => {
+    it("anthropic stays anthropic", () => {
       expect(resolveProvider("anthropic")).toBe("anthropic");
     });
-    test("groq stays groq", () => {
+    it("groq stays groq", () => {
       expect(resolveProvider("groq")).toBe("groq");
     });
   });
 
   describe("model resolution", () => {
-    test("override takes priority", () => {
+    it("override takes priority", () => {
       expect(resolveModel("custom-model", "db-model", "openai")).toBe("custom-model");
     });
-    test("db model used when no override", () => {
+    it("db model used when no override", () => {
       expect(resolveModel(undefined, "db-model", "openai")).toBe("db-model");
     });
-    test("gemini default", () => {
+    it("gemini default", () => {
       expect(resolveModel(undefined, "", "gemini")).toBe("gemini-3.1-flash");
     });
-    test("anthropic default", () => {
+    it("anthropic default", () => {
       expect(resolveModel(undefined, "", "anthropic")).toBe("claude-sonnet-4-6");
     });
-    test("groq default", () => {
+    it("groq default", () => {
       expect(resolveModel(undefined, "", "groq")).toBe("llama-3.3-70b-instruct");
     });
-    test("openai default", () => {
+    it("openai default", () => {
       expect(resolveModel(undefined, "", "openai")).toBe("gpt-5.2");
     });
   });
 
   describe("AI error classification for all providers", () => {
-    test("Gemini 429 quota exceeded", () => {
+    it("Gemini 429 quota exceeded", () => {
       expect(isAiRateLimitedError({ status: 429, message: "Quota exceeded" })).toBe(true);
     });
-    test("OpenAI Too Many Requests", () => {
+    it("OpenAI Too Many Requests", () => {
       expect(isAiRateLimitedError({ message: "Too Many Requests" })).toBe(true);
     });
-    test("quota exceeded message", () => {
+    it("quota exceeded message", () => {
       expect(isAiRateLimitedError({ message: "You have exceeded your quota" })).toBe(true);
     });
-    test("Groq rate limit", () => {
+    it("Groq rate limit", () => {
       expect(isAiRateLimitedError({ statusCode: 429, message: "" })).toBe(true);
     });
-    test("invalid API key auth error", () => {
+    it("invalid API key auth error", () => {
       expect(isAiAuthError({ status: 401, message: "" })).toBe(true);
     });
-    test("incorrect API key message", () => {
+    it("incorrect API key message", () => {
       expect(isAiAuthError({ message: "Incorrect API key provided" })).toBe(true);
     });
-    test("model not found error", () => {
+    it("model not found error", () => {
       expect(isAiModelNotFoundError({ message: "model not found" })).toBe(true);
     });
-    test("model does not exist", () => {
+    it("model does not exist", () => {
       expect(isAiModelNotFoundError({ message: "The model `xyz` does not exist" })).toBe(true);
     });
   });
 
   describe("AI sender payload", () => {
-    test("has correct shape for Pusher event", () => {
+    it("has correct shape for Pusher event", () => {
       const sender = buildAiSenderPayload();
       expect(sender.id).toBe("ai-assistant");
       expect(sender.name).toBe("AI Assistant");

@@ -1,25 +1,14 @@
 "use client";
 
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-    FormDescription,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { useModal } from "@/providers/modal-provider";
 import { toast } from "@/hooks/use-toast";
 import FileUpload from "@/components/global/file-upload";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Loader2, CreditCard, AlertCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import {
     Select,
     SelectContent,
@@ -44,37 +33,24 @@ interface ProductFormProps {
     };
 }
 
-const formSchema = z.object({
-    name: z.string().min(1, { message: "Name is required" }),
-    price: z.string().min(1, { message: "Price is required" }),
-    description: z.string().optional(),
-    image: z.string().optional(),
-    recurring: z.string().optional(),
-    currency: z.string().default("NPR"),
-});
-
 export const ProductForm = ({ subaccountId, defaultData }: ProductFormProps) => {
     const { setClose } = useModal();
     const router = useRouter();
+
+    const [name, setName] = useState(defaultData?.name || "");
+    const [price, setPrice] = useState(defaultData?.price || "");
+    const [description, setDescription] = useState(defaultData?.description || "");
+    const [image, setImage] = useState(defaultData?.image || "");
+    const [recurring, setRecurring] = useState(defaultData?.recurring || "one_time");
+    const [currency, setCurrency] = useState(defaultData?.currency || "NPR");
+
+    const [isLoading, setIsLoading] = useState(false);
     const [stripeConnected, setStripeConnected] = useState<boolean | null>(null);
     const [checkingStripe, setCheckingStripe] = useState(true);
+    const [errors, setErrors] = useState<Record<string, string>>({});
 
-    const form = useForm<z.infer<typeof formSchema>>({
-        resolver: zodResolver(formSchema),
-        defaultValues: {
-            name: defaultData?.name || "",
-            price: defaultData?.price || "",
-            description: defaultData?.description || "",
-            image: defaultData?.image || "",
-            recurring: defaultData?.recurring || "one_time",
-            currency: defaultData?.currency || "NPR",
-        },
-    });
-
-    const isLoading = form.formState.isSubmitting;
     const isEditing = !!defaultData?.id;
 
-    // Check if Stripe is connected
     useEffect(() => {
         const checkStripeConnection = async () => {
             try {
@@ -90,55 +66,34 @@ export const ProductForm = ({ subaccountId, defaultData }: ProductFormProps) => 
         checkStripeConnection();
     }, [subaccountId]);
 
-    useEffect(() => {
-        if (defaultData) {
-            form.reset({
-                name: defaultData.name,
-                price: defaultData.price,
-                description: defaultData.description || "",
-                image: defaultData.image || "",
-                recurring: defaultData.recurring || "one_time",
-                currency: defaultData.currency || "NPR",
-            });
-        }
-    }, [defaultData, form]);
+    const validate = (): boolean => {
+        const newErrors: Record<string, string> = {};
+        if (!name.trim()) newErrors.name = "Name is required";
+        if (!price.trim()) newErrors.price = "Price is required";
+        else if (isNaN(Number(price)) || Number(price) < 0) newErrors.price = "Enter a valid price";
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
 
-    const handleSubmit = async (formValues: z.infer<typeof formSchema>) => {
-        const values = formValues;
+    const onSubmit = async (e: FormEvent) => {
+        e.preventDefault();
+        if (!validate()) return;
 
-        if (!subaccountId) {
-            toast({
-                variant: "destructive",
-                title: "Error",
-                description: "Subaccount ID is missing. Please reload the page.",
-            });
-            return;
-        }
-
-        const priceStr = values.price?.toString() || "";
-        if (!priceStr || priceStr === "undefined") {
-            toast({
-                variant: "destructive",
-                title: "Error",
-                description: "Price is required.",
-            });
-            return;
-        }
-
+        setIsLoading(true);
         try {
             if (isEditing) {
                 const res = await fetch(`/api/stripe/products`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
-                        productId: defaultData.id,
+                        productId: defaultData!.id,
                         subAccountId: subaccountId,
-                        name: values.name,
-                        price: priceStr,
-                        description: values.description,
-                        image: values.image,
-                        recurring: values.recurring,
-                        currency: values.currency,
+                        name: name.trim(),
+                        price: price.trim(),
+                        description: description.trim(),
+                        image: image || "",
+                        recurring,
+                        currency,
                     }),
                 });
 
@@ -152,18 +107,17 @@ export const ProductForm = ({ subaccountId, defaultData }: ProductFormProps) => 
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         subAccountId: subaccountId,
-                        name: values.name,
-                        price: priceStr,
-                        description: values.description,
-                        image: values.image,
-                        recurring: values.recurring === "one_time" ? null : values.recurring,
-                        currency: values.currency,
+                        name: name.trim(),
+                        price: price.trim(),
+                        description: description.trim(),
+                        image: image || "",
+                        recurring: recurring === "one_time" ? null : recurring,
+                        currency,
                         localOnly: !stripeConnected,
                     }),
                 });
 
                 const data = await res.json();
-
                 if (!res.ok) {
                     throw new Error(data.error || "Failed to create product");
                 }
@@ -187,6 +141,8 @@ export const ProductForm = ({ subaccountId, defaultData }: ProductFormProps) => 
                 title: "Error",
                 description: error.message || "Could not save product",
             });
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -199,171 +155,131 @@ export const ProductForm = ({ subaccountId, defaultData }: ProductFormProps) => 
     }
 
     return (
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-                {!stripeConnected && !isEditing && (
-                    <Alert className="border-amber-500 bg-amber-50 dark:bg-amber-950">
-                        <AlertCircle className="h-4 w-4 text-amber-500" />
-                        <AlertDescription className="text-amber-700 dark:text-amber-300 text-sm">
-                            <strong>Stripe not connected.</strong> Product will be created locally.
-                            Connect Stripe in Launchpad to enable customer checkout.
-                        </AlertDescription>
-                    </Alert>
-                )}
-                <FormField
-                    disabled={isLoading}
-                    control={form.control}
-                    name="image"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Product Image</FormLabel>
-                            <FormControl>
-                                <FileUpload
-                                    apiEndpoint="subAccountLogo"
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
+        <form onSubmit={onSubmit} className="space-y-4">
+            {!stripeConnected && !isEditing && (
+                <Alert className="border-amber-500 bg-amber-50 dark:bg-amber-950">
+                    <AlertCircle className="h-4 w-4 text-amber-500" />
+                    <AlertDescription className="text-amber-700 dark:text-amber-300 text-sm">
+                        <strong>Stripe not connected.</strong> Product will be created locally.
+                        Connect Stripe in Launchpad to enable customer checkout.
+                    </AlertDescription>
+                </Alert>
+            )}
+
+            <div className="space-y-1.5">
+                <Label>Product Image</Label>
+                <FileUpload
+                    apiEndpoint="subAccountLogo"
+                    value={image}
+                    onChange={(url) => setImage(url || "")}
                 />
-                <FormField
+            </div>
+
+            <div className="space-y-1.5">
+                <Label htmlFor="product-name">Product Name</Label>
+                <Input
+                    id="product-name"
+                    placeholder="e.g. Website Design Package"
+                    value={name}
+                    onChange={(e) => {
+                        setName(e.target.value);
+                        if (errors.name) setErrors((prev) => ({ ...prev, name: "" }));
+                    }}
                     disabled={isLoading}
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Product Name</FormLabel>
-                            <FormControl>
-                                <Input placeholder="e.g. Website Design Package" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
                 />
-                <div className="grid grid-cols-2 gap-4">
-                    <FormField
+                {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                    <Label htmlFor="product-price">Price</Label>
+                    <Input
+                        id="product-price"
+                        type="text"
+                        inputMode="decimal"
+                        placeholder="999.00"
+                        value={price}
+                        onChange={(e) => {
+                            setPrice(e.target.value);
+                            if (errors.price) setErrors((prev) => ({ ...prev, price: "" }));
+                        }}
                         disabled={isLoading}
-                        control={form.control}
-                        name="price"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Price</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        type="number"
-                                        step="0.01"
-                                        placeholder="999.00"
-                                        value={field.value ?? ""}
-                                        onChange={(e) => field.onChange(e.target.value)}
-                                        onBlur={field.onBlur}
-                                        name={field.name}
-                                        ref={field.ref}
-                                        disabled={field.disabled}
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
                     />
-                    <FormField
-                        disabled={isLoading}
-                        control={form.control}
-                        name="currency"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Currency</FormLabel>
-                                <Select
-                                    disabled={isLoading || isEditing}
-                                    onValueChange={field.onChange}
-                                    value={field.value}
-                                >
-                                    <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select currency" />
-                                        </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        <SelectItem value="NPR">NPR (रू)</SelectItem>
-                                        <SelectItem value="USD">USD ($)</SelectItem>
-                                        <SelectItem value="EUR">EUR (€)</SelectItem>
-                                        <SelectItem value="GBP">GBP (£)</SelectItem>
-                                        <SelectItem value="INR">INR (₹)</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                    {errors.price && <p className="text-sm text-destructive">{errors.price}</p>}
                 </div>
-                <FormField
+
+                <div className="space-y-1.5">
+                    <Label>Currency</Label>
+                    <Select
+                        disabled={isLoading || isEditing}
+                        onValueChange={setCurrency}
+                        value={currency}
+                    >
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select currency" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="NPR">NPR (रू)</SelectItem>
+                            <SelectItem value="USD">USD ($)</SelectItem>
+                            <SelectItem value="EUR">EUR (€)</SelectItem>
+                            <SelectItem value="GBP">GBP (£)</SelectItem>
+                            <SelectItem value="INR">INR (₹)</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+            </div>
+
+            <div className="space-y-1.5">
+                <Label>Billing Type</Label>
+                <Select
                     disabled={isLoading || isEditing}
-                    control={form.control}
-                    name="recurring"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Billing Type</FormLabel>
-                            <Select
-                                disabled={isLoading || isEditing}
-                                onValueChange={field.onChange}
-                                value={field.value}
-                            >
-                                <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select billing type" />
-                                    </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    <SelectItem value="one_time">One-time payment</SelectItem>
-                                    <SelectItem value="month">Monthly subscription</SelectItem>
-                                    <SelectItem value="year">Yearly subscription</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <FormDescription>
-                                Choose how customers will be charged
-                            </FormDescription>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <FormField
+                    onValueChange={setRecurring}
+                    value={recurring}
+                >
+                    <SelectTrigger>
+                        <SelectValue placeholder="Select billing type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="one_time">One-time payment</SelectItem>
+                        <SelectItem value="month">Monthly subscription</SelectItem>
+                        <SelectItem value="year">Yearly subscription</SelectItem>
+                    </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">Choose how customers will be charged</p>
+            </div>
+
+            <div className="space-y-1.5">
+                <Label htmlFor="product-description">Description</Label>
+                <Input
+                    id="product-description"
+                    placeholder="Brief description of your product"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
                     disabled={isLoading}
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Description</FormLabel>
-                            <FormControl>
-                                <Input placeholder="Brief description of your product" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
                 />
+            </div>
 
-                {defaultData?.stripePriceId && (
-                    <Alert>
-                        <CreditCard className="h-4 w-4" />
-                        <AlertDescription className="text-xs">
-                            Stripe Price ID: {defaultData.stripePriceId}
-                        </AlertDescription>
-                    </Alert>
+            {defaultData?.stripePriceId && (
+                <Alert>
+                    <CreditCard className="h-4 w-4" />
+                    <AlertDescription className="text-xs">
+                        Stripe Price ID: {defaultData.stripePriceId}
+                    </AlertDescription>
+                </Alert>
+            )}
+
+            <Button className="w-full mt-4" type="submit" disabled={isLoading}>
+                {isLoading ? (
+                    <Loader2 className="animate-spin mr-2" />
+                ) : (
+                    <CreditCard className="h-4 w-4 mr-2" />
                 )}
-
-                <Button className="w-full mt-4" type="submit" disabled={isLoading}>
-                    {isLoading ? (
-                        <Loader2 className="animate-spin mr-2" />
-                    ) : (
-                        <CreditCard className="h-4 w-4 mr-2" />
-                    )}
-                    {isLoading
-                        ? "Creating in Stripe..."
-                        : isEditing
-                            ? "Update Product"
-                            : "Create Product"}
-                </Button>
-            </form>
-        </Form>
+                {isLoading
+                    ? "Saving..."
+                    : isEditing
+                        ? "Update Product"
+                        : "Create Product"}
+            </Button>
+        </form>
     );
 };

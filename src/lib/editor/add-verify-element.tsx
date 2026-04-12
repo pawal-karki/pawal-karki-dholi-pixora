@@ -9,10 +9,20 @@ export const addVerifyElement = (
   id: string,
   dispatch: (value: EditorAction) => void,
   device: "Desktop" | "Mobile" | "Tablet" = "Desktop",
-  extraData?: { imageUrl?: string; imageName?: string; html?: string; css?: string; iconName?: string }
+  extraData?: {
+    imageUrl?: string;
+    imageName?: string;
+    html?: string;
+    css?: string;
+    iconName?: string;
+  },
 ) => {
   // Handle template types (EditorElement-based generators)
-  if (typeof componentType === "string" && componentType.startsWith("template__") && !componentType.startsWith("template__html__")) {
+  if (
+    typeof componentType === "string" &&
+    componentType.startsWith("template__") &&
+    !componentType.startsWith("template__html__")
+  ) {
     const generator = TEMPLATE_GENERATORS[componentType];
     if (generator) {
       dispatch({
@@ -28,7 +38,10 @@ export const addVerifyElement = (
 
   // Handle raw HTML/CSS template injection
   // These are stored externally and passed via extraData.html + extraData.css
-  if (typeof componentType === "string" && componentType.startsWith("template__html__")) {
+  if (
+    typeof componentType === "string" &&
+    componentType.startsWith("template__html__")
+  ) {
     dispatch({
       type: "ADD_ELEMENT",
       payload: {
@@ -108,7 +121,9 @@ export const addVerifyElement = (
           containerId: id,
           elementDetails: {
             content: {
-              src: extraData?.imageUrl || "https://cdn.pixabay.com/photo/2016/05/05/02/37/sunset-1373171_1280.jpg",
+              src:
+                extraData?.imageUrl ||
+                "https://s.greattibettour.com/photos/202008/nepal-political-map-07562.jpg",
               alt: extraData?.imageName || "Image description",
             },
             id: uuidv4(),
@@ -375,7 +390,7 @@ export const addVerifyElement = (
           containerId: id,
           elementDetails: {
             content: {
-              html: "<div style=\"padding:20px;background:#f3f4f6;border-radius:8px;\"><h2 style=\"margin:0 0 8px;font-size:18px;\">Custom HTML Block</h2><p style=\"margin:0;color:#6b7280;\">Edit your HTML in the settings panel</p></div>",
+              html: '<div style="padding:20px;background:#f3f4f6;border-radius:8px;"><h2 style="margin:0 0 8px;font-size:18px;">Custom HTML Block</h2><p style="margin:0;color:#6b7280;">Edit your HTML in the settings panel</p></div>',
               css: "",
             },
             id: uuidv4(),

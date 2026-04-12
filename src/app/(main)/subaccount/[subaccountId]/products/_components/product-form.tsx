@@ -115,6 +115,16 @@ export const ProductForm = ({ subaccountId, defaultData }: ProductFormProps) => 
             return;
         }
 
+        const priceStr = values.price?.toString() || "";
+        if (!priceStr || priceStr === "undefined") {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Price is required.",
+            });
+            return;
+        }
+
         try {
             if (isEditing) {
                 const res = await fetch(`/api/stripe/products`, {
@@ -124,7 +134,7 @@ export const ProductForm = ({ subaccountId, defaultData }: ProductFormProps) => 
                         productId: defaultData.id,
                         subAccountId: subaccountId,
                         name: values.name,
-                        price: String(values.price),
+                        price: priceStr,
                         description: values.description,
                         image: values.image,
                         recurring: values.recurring,
@@ -137,21 +147,19 @@ export const ProductForm = ({ subaccountId, defaultData }: ProductFormProps) => 
                     throw new Error(error.error || "Failed to update product");
                 }
             } else {
-                const payload = {
-                    subAccountId: subaccountId,
-                    name: values.name,
-                    price: String(values.price),
-                    description: values.description,
-                    image: values.image,
-                    recurring: values.recurring === "one_time" ? null : values.recurring,
-                    currency: values.currency,
-                    localOnly: !stripeConnected,
-                };
-
                 const res = await fetch(`/api/stripe/products`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload),
+                    body: JSON.stringify({
+                        subAccountId: subaccountId,
+                        name: values.name,
+                        price: priceStr,
+                        description: values.description,
+                        image: values.image,
+                        recurring: values.recurring === "one_time" ? null : values.recurring,
+                        currency: values.currency,
+                        localOnly: !stripeConnected,
+                    }),
                 });
 
                 const data = await res.json();
@@ -247,7 +255,12 @@ export const ProductForm = ({ subaccountId, defaultData }: ProductFormProps) => 
                                         type="number"
                                         step="0.01"
                                         placeholder="999.00"
-                                        {...field}
+                                        value={field.value ?? ""}
+                                        onChange={(e) => field.onChange(e.target.value)}
+                                        onBlur={field.onBlur}
+                                        name={field.name}
+                                        ref={field.ref}
+                                        disabled={field.disabled}
                                     />
                                 </FormControl>
                                 <FormMessage />

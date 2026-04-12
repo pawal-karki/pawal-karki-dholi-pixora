@@ -250,6 +250,61 @@ export async function POST(req: NextRequest) {
 }
 
 /**
+ * PUT - Update a product in local DB
+ */
+export async function PUT(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const { productId, subAccountId, name, price, description, image, recurring, currency } = body;
+
+    if (!productId || !subAccountId) {
+      return NextResponse.json(
+        { error: "productId and subAccountId are required" },
+        { status: 400 }
+      );
+    }
+
+    const existing = await db.product.findUnique({
+      where: { id: productId },
+    });
+
+    if (!existing) {
+      return NextResponse.json(
+        { error: "Product not found" },
+        { status: 404 }
+      );
+    }
+
+    const truncatedDescription = description && description.length > 1000
+      ? description.substring(0, 1000)
+      : description;
+
+    const updatedProduct = await db.product.update({
+      where: { id: productId },
+      data: {
+        ...(name !== undefined && { name }),
+        ...(price !== undefined && price !== null && { price: String(price) }),
+        ...(description !== undefined && { description: truncatedDescription }),
+        ...(image !== undefined && { image }),
+        ...(recurring !== undefined && { recurring }),
+        ...(currency !== undefined && { currency: currency.toUpperCase() }),
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      product: updatedProduct,
+    });
+  } catch (error: any) {
+    console.error("Error updating product:", error);
+    return NextResponse.json(
+      { error: error.message || "Failed to update product" },
+      { status: 500 }
+    );
+  }
+}
+
+/**
  * DELETE - Delete a product from Stripe and local DB
  */
 export async function DELETE(req: NextRequest) {

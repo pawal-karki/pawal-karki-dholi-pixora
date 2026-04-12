@@ -104,12 +104,19 @@ export const ProductForm = ({ subaccountId, defaultData }: ProductFormProps) => 
     }, [defaultData, form]);
 
     const handleSubmit = async (formValues: z.infer<typeof formSchema>) => {
-        // Use formValues directly for cleaner code
         const values = formValues;
+
+        if (!subaccountId) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Subaccount ID is missing. Please reload the page.",
+            });
+            return;
+        }
 
         try {
             if (isEditing) {
-                // For editing, update local DB only (Stripe products can't be easily updated)
                 const res = await fetch(`/api/stripe/products`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
@@ -117,7 +124,7 @@ export const ProductForm = ({ subaccountId, defaultData }: ProductFormProps) => 
                         productId: defaultData.id,
                         subAccountId: subaccountId,
                         name: values.name,
-                        price: values.price,
+                        price: String(values.price),
                         description: values.description,
                         image: values.image,
                         recurring: values.recurring,
@@ -130,20 +137,21 @@ export const ProductForm = ({ subaccountId, defaultData }: ProductFormProps) => 
                     throw new Error(error.error || "Failed to update product");
                 }
             } else {
-                // Create new product (with Stripe if connected, otherwise local only)
+                const payload = {
+                    subAccountId: subaccountId,
+                    name: values.name,
+                    price: String(values.price),
+                    description: values.description,
+                    image: values.image,
+                    recurring: values.recurring === "one_time" ? null : values.recurring,
+                    currency: values.currency,
+                    localOnly: !stripeConnected,
+                };
+
                 const res = await fetch(`/api/stripe/products`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        subAccountId: subaccountId,
-                        name: values.name,
-                        price: values.price,
-                        description: values.description,
-                        image: values.image,
-                        recurring: values.recurring === "one_time" ? null : values.recurring,
-                        currency: values.currency,
-                        localOnly: !stripeConnected,
-                    }),
+                    body: JSON.stringify(payload),
                 });
 
                 const data = await res.json();

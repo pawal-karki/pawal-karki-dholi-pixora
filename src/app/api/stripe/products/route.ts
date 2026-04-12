@@ -115,9 +115,16 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { subAccountId, name, price, description, image, recurring, currency = "npr", localOnly } = body;
 
-    if (!subAccountId || !name || !price) {
+    console.log("[Products API] POST body:", { subAccountId, name, price, currency, localOnly });
+
+    const missing: string[] = [];
+    if (!subAccountId) missing.push("subAccountId");
+    if (!name) missing.push("name");
+    if (price === undefined || price === null || price === "") missing.push("price");
+
+    if (missing.length > 0) {
       return NextResponse.json(
-        { error: "subAccountId, name, and price are required" },
+        { error: `Missing required fields: ${missing.join(", ")}` },
         { status: 400 }
       );
     }
@@ -135,12 +142,14 @@ export async function POST(req: NextRequest) {
       ? description.substring(0, 1000)
       : description;
 
+    const priceValue = String(price);
+
     // If localOnly flag or no Stripe Connect, create local product only
     if (localOnly || !hasStripeConnect) {
       const localProduct = await db.product.create({
         data: {
           name,
-          price,
+          price: priceValue,
           description: truncatedDescription,
           image,
           recurring,
@@ -172,7 +181,7 @@ export async function POST(req: NextRequest) {
     );
 
     // Create price in Stripe
-    const priceInCents = Math.round(parseFloat(price) * 100);
+    const priceInCents = Math.round(parseFloat(priceValue) * 100);
     const stripePrice = await stripe.prices.create(
       {
         product: stripeProduct.id,
@@ -204,7 +213,7 @@ export async function POST(req: NextRequest) {
     const localProduct = await db.product.create({
       data: {
         name,
-        price,
+        price: priceValue,
         description: truncatedDescription,
         image,
         stripeProductId: stripeProduct.id,
